@@ -4,6 +4,7 @@
     "name": "Beast Horde (70% Beast)",
     "generalId": "dragon",
     "formation": "wedge",
+    "color": "#d5423a",
     "squads": [
       {
         "name": "Talons",
@@ -92,6 +93,7 @@
     "name": "Human Legion (70% Human)",
     "generalId": "paladin",
     "formation": "line",
+    "color": "#e0b030",
     "squads": [
       {
         "name": "Bows",
@@ -188,6 +190,7 @@
     "name": "Mixed Host (50/50)",
     "generalId": "dragon",
     "formation": "line",
+    "color": "#8a4fd8",
     "squads": [
       {
         "name": "Archers",
@@ -252,6 +255,7 @@
     "name": "Beast Wall (60% Beast)",
     "generalId": "paladin",
     "formation": "guard",
+    "color": "#e8742a",
     "squads": [
       {
         "name": "Wolves",
@@ -348,6 +352,7 @@
     "name": "Human Skirmishers (60% Human)",
     "generalId": "dragon",
     "formation": "wedge",
+    "color": "#1fb5a8",
     "squads": [
       {
         "name": "Rogues",

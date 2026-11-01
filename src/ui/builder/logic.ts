@@ -1,8 +1,9 @@
 // Pure loadout logic: validation, sanitization, conversion to sim input, composition, matchups,
 // and bulk-edit helpers. No DOM. Fully unit-tested.
 import type { GameData } from '../../data';
-import type { ClassId, Loadout, Squad, Troop } from '../../data/schemas';
+import type { ClassId, Disposition, Loadout, Squad, Troop } from '../../data/schemas';
 import type { SideSetup, SquadSetup, TroopSetup } from '../../sim/types';
+import { DEFAULT_PLAYER_COLOR, resolveSideColors } from '../../data/colors';
 
 export interface ValidationError {
   code: 'tooFewSquads' | 'tooManySquads' | 'squadTooSmall' | 'companyTooLarge' | 'duplicateTroop' | 'missingTroop' | 'stage3Troop' | 'emptyRoster';
@@ -81,14 +82,15 @@ export function sanitizeLoadout(loadout: Loadout, roster: Troop[]): { loadout: L
 
 export function loadoutToSideSetup(loadout: Loadout, roster: Troop[], formationId: string): SideSetup {
   const byId = rosterById(roster);
-  const squads: SquadSetup[] = loadout.squads.map((squad: Squad) => {
+  const colors = resolveSideColors(loadout.color, loadout.squads.map((s) => s.color), DEFAULT_PLAYER_COLOR);
+  const squads: SquadSetup[] = loadout.squads.map((squad: Squad, i: number) => {
     const troops: TroopSetup[] = squad.troopIds
       .map((id: string) => byId.get(id))
       .filter((t): t is Troop => Boolean(t))
       .map((t: Troop) => ({ troopId: t.id, name: t.name, unitId: t.unitId }));
-    return { id: squad.id, name: squad.name, disposition: squad.disposition, troops };
+    return { id: squad.id, name: squad.name, disposition: squad.disposition, troops, color: colors.squads[i] };
   });
-  return { generalId: loadout.generalId, formationId, squads };
+  return { generalId: loadout.generalId, formationId, squads, color: colors.team };
 }
 
 /** Per-class troop counts across the whole loadout. */
@@ -188,4 +190,211 @@ const DISPOSITION_CYCLE = ['fierce', 'mixed', 'guard'] as const;
 export function cycleDisposition(current: Squad['disposition']): Squad['disposition'] {
   const idx = DISPOSITION_CYCLE.indexOf(current);
   return DISPOSITION_CYCLE[(idx + 1) % DISPOSITION_CYCLE.length]!;
+}
+
+// ---- Composition-first engine (§2.6 redesign) ----
+// Source of truth is each squad's `composition` (unitId -> desired count). `pinned` troop ids are
+// never swapped out; everything else is filled deterministically from the roster. Stability: a
+// previously-assigned, still-alive, unpinned troop of a unit that's still in the composition and
+// within its count stays put; adjusting one unit's count never reshuffles other troops.
+
+export interface Shortfall {
+  squadId: string;
+  unitId: string;
+  missing: number;
+}
+
+export interface ResolveResult {
+  loadout: Loadout;
+  shortfalls: Shortfall[];
+  /** Slots refilled because a previously assigned troop no longer exists (died). */
+  replaced: number;
+}
+
+/** Legacy squads (no `composition`) derive one from their current troopIds. */
+export function deriveComposition(squad: Squad): Record<string, number> {
+  if (squad.composition) return { ...squad.composition };
+  // troopIds alone don't carry unitId; callers with a roster should prefer deriveCompositionFromRoster.
+  return {};
+}
+
+function derivedCompositionFromRoster(squad: Squad, byId: Map<string, Troop>): Record<string, number> {
+  if (squad.composition) return { ...squad.composition };
+  const comp: Record<string, number> = {};
+  for (const id of squad.troopIds) {
+    const t = byId.get(id);
+    if (!t) continue;
+    comp[t.unitId] = (comp[t.unitId] ?? 0) + 1;
+  }
+  return comp;
+}
+
+export function resolveLoadout(loadout: Loadout, roster: Troop[], data: GameData): ResolveResult {
+  void data;
+  const byId = rosterById(roster);
+  const assignedGlobal = new Set<string>();
+  const shortfalls: Shortfall[] = [];
+  let replaced = 0;
+
+  const resultSquads: Squad[] = loadout.squads.map((squad) => {
+    const comp = derivedCompositionFromRoster(squad, byId);
+    const pinnedIds = (squad.pinned ?? []).filter((id) => byId.has(id));
+    const pinnedSet = new Set(pinnedIds);
+
+    // Raise counts so pinned troops always fit, even if above the stated composition.
+    for (const pid of pinnedIds) {
+      const unitId = byId.get(pid)!.unitId;
+      const pinnedForUnit = pinnedIds.filter((id) => byId.get(id)!.unitId === unitId).length;
+      comp[unitId] = Math.max(comp[unitId] ?? 0, pinnedForUnit);
+    }
+
+    const deadOldCount = squad.troopIds.filter((id) => !byId.has(id)).length;
+
+    const unitIds = Object.keys(comp).filter((u) => (comp[u] ?? 0) > 0);
+    const keptBySquad: string[] = [];
+    let missingBySquad = 0;
+
+    for (const unitId of unitIds) {
+      const target = comp[unitId] ?? 0;
+      // Old troopIds for this unit, alive, in original order (stability).
+      const oldForUnit = squad.troopIds.filter((id) => byId.get(id)?.unitId === unitId);
+      const pinnedForUnit = oldForUnit.filter((id) => pinnedSet.has(id));
+      const unpinnedForUnit = oldForUnit.filter((id) => !pinnedSet.has(id));
+      let kept = [...pinnedForUnit, ...unpinnedForUnit];
+      if (kept.length > target) {
+        // Trim unpinned, most-recently-added first (end of the unpinned list).
+        const overflow = kept.length - target;
+        const keepUnpinnedCount = Math.max(0, unpinnedForUnit.length - overflow);
+        const trimmedUnpinned = unpinnedForUnit.slice(0, keepUnpinnedCount);
+        kept = [...pinnedForUnit, ...trimmedUnpinned];
+      }
+      for (const id of kept) assignedGlobal.add(id);
+      keptBySquad.push(...kept);
+      const missing = Math.max(0, target - kept.length);
+      if (missing > 0) {
+        missingBySquad += missing;
+        const pool = roster.filter((t) => t.unitId === unitId && !assignedGlobal.has(t.id));
+        const fill = pool.slice(0, missing);
+        for (const t of fill) assignedGlobal.add(t.id);
+        keptBySquad.push(...fill.map((t) => t.id));
+        if (fill.length < missing) {
+          shortfalls.push({ squadId: squad.id, unitId, missing: missing - fill.length });
+        }
+      }
+    }
+
+    replaced += Math.min(deadOldCount, missingBySquad);
+
+    return { ...squad, troopIds: keptBySquad, composition: comp, pinned: pinnedIds };
+  });
+
+  return { loadout: { ...loadout, squads: resultSquads }, shortfalls, replaced };
+}
+
+export function setUnitCount(loadout: Loadout, squadId: string, unitId: string, n: number): Loadout {
+  const count = Math.max(0, Math.round(n));
+  return {
+    ...loadout,
+    squads: loadout.squads.map((s) => {
+      if (s.id !== squadId) return s;
+      const comp = { ...(s.composition ?? {}) };
+      if (count === 0) delete comp[unitId];
+      else comp[unitId] = count;
+      return { ...s, composition: comp };
+    }),
+  };
+}
+
+export function addUnitRow(loadout: Loadout, squadId: string, unitId: string, initialCount = 1): Loadout {
+  return {
+    ...loadout,
+    squads: loadout.squads.map((s) => {
+      if (s.id !== squadId) return s;
+      const comp = { ...(s.composition ?? {}) };
+      if (!(unitId in comp)) comp[unitId] = initialCount;
+      return { ...s, composition: comp };
+    }),
+  };
+}
+
+export function removeUnitRow(loadout: Loadout, squadId: string, unitId: string): Loadout {
+  return {
+    ...loadout,
+    squads: loadout.squads.map((s) => {
+      if (s.id !== squadId) return s;
+      const comp = { ...(s.composition ?? {}) };
+      delete comp[unitId];
+      return { ...s, composition: comp };
+    }),
+  };
+}
+
+/** Pins a specific troop into a squad: removes it from any other squad's roster and composition
+ * bookkeeping, adds it to the target squad's pinned list and bumps that unit's count if needed. */
+export function pinTroop(loadout: Loadout, squadId: string, troopId: string, roster: Troop[]): Loadout {
+  const troop = roster.find((t) => t.id === troopId);
+  if (!troop) return loadout;
+  const squads = loadout.squads.map((s) => {
+    const hadTroop = s.troopIds.includes(troopId);
+    const withoutTroop = { ...s, pinned: (s.pinned ?? []).filter((id) => id !== troopId), troopIds: s.troopIds.filter((id) => id !== troopId) };
+    if (s.id !== squadId) {
+      if (hadTroop && s.composition && (s.composition[troop.unitId] ?? 0) > 0) {
+        const pinnedForUnit = withoutTroop.pinned.filter((id) => roster.find((t) => t.id === id)?.unitId === troop.unitId).length;
+        const comp = { ...withoutTroop.composition! };
+        comp[troop.unitId] = Math.max(pinnedForUnit, (comp[troop.unitId] ?? 0) - 1);
+        return { ...withoutTroop, composition: comp };
+      }
+      return withoutTroop;
+    }
+    const pinned = [...withoutTroop.pinned, troopId];
+    const comp = { ...(withoutTroop.composition ?? {}) };
+    const pinnedForUnit = pinned.filter((id) => roster.find((t) => t.id === id)?.unitId === troop.unitId).length;
+    comp[troop.unitId] = Math.max(comp[troop.unitId] ?? 0, pinnedForUnit);
+    return { ...withoutTroop, pinned, composition: comp };
+  });
+  return { ...loadout, squads };
+}
+
+export function unpinTroop(loadout: Loadout, squadId: string, troopId: string): Loadout {
+  return {
+    ...loadout,
+    squads: loadout.squads.map((s) => (s.id === squadId ? { ...s, pinned: (s.pinned ?? []).filter((id) => id !== troopId) } : s)),
+  };
+}
+
+/** Unassigned roster troop counts per unit (troops not referenced by any squad's troopIds). */
+export function availableByUnit(loadout: Loadout, roster: Troop[]): Record<string, number> {
+  const assigned = new Set(loadout.squads.flatMap((s) => s.troopIds));
+  const counts: Record<string, number> = {};
+  for (const t of roster) {
+    if (assigned.has(t.id)) continue;
+    counts[t.unitId] = (counts[t.unitId] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export function setSquadColor(loadout: Loadout, squadId: string, color: string | undefined): Loadout {
+  return {
+    ...loadout,
+    squads: loadout.squads.map((s) => {
+      if (s.id !== squadId) return s;
+      if (color === undefined) {
+        const { color: _drop, ...rest } = s;
+        return rest as Squad;
+      }
+      return { ...s, color };
+    }),
+  };
+}
+
+export function setTeamColor(loadout: Loadout, color: string | undefined): Loadout {
+  if (color === undefined) {
+    const { color: _drop, ...rest } = loadout;
+    return rest as Loadout;
+  }
+  return { ...loadout, color };
+}
+
+export function setDisposition(loadout: Loadout, squadId: string, disposition: Disposition): Loadout {
+  return { ...loadout, squads: loadout.squads.map((s) => (s.id === squadId ? { ...s, disposition } : s)) };
 }
