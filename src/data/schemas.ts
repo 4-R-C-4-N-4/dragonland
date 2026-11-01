@@ -134,6 +134,8 @@ export const DispositionBehaviorSchema = z.object({
   }),
   mixed: z.object({
     cohesionRadius: z.number().positive(),
+    /** Fraction of move speed used to pull each member back to its formation slot. */
+    formationPull: z.number().nonnegative(),
   }),
   guard: z.object({
     leashRadius: z.number().positive(),
@@ -142,6 +144,8 @@ export const DispositionBehaviorSchema = z.object({
   separationWeight: z.number().nonnegative(),
   separationRadius: z.number().positive(),
   generalLeashSpeedFrac: z.number().positive(),
+  /** Hard body-overlap resolution passes per tick. */
+  overlapIterations: z.number().int().nonnegative(),
 });
 export type DispositionBehavior = z.infer<typeof DispositionBehaviorSchema>;
 

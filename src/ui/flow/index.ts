@@ -247,16 +247,15 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
 
     void (async () => {
       try {
-        // Non-literal specifier: avoids a static tsc module-resolution error before the
-        // parallel stream adds src/battle/view.ts (see task note on this file).
-        const battleViewPath = '../../battle/view';
-        const mod = (await import(battleViewPath)) as { startBattleView: StartBattleView };
+        // Lazy-loaded so Pixi only downloads when a battle starts.
+        const mod: { startBattleView: StartBattleView } = await import('../../battle/view');
         const view = await mod.startBattleView(battleContainer!, { data: battleData, setup, labels, onFinished: finish });
         // Keep a destroy hook reachable in case the flow is torn down mid-battle.
         (battleContainer as HTMLElement & { __view?: { destroy(): void } }).__view = view;
-      } catch {
-        // Expected until src/battle/view.ts lands from the parallel stream: fall back to a
-        // headless resolution so the flow still demonstrates end-to-end.
+      } catch (err) {
+        // The battle view failed to start (e.g. no WebGL). Resolve the battle headlessly so the
+        // player's progress is not lost, but make the failure loud.
+        console.error('Battle view failed to start; resolving headlessly.', err);
         const world = runHeadlessBattle(battleData, setup);
         finish(world);
       }

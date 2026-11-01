@@ -154,7 +154,10 @@ function moveTroop(
   }
 
   if (squad.disposition === 'mixed' && squad.command !== 'hold') {
-    const [cx, cy] = normalizeTo(squad.centroidX - ents.x[e]!, squad.centroidY - ents.y[e]!, speed * 0.3);
+    // Hold formation: steer toward this troop's slot in the squad shape (centroid + deploy offset).
+    const fx = squad.centroidX + internal.formOffX[e]! - ents.x[e]!;
+    const fy = squad.centroidY + internal.formOffY[e]! - ents.y[e]!;
+    const [cx, cy] = normalizeTo(fx, fy, Math.min(speed * data.behaviors.mixed.formationPull, Math.hypot(fx, fy) * data.constants.SIM_HZ));
     vx += cx;
     vy += cy;
   }
@@ -200,11 +203,72 @@ function runGeneral(world: World, data: GameData, internal: WorldInternal, side:
   }
 }
 
+function rebuildGrid(world: World, internal: WorldInternal): void {
+  const ents = world.ents;
+  internal.grid.clear();
+  for (let i = 0; i < ents.count; i++) if (ents.alive[i] === 1) internal.grid.insert(i, ents.x[i]!, ents.y[i]!);
+}
+
+/**
+ * Hard body-overlap resolution: no two bodies in the same domain (ground/flying) may overlap.
+ * Steering separation alone loses to seek forces once velocities are clamped, which let whole
+ * squads collapse onto one point. Fixed ascending order keeps it deterministic. Generals are
+ * immovable anchors; troops are pushed off them.
+ */
+function resolveOverlaps(world: World, data: GameData, internal: WorldInternal, flying: Uint8Array): void {
+  const ents = world.ents;
+  const buf = internal.neighborBuf;
+  const iterations = data.behaviors.overlapIterations;
+  for (let it = 0; it < iterations; it++) {
+    rebuildGrid(world, internal);
+    for (let e = 0; e < ents.count; e++) {
+      if (ents.alive[e] === 0) continue;
+      const re = profileFor(internal, e, ents).bodyRadius;
+      internal.grid.queryNeighborhood(ents.x[e]!, ents.y[e]!, buf);
+      for (const o of buf) {
+        if (o <= e || ents.alive[o] === 0 || flying[o] !== flying[e]) continue;
+        const minD = re + profileFor(internal, o, ents).bodyRadius;
+        let dx = ents.x[o]! - ents.x[e]!;
+        let dy = ents.y[o]! - ents.y[e]!;
+        let d = Math.hypot(dx, dy);
+        if (d >= minD) continue;
+        if (d < 1e-6) {
+          // Coincident: deterministic split direction from the index pair.
+          const a = ((e * 7919 + o * 104729) % 360) * (Math.PI / 180);
+          dx = Math.cos(a);
+          dy = Math.sin(a);
+          d = 1;
+        } else {
+          dx /= d;
+          dy /= d;
+        }
+        const overlap = minD - Math.min(d, minD);
+        const eFixed = ents.isGeneral[e] === 1;
+        const oFixed = ents.isGeneral[o] === 1;
+        if (eFixed && oFixed) continue;
+        const shareE = eFixed ? 0 : oFixed ? 1 : 0.5;
+        const shareO = 1 - shareE;
+        ents.x[e] = ents.x[e]! - dx * overlap * shareE;
+        ents.y[e] = ents.y[e]! - dy * overlap * shareE;
+        ents.x[o] = ents.x[o]! + dx * overlap * shareO;
+        ents.y[o] = ents.y[o]! + dy * overlap * shareO;
+      }
+    }
+  }
+  const W = data.constants.FIELD_W;
+  const H = data.constants.FIELD_H;
+  for (let e = 0; e < ents.count; e++) {
+    ents.x[e] = Math.min(W, Math.max(0, ents.x[e]!));
+    ents.y[e] = Math.min(H, Math.max(0, ents.y[e]!));
+  }
+}
+
 export function retargetAndMoveTroops(world: World, dt: number): void {
   const internal = internalOf(world);
   const data = internal.data;
   const ents = world.ents;
   const flying = flyingFlags(internal, ents);
+  rebuildGrid(world, internal);
   const retargetTicks = Math.max(1, Math.round(data.constants.RETARGET_INTERVAL_S * data.constants.SIM_HZ));
   // Alternate iteration direction by tick parity so neither side gets a persistent first-mover
   // advantage in simultaneous attack resolution (determinism preserved: still a pure function of tick).
@@ -218,6 +282,7 @@ export function retargetAndMoveTroops(world: World, dt: number): void {
     if ((world.tick + e) % retargetTicks === 0) retargetTroop(world, data, internal, e);
     moveTroop(world, data, internal, flying, e, dt);
   }
+  resolveOverlaps(world, data, internal, flying);
   for (let s = 0; s < world.squads.length; s++) {
     const squad = world.squads[s]!;
     let sx = 0;

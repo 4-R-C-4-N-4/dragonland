@@ -53,6 +53,9 @@ export interface WorldInternal {
   squadMinSpeed: number[]; // per squad index
   generalProfile: [ResolvedUnit, ResolvedUnit];
   duelRound: number;
+  /** Per-entity deploy offset from its squad slot center; Mixed squads steer to centroid + offset to hold formation. */
+  formOffX: Float64Array;
+  formOffY: Float64Array;
 }
 
 export function internalOf(world: World): WorldInternal {
@@ -96,6 +99,8 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
   for (const side of setup.sides) for (const sq of side.squads) total += sq.troops.length;
 
   const ents = makeEntities(total);
+  const formOffX = new Float64Array(total);
+  const formOffY = new Float64Array(total);
   const squads: SquadState[] = [];
   const squadMinSpeed: number[] = [];
   let cursor = 2; // indices 0,1 reserved for generals
@@ -172,6 +177,8 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
         const uIndex = unitIndexById.get(troop.unitId)!;
         const profile = unitOf[uIndex]!;
         const pos = positions[i]!;
+        formOffX[e] = pos.x - slotPos.x;
+        formOffY[e] = pos.y - slotPos.y;
         // Small seeded positional jitter so different seeds produce different first-contact
         // geometry (chaos source for headless variance) without any Math.random. DECISIONS D14.
         const jitter = data.constants.TROOP_SPACING * data.constants.JITTER_FRAC;
@@ -224,6 +231,8 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     squadMinSpeed,
     generalProfile,
     duelRound: 0,
+    formOffX,
+    formOffY,
   };
 
   const world: World = {

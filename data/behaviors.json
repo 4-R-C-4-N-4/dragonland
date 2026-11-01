@@ -4,7 +4,8 @@
     "fallBackEngageDist": 70
   },
   "mixed": {
-    "cohesionRadius": 90
+    "cohesionRadius": 90,
+    "formationPull": 0.6
   },
   "guard": {
     "leashRadius": 180,
@@ -12,5 +13,6 @@
   },
   "separationWeight": 36,
   "separationRadius": 16,
-  "generalLeashSpeedFrac": 0.6
+  "generalLeashSpeedFrac": 0.6,
+  "overlapIterations": 2
 }
