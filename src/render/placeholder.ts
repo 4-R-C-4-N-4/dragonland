@@ -29,7 +29,7 @@ export function buildPlaceholderTextures(renderer: Renderer, data: GameData): Ma
       const classDef = data.classById.get(unit.classId);
       const fill = classDef ? parseInt(classDef.color.replace('#', ''), 16) : 0x999999;
       const outline = side === 0 ? PLAYER_OUTLINE : ENEMY_OUTLINE;
-      const baseR = isGeneral ? 18 : unit.stage === 2 ? 9 : 7;
+      const baseR = isGeneral ? 24 : unit.stage === 2 ? 13 : 10;
 
       const g = new Graphics();
       lineShape(unit.line, g, baseR);
