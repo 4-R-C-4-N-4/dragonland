@@ -10,8 +10,11 @@ describe('team colours', () => {
     for (const team of TEAM_PALETTE) {
       const shades = [0, 1, 2, 3].map((i) => deriveSquadColor(team, i));
       for (let i = 0; i < 4; i++)
-        for (let j = i + 1; j < 4; j++) expect(deltaE(shades[i]!, shades[j]!)).toBeGreaterThan(6);
-      for (const s of shades) expect(deltaE(s, team)).toBeLessThan(55);
+        for (let j = i + 1; j < 4; j++) expect(deltaE(shades[i]!, shades[j]!)).toBeGreaterThan(10);
+      // Same family: shades differ from the team colour in lightness, not hue.
+      const hue = (hex: string) => { const [r, g, b] = hexToRgb(hex).map((v) => v / 255) as [number, number, number]; const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx - mn < 0.08) return null; const d = mx - mn; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
+      const h0 = hue(team);
+      if (h0 !== null) for (const sh of shades) { const h = hue(sh); if (h !== null) expect(Math.min(Math.abs(h - h0), 360 - Math.abs(h - h0))).toBeLessThan(4); }
     }
   });
 

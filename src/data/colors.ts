@@ -80,22 +80,15 @@ export function deltaE(a: string, b: string): number {
 }
 
 /**
- * Squad shades of a team colour: same family, distinguishable from each other.
- * Squad i of 4 gets a hue/lightness offset; slot 0 is the team colour itself.
+ * Squad shades of a team colour: same hue family, stepped in lightness so squads are
+ * distinguishable from each other while still reading as one team. Slot 0 is the team colour.
  */
 export function deriveSquadColor(team: string, slot: number): string {
-  const OFFSETS: [number, number][] = [
-    [0, 0],
-    [16, 0.14],
-    [-16, -0.12],
-    [8, 0.26],
-  ];
-  const [dh, dl] = OFFSETS[slot % OFFSETS.length]!;
   const [h, s, l] = rgbToHsl(hexToRgb(team));
-  // Keep lightness readable; very dark/light team colours shift the other way.
-  let nl = l + dl;
-  if (nl > 0.85 || nl < 0.18) nl = l - dl;
-  return rgbToHex(hslToRgb(h + dh, Math.min(1, s * 1.05), Math.max(0.12, Math.min(0.88, nl))));
+  const offsets = [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45];
+  const valid = offsets.filter((d) => l + d >= 0.14 && l + d <= 0.9);
+  const d = valid[slot % valid.length] ?? 0;
+  return slot === 0 ? team : rgbToHex(hslToRgb(h, s, l + d));
 }
 
 export interface SideColors {
