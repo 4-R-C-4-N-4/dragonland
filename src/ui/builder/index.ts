@@ -192,7 +192,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
             <input id="dl-autofill-count" type="number" value="25" min="1" max="${data.constants.MAX_COMPANY}" style="width:4em" />
             <button id="dl-autofill">Auto-fill by unit</button>
             <select id="dl-autofill-class">
-              ${data.classes.map((c: GameData['classes'][number]) => `<option value="${c.id}">${c.name}</option>`).join('')}
+              ${presentClasses().map((id) => `<option value="${id}">${data.classById.get(id)?.name ?? id}</option>`).join('')}
             </select>
             <button id="dl-autofill-class-btn">Auto-fill by class</button>
           </div>
@@ -271,7 +271,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
           <input type="text" class="dl-squad-name" data-squad-id="${squad.id}" value="${escapeHtml(squad.name)}" />
           <button class="dl-disposition" data-squad-id="${squad.id}" title="Cycle disposition">${dispIcon} ${squad.disposition}</button>
           <span class="dl-squad-count">${squad.troopIds.length} troops</span>
-          <button class="dl-remove-squad" data-squad-id="${squad.id}" ${loadout.squads.length <= 1 ? 'disabled' : ''}>✕ Squad</button>
+          <button class="dl-remove-squad" data-squad-id="${squad.id}" ${loadout.squads.length <= 1 ? 'disabled' : ''} title="Remove squad" aria-label="Remove squad">✕</button>
         </div>
         <div class="dl-squad-class-counts">
           ${Array.from(classCounts.entries())
