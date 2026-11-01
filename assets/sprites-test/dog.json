@@ -1,0 +1,83 @@
+{
+  "frames": [
+    {
+      "filename": "dog_idle.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "duration": 100
+    },
+    {
+      "filename": "dog_walk.png",
+      "frame": {
+        "x": 16,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "duration": 100
+    },
+    {
+      "filename": "dog_attack.png",
+      "frame": {
+        "x": 32,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "duration": 100
+    },
+    {
+      "filename": "dog_hit.png",
+      "frame": {
+        "x": 48,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "duration": 100
+    },
+    {
+      "filename": "dog_death.png",
+      "frame": {
+        "x": 64,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "duration": 100
+    }
+  ],
+  "meta": {
+    "frameTags": [
+      {
+        "name": "idle",
+        "from": 0,
+        "to": 0
+      },
+      {
+        "name": "walk",
+        "from": 1,
+        "to": 1
+      },
+      {
+        "name": "attack",
+        "from": 2,
+        "to": 2
+      },
+      {
+        "name": "hit",
+        "from": 3,
+        "to": 3
+      },
+      {
+        "name": "death",
+        "from": 4,
+        "to": 4
+      }
+    ]
+  }
+}
