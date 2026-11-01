@@ -1,0 +1,18 @@
+# Post-processing targets. Changing these only needs `npm run art -- process` (seconds, no generation).
+# Height in game pixels of the idle frame, by stage / general.
+height:
+  stage1: 32
+  stage2: 34
+  stage3: 40     # stage-3 units fielded as troops (later)
+  general: 64
+# Frame durations (ms) per animation.
+frameMs:
+  idle: 180
+  walk: 120
+  attack: 90
+  hit: 110
+  death: 140
+# Alpha threshold after downscale (0-255).
+alphaCut: 120
+# 1px outline added around every frame's silhouette (null to disable).
+outline: '#140f1c'

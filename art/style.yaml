@@ -1,0 +1,25 @@
+# Global art direction. Prefixed to EVERY generation prompt.
+# Changing this makes every asset "stale"; regenerate with `npm run art -- gen --stale`.
+style: >-
+  Pixel-art game sprite sheet in a 16-bit SNES era style (think Dragon Force, Ogre Battle,
+  Final Fantasy Tactics). Limited palette, clean 1px dark outline, no anti-aliasing, crisp pixel
+  clusters, strong readable silhouette that works at very small size, soft top-left lighting.
+camera: >-
+  Side view, the character faces RIGHT, full body visible, slight top-down tilt.
+background: >-
+  Solid flat pure magenta #FF00FF background everywhere, including between cells. No ground,
+  no cast shadows, no text, no labels, no numbers, no grid lines, no borders.
+teamCloth: >-
+  The character wears a team-colour element (tabard, sash, banner, scarf or collar, as described)
+  painted in pure flat green #00FF00 with only darker green shading. Use #00FF00 nowhere else.
+# Sheet layout requested from the model. process.ts validates it.
+layout:
+  rows: [idle, walk, attack, hit, death]
+  framesPerRow: 4
+  text: >-
+    Layout: a strict grid of 5 rows x 4 columns of equal square cells. Every cell shows the SAME
+    character at the SAME scale with feet on the same baseline. Row 1 idle (subtle breathing),
+    row 2 walk cycle, row 3 attack, row 4 taking a hit (flinch back), row 5 death (collapses and
+    lies on the ground in the last frame).
+# Raw sheet of this unit is attached as a style/scale reference to every other generation.
+anchor: soldier

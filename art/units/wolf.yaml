@@ -1,0 +1,9 @@
+# Wolf — beast, line Z, stage2. Edit, then `npm run art -- gen wolf`.
+name: Wolf
+size: stage2
+description: >-
+  An evolved Dog: a big grey dire wolf with a thick mane and scarred muzzle, leather armour plates. Same silhouette family as the Dog, larger and more detailed. Team colour: a cloth mantle over the shoulders.
+animationNotes: >-
+  Attack: savage leaping bite.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: dog

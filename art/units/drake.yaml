@@ -1,0 +1,9 @@
+# Drake — beast, line M, stage2. Edit, then `npm run art -- gen drake`.
+name: Drake
+size: stage2
+description: >-
+  An evolved Wyrm: a drake with small vestigial wings, larger horns and armoured back scales. Same silhouette family as the Wyrm, larger and more detailed. Team colour: a saddle blanket.
+animationNotes: >-
+  Attack: bite with a small puff of flame.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: wyrm

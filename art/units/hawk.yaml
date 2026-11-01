@@ -1,0 +1,9 @@
+# Hawk — beast, line A, stage2. Edit, then `npm run art -- gen hawk`.
+name: Hawk
+size: stage2
+description: >-
+  An evolved Raven: fierce war hawk, brown and cream plumage, larger talons, flying. Same silhouette family as the Raven, more detail. Team colour: a neck band and leg ribbons.
+animationNotes: >-
+  Idle and walk are flapping in the air. Attack: talon strike. Death: falls to the ground.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: raven

@@ -1,0 +1,9 @@
+# Rogue — human, line M, stage2. Edit, then `npm run art -- gen rogue`.
+name: Rogue
+size: stage2
+description: >-
+  An evolved Spy: rogue with twin daggers, hooded leather coat, more dangerous posture. Same silhouette family as the Spy, more detail. Team colour: the sash and scarf.
+animationNotes: >-
+  Attack: spinning twin-dagger slash.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: spy

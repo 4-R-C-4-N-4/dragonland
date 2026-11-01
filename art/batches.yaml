@@ -1,0 +1,5 @@
+# Generation batches, vetted one at a time in /art/review.html.
+batch1: [soldier, archer, dog]
+batch2: [spy, raven, wyrm]
+batch3: [knight, ranger, rogue, wolf, hawk, drake]
+batch4: [paladin, dragon]

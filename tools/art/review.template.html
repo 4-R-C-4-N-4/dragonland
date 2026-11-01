@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Dragonland art review</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #15181d; color: #e7e2d6; }
+  header { position: sticky; top: 0; z-index: 2; background: #1d2128; padding: 10px 16px; border-bottom: 1px solid #333a45; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  label { display: inline-flex; gap: 6px; align-items: center; }
+  .unit { padding: 12px 16px; border-bottom: 1px solid #2a2f38; }
+  .unit h2 { font-size: 15px; margin: 0 0 8px; }
+  .unit h2 small { color: #8f97a3; font-weight: normal; }
+  .cands { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cand { background: #1d2128; border: 2px solid #333a45; border-radius: 8px; padding: 8px; }
+  .cand.picked { border-color: #e0b030; }
+  .cand.old { opacity: .55; }
+  .cand .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #aab2bd; margin-bottom: 6px; }
+  .field { background: #3b5c2e; border-radius: 4px; image-rendering: pixelated; display: block; }
+  .cmd { font: 12px ui-monospace, monospace; background: #0e1014; padding: 3px 6px; border-radius: 4px; cursor: copy; user-select: all; }
+  .err { color: #ff8a7a; font-size: 12px; max-width: 420px; }
+  a { color: #8fb8ff; }
+  .tag { padding: 1px 6px; border-radius: 10px; font-size: 11px; background: #333a45; }
+  .tag.pick { background: #e0b030; color: #1a1408; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Art review</h1>
+  <label>Zoom <input id="zoom" type="range" min="1" max="6" value="3" /></label>
+  <label>Team A <input id="ca" type="color" value="#3a7bd5" /></label>
+  <label>Team B <input id="cb" type="color" value="#e0b030" /></label>
+  <label><input id="onlyCurrent" type="checkbox" checked /> current spec only</label>
+  <span style="color:#8f97a3">Each card plays idle · walk · attack · hit · death at game scale for both teams (B is mirrored, as the enemy side faces left).</span>
+</header>
+<main id="main"></main>
+<script>
+const DATA = /*DATA*/null;
+const $ = (s) => document.querySelector(s);
+const imgCache = new Map();
+function loadImg(src) {
+  if (!imgCache.has(src)) imgCache.set(src, new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }));
+  return imgCache.get(src);
+}
+function tinted(mask, hex) {
+  const c = document.createElement('canvas'); c.width = mask.width; c.height = mask.height;
+  const g = c.getContext('2d'); g.drawImage(mask, 0, 0);
+  g.globalCompositeOperation = 'multiply'; g.fillStyle = hex; g.fillRect(0, 0, c.width, c.height);
+  g.globalCompositeOperation = 'destination-in'; g.drawImage(mask, 0, 0);
+  return c;
+}
+const players = [];
+async function card(unit, cand) {
+  const el = document.createElement('div');
+  el.className = 'cand' + (cand.picked ? ' picked' : '') + (cand.current ? '' : ' old');
+  el.dataset.current = cand.current ? '1' : '0';
+  const meta = document.createElement('div'); meta.className = 'meta';
+  meta.innerHTML = `<span>${cand.file} ${cand.picked ? '<span class="tag pick">picked</span>' : ''} ${cand.current ? '' : '<span class="tag">older spec</span>'}</span><a href="${cand.raw}" target="_blank">raw</a>`;
+  el.append(meta);
+  if (cand.error || !cand.sheet) {
+    const e = document.createElement('div'); e.className = 'err'; e.textContent = cand.error || 'not processed yet — run npm run art -- process'; el.append(e);
+  } else {
+    const [json, body, mask] = await Promise.all([fetch(cand.sheet + '.json').then((r) => r.json()), loadImg(cand.sheet + '.png'), loadImg(cand.sheet + '.mask.png')]);
+    const cv = document.createElement('canvas'); cv.className = 'field'; el.append(cv);
+    players.push({ cv, json, body, mask, tints: {} });
+  }
+  const cmd = document.createElement('div'); cmd.className = 'cmd'; cmd.title = 'click to copy';
+  cmd.textContent = `npm run art -- pick ${unit.id} ${cand.file}`;
+  cmd.onclick = () => navigator.clipboard?.writeText(cmd.textContent);
+  el.append(cmd);
+  return el;
+}
+function frames(json) {
+  const list = Object.values(json.frames);
+  return Object.fromEntries(json.meta.frameTags.map((t) => [t.name, list.slice(t.from, t.to + 1)]));
+}
+function draw(t) {
+  const z = +$('#zoom').value, ca = $('#ca').value, cb = $('#cb').value;
+  for (const p of players) {
+    const anims = p.f ??= frames(p.json);
+    const names = DATA.anims;
+    const fw = p.json.frames[Object.keys(p.json.frames)[0]].frame.w, fh = p.json.frames[Object.keys(p.json.frames)[0]].frame.h;
+    const W = (fw * names.length) * z + 8, H = fh * 2 * z + 8;
+    if (p.cv.width !== W || p.cv.height !== H) { p.cv.width = W; p.cv.height = H; }
+    const g = p.cv.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, W, H);
+    for (const [row, hex, flip] of [[0, ca, false], [1, cb, true]]) {
+      const tm = p.tints[hex] ??= tinted(p.mask, hex);
+      names.forEach((name, i) => {
+        const fr = anims[name]; const total = fr.reduce((s, f) => s + f.duration, 0);
+        let ms = t % total, k = 0; while (ms >= fr[k].duration) { ms -= fr[k].duration; k++; }
+        const r = fr[k].frame;
+        const x = 4 + i * fw * z, y = 4 + row * fh * z;
+        g.save();
+        if (flip) { g.translate(x + fw * z, y); g.scale(-1, 1); } else g.translate(x, y);
+        g.drawImage(p.body, r.x, r.y, r.w, r.h, 0, 0, r.w * z, r.h * z);
+        g.drawImage(tm, r.x, r.y, r.w, r.h, 0, 0, r.w * z, r.h * z);
+        g.restore();
+      });
+    }
+  }
+  requestAnimationFrame(draw);
+}
+async function main() {
+  const root = $('#main');
+  for (const u of DATA.units) {
+    const sec = document.createElement('section'); sec.className = 'unit';
+    sec.innerHTML = `<h2>${u.name} <small>${u.id} · ${u.size} · spec ${u.hash} · ${u.cands.length} candidate(s)</small></h2>`;
+    const row = document.createElement('div'); row.className = 'cands'; sec.append(row);
+    if (!u.cands.length) row.innerHTML = `<span style="color:#8f97a3">none yet — <span class="cmd">npm run art -- gen ${u.id}</span></span>`;
+    for (const c of u.cands) row.append(await card(u, c));
+    root.append(sec);
+  }
+  const filter = () => document.querySelectorAll('.cand').forEach((c) => (c.style.display = $('#onlyCurrent').checked && c.dataset.current === '0' && !c.classList.contains('picked') ? 'none' : ''));
+  $('#onlyCurrent').onchange = filter; filter();
+  requestAnimationFrame(draw);
+}
+main();
+</script>
+</body>
+</html>

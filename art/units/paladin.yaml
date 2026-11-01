@@ -1,0 +1,9 @@
+# Paladin — human, line Z, general. Edit, then `npm run art -- gen paladin`.
+name: Paladin
+size: general
+description: >-
+  A general: a heroic paladin in ornate silver plate armour with a great shield and a glowing holy sword, flowing cape, commanding presence. The final evolution of Soldier and Knight. Team colour: the long cape and a tabard.
+animationNotes: >-
+  Attack: radiant two-handed sword sweep.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: knight

@@ -1,0 +1,9 @@
+# Dragon — beast, line M, general. Edit, then `npm run art -- gen dragon`.
+name: Dragon
+size: general
+description: >-
+  A general: a powerful winged dragon standing on four legs, red-bronze scales, large horned head, spread wings. The final evolution of Wyrm and Drake. Team colour: a cloth war banner strapped to its back.
+animationNotes: >-
+  Attack: lunging bite with a burst of fire breath.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: drake

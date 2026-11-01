@@ -1,0 +1,7 @@
+# Spy — human, line M, stage1. Edit, then `npm run art -- gen spy`.
+name: Spy
+size: stage1
+description: >-
+  A nimble human spy in dark close-fitting clothes with a dagger, half mask, crouched agile stance. Team colour: a sash around the waist and a scarf.
+animationNotes: >-
+  Attack: quick dagger stab lunge.

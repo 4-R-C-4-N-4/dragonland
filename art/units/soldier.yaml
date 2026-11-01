@@ -1,0 +1,7 @@
+# Soldier — human, line Z, stage1. Edit, then `npm run art -- gen soldier`.
+name: Soldier
+size: stage1
+description: >-
+  A sturdy human foot soldier with a round wooden shield and a short sword, simple open-face helmet, leather and chainmail. Team colour: a short sleeveless tabard over the chest.
+animationNotes: >-
+  Attack: shield-bash then short sword thrust.

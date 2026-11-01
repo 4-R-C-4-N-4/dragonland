@@ -1,0 +1,7 @@
+# Raven — beast, line A, stage1. Edit, then `npm run art -- gen raven`.
+name: Raven
+size: stage1
+description: >-
+  A large black battle raven, flying, wings spread, sharp beak. Small and fast. Team colour: a cloth band tied around its neck.
+animationNotes: >-
+  Idle and walk are flapping in place in the air. Attack: dive peck. Death: falls to the ground.

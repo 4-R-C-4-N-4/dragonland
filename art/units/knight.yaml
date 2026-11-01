@@ -1,0 +1,9 @@
+# Knight — human, line Z, stage2. Edit, then `npm run art -- gen knight`.
+name: Knight
+size: stage2
+description: >-
+  An evolved Soldier: armoured human knight in plate with a kite shield and longsword, closed helm with a small plume. Same silhouette family as the Soldier but heavier and more detailed. Team colour: a tabard over the plate and the plume.
+animationNotes: >-
+  Attack: overhead longsword slash.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: soldier
