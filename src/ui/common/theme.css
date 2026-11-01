@@ -1,0 +1,103 @@
+:root {
+  --dl-bg: #14100e;
+  --dl-bg-panel: #1d1712;
+  --dl-bg-panel-2: #241c15;
+  --dl-border: #4a3a28;
+  --dl-border-light: #6b5438;
+  --dl-text: #ecdfc9;
+  --dl-text-dim: #a8957a;
+  --dl-accent: #c9972e;
+  --dl-accent-2: #8a2f2f;
+  --dl-good: #4f9e52;
+  --dl-warn: #c9972e;
+  --dl-bad: #b23a3a;
+  --dl-font: 'Georgia', 'Palatino Linotype', serif;
+  --dl-font-ui: system-ui, -apple-system, sans-serif;
+  --dl-radius: 4px;
+  --dl-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--dl-bg);
+  color: var(--dl-text);
+  font-family: var(--dl-font-ui);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--dl-bg-panel-2);
+  color: var(--dl-text);
+  border: 1px solid var(--dl-border-light);
+  border-radius: var(--dl-radius);
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--dl-accent);
+  color: var(--dl-accent);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.dl-primary {
+  background: var(--dl-accent);
+  color: #1a1308;
+  border-color: var(--dl-accent);
+  font-weight: bold;
+}
+
+button.dl-primary:hover:not(:disabled) {
+  color: #1a1308;
+  filter: brightness(1.1);
+}
+
+input, select {
+  font-family: inherit;
+  background: var(--dl-bg);
+  color: var(--dl-text);
+  border: 1px solid var(--dl-border);
+  border-radius: var(--dl-radius);
+  padding: 3px 6px;
+  font-size: 13px;
+}
+
+.dl-panel {
+  background: var(--dl-bg-panel);
+  border: 1px solid var(--dl-border);
+  border-radius: var(--dl-radius);
+  box-shadow: var(--dl-shadow);
+}
+
+.dl-title {
+  font-family: var(--dl-font);
+  color: var(--dl-accent);
+  letter-spacing: 0.03em;
+}
+
+.dl-class-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.dl-error {
+  color: var(--dl-bad);
+}
+
+.dl-good-text {
+  color: var(--dl-good);
+}

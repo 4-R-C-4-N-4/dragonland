@@ -1,0 +1,216 @@
+.dl-builder {
+  min-width: 1024px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 12px 16px 24px;
+  font-size: 13px;
+}
+
+.dl-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dl-topbar h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.dl-loadout-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dl-general-picker {
+  margin-left: 12px;
+  color: var(--dl-text-dim);
+}
+
+.dl-notice {
+  background: var(--dl-bg-panel-2);
+  border: 1px solid var(--dl-accent);
+  border-radius: var(--dl-radius);
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  color: var(--dl-accent);
+}
+
+.dl-main {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.3fr) minmax(360px, 1fr);
+  gap: 12px;
+}
+
+.dl-roster-panel {
+  padding: 10px;
+  overflow: hidden;
+}
+
+.dl-roster-toolbar,
+.dl-bulk-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.dl-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--dl-border);
+  margin: 0 4px;
+}
+
+.dl-selected-count {
+  color: var(--dl-text-dim);
+  margin-left: auto;
+}
+
+.dl-roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  max-height: 60vh;
+  display: block;
+  overflow-y: auto;
+}
+
+.dl-roster-table thead,
+.dl-roster-table tbody {
+  display: block;
+}
+
+.dl-roster-table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.dl-roster-table th {
+  text-align: left;
+  color: var(--dl-text-dim);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--dl-border);
+  user-select: none;
+}
+
+.dl-roster-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid rgba(74, 58, 40, 0.4);
+}
+
+tr.dl-row:hover {
+  background: var(--dl-bg-panel-2);
+}
+
+tr.dl-row.dl-selected {
+  background: rgba(201, 151, 46, 0.2);
+}
+
+tr.dl-row.dl-in-squad td:last-child {
+  color: var(--dl-good);
+}
+
+.dl-squads {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-totals {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dl-class-counts {
+  color: var(--dl-text-dim);
+  flex: 1;
+}
+
+.dl-errors {
+  margin: 0;
+  padding: 8px 10px 8px 24px;
+  list-style: disc;
+}
+
+.dl-squad-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.dl-squad {
+  padding: 8px;
+  min-height: 140px;
+}
+
+.dl-squad-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.dl-squad-name {
+  flex: 1;
+  font-weight: bold;
+}
+
+.dl-squad-count {
+  color: var(--dl-text-dim);
+  white-space: nowrap;
+}
+
+.dl-squad-class-counts {
+  color: var(--dl-text-dim);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.dl-squad-troops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  min-height: 40px;
+  border: 1px dashed var(--dl-border);
+  border-radius: var(--dl-radius);
+}
+
+.dl-squad-troops li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 6px;
+  border-bottom: 1px solid rgba(74, 58, 40, 0.3);
+}
+
+.dl-dim {
+  color: var(--dl-text-dim);
+  font-size: 11px;
+}
+
+.dl-start {
+  align-self: flex-end;
+  padding: 10px 24px;
+  font-size: 15px;
+}
+
+@media (max-width: 1100px) {
+  .dl-main {
+    grid-template-columns: 1fr;
+  }
+  .dl-squad-list {
+    grid-template-columns: 1fr;
+  }
+}
