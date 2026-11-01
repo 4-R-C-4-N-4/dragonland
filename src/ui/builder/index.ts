@@ -17,6 +17,8 @@ export interface MountBuilderOptions {
   data: GameData;
   store: Store;
   onStartBattle?: (loadout: Loadout) => void;
+  /** Loadout to open with (e.g. the one just used in battle); defaults to the first saved one. */
+  initialLoadoutId?: string;
 }
 
 export interface MountedBuilder {
@@ -46,8 +48,20 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
   // ---- state ----
   let roster: Troop[] = store.getRoster();
   let loadouts: Loadout[] = store.listLoadouts();
-  let loadout: Loadout = loadouts[0] ?? blankLoadout();
   let notice = '';
+  let loadout: Loadout = blankLoadout();
+  {
+    const initial = (opts.initialLoadoutId && store.getLoadout(opts.initialLoadoutId)) || loadouts[0];
+    if (initial) {
+      // §11: a loadout referencing dead troops is flagged and those troops are removed.
+      const { loadout: sanitized, removed } = sanitizeLoadout(initial, roster);
+      loadout = sanitized;
+      if (removed.length) {
+        notice = `${removed.length} troop(s) no longer in the roster were removed from this army.`;
+        store.saveLoadout(sanitized);
+      }
+    }
+  }
   let selected = new Set<string>();
   let filterText = '';
   let filterClass: ClassId | 'all' = 'all';

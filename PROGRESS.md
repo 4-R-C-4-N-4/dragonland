@@ -1,21 +1,21 @@
 # Progress
 
-Branch: `mvp`. Gate: `npm run check` (tsc + vitest). Node 22.
+Branch: `mvp`. Gate: `npm run check` (tsc + vitest, 96 tests) and `npm run build`. Node 22.
 
-States: planned → in progress → implemented (child reports) → verified (orchestrator reran gates / drove UI) → merged to `mvp`.
-
-| # | Milestone | State | Notes |
+| # | Milestone | State | Evidence / notes |
 | --- | --- | --- | --- |
-| 0 | Scaffold: Vite/TS/Pixi/Vitest/zod, `/data` JSON + zod schemas, sim contract `src/sim/types.ts`, DECISIONS.md | verified | 1 test |
-| 1 | Sim sandbox + headless runner | merged | 21 tests; mirror Human wins 86% / 81.5% swapped (200 runs each); every mirror battle goes to the duel (see notes) |
-| 2 | Battle render | planned | |
-| 3 | Army builder + persistence | merged, browser-checked | 42 tests; 4x25 army via auto-fill verified in Chromium; squad panel overflows at 1280px (fix in flow stream) |
-| 4 | Controls | planned | |
-| 5 | Duel display + enemy AI + full loop | planned | |
-| 6 | Art pass hooks | partial | parser + discovery on mvp (`src/render/spriteSheets.ts`); Pixi swap-in pending render |
-| 7 | Tuning support | planned | |
+| 0 | Scaffold, data JSON + zod schemas, sim contract | verified | |
+| 1 | Sim sandbox + headless runner | verified, 1 criterion open | §9.3 tests pass; `npm run sim`, `--matrix`, `--set`, `tools/trace.ts`, `tools/sweep.ts`. Human beats Beast in the mirror **100%** (spec wants "not 100%") — see DECISIONS D19 |
+| 2 | Battle render | verified in Chromium (SwiftShader) | placeholder shapes, squad banners + markers, camera, HUD, interpolation. 60 fps NOT verified: test browser is software-GL (~38 fps); sim costs ~0.27 ms/tick |
+| 3 | Army builder + persistence | verified in Chromium | 4x25 army via auto-fill in < 30 s of clicks; validation inline |
+| 4 | Controls | verified in Chromium | Space, 1-4, A, Q/W/E, S, F (speed), backtick; HUD buttons |
+| 5 | Duel + enemy AI + full loop | verified in Chromium | Builder -> commit -> response -> battle -> result -> builder; 77 dead removed from roster (160 -> 83); builder reopens the used loadout sanitized |
+| 6 | Art pass hooks | verified | dropping `assets/sprites/dog.{png,json}` replaced Dog placeholders with no code change (test sheet in `assets/sprites-test/`) |
+| 7 | Tuning support | verified | debug constants panel (applies next battle), reset roster, headless matrix/overrides |
 
-## Notes
+## Open
 
-- M1 sim: main melee resolves in ~30-45 s with tuned cooldowns (~0.5 s); Guard squads then stand off around their generals, so mirror battles run to the 180 s duel. D15 (duel-entry chip damage per surviving enemy troop) carries the troop result into the duel. Flag for playtest.
-- `tools/trace.ts <a> <b> <seed>` prints a 15 s timeline of one battle for tuning.
+- D19 class-counter decisiveness at 100 v 100 (design call).
+- Real-GPU fps check on a mid-range laptop.
+- Paladin/Dragon duel balance (D1) unmeasured in isolation; duels are now rare (~9% across the AI matrix).
+- The AI-loadout matrix is lopsided (several 100/0 pairings); loadouts are hand-made placeholders.

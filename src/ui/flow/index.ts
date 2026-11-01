@@ -32,6 +32,7 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
   let builderHandle: { destroy(): void } | null = null;
   let battleContainer: HTMLElement | null = null;
   let destroyed = false;
+  const appliedResults = new WeakSet<World>();
 
   root.innerHTML = '';
   const screenEl = document.createElement('div');
@@ -74,17 +75,12 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
   }
 
   function renderBuilder(): void {
-    const initial = state.playerLoadout;
     builderHandle = mountBuilder(screenEl, {
       data,
       store,
       onStartBattle: (loadout) => dispatch({ type: 'startFromBuilder', loadout }),
+      initialLoadoutId: state.playerLoadout?.id,
     });
-    if (initial) {
-      // The builder already loads the player's last-saved loadout by default; nothing extra
-      // needed here since store.saveLoadout() was called before returning to the builder.
-      void initial;
-    }
   }
 
   function renderEnemyCommit(): void {
@@ -281,8 +277,20 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
     const playerDeadNames = playerDeadIds.map((id) => rosterById.get(id)?.name ?? id);
     const playerAliveNames = playerAliveIds.map((id) => rosterById.get(id)?.name ?? id);
 
+    // Apply roster updates as soon as the result is known (not on button click), exactly once per
+    // battle, so closing the tab on the result screen cannot resurrect dead troops.
+    // Counter-pick input is the company as it entered this battle (§8 "previous battle's company").
+    if (!appliedResults.has(world)) {
+      appliedResults.add(world);
+      store.setLastComposition(companyComposition(loadout, roster, data));
+      store.applyBattleResult(result.dead[0]);
+      const { loadout: sanitized } = sanitizeLoadout(loadout, store.getRoster());
+      store.saveLoadout(sanitized);
+    }
+
     const winnerLabel = result.winner === 0 ? 'Victory!' : 'Defeat.';
-    const reasonLabel = result.reason === 'generalDefeated' ? 'the enemy general was defeated' : 'won by duel';
+    const loserGeneral = result.winner === 0 ? 'the enemy general was defeated' : 'your general was defeated';
+    const reasonLabel = result.reason === 'generalDefeated' ? loserGeneral : 'decided by a duel';
 
     screenEl.innerHTML = `
       <div class="dl-screen-wrap">
@@ -313,11 +321,6 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
     `;
 
     screenEl.querySelector('#dl-back-to-builder-result')?.addEventListener('click', () => {
-      store.applyBattleResult(result.dead[0]);
-      const freshRoster = store.getRoster();
-      const { loadout: sanitized } = sanitizeLoadout(loadout, freshRoster);
-      store.setLastComposition(companyComposition(sanitized, freshRoster, data));
-      store.saveLoadout(sanitized);
       dispatch({ type: 'backToBuilder' });
     });
   }

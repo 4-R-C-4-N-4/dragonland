@@ -44,10 +44,14 @@ function matchupScore(data: GameData, loadout: AiLoadout, prev: Partial<Record<C
   return score;
 }
 
+const AI_SEED_SALT = 0x9e3779b9;
+
 export function commitEnemy(data: GameData, lastPlayerComposition: Partial<Record<ClassId, number>> | null, seed: number): CommitResult {
   const candidates = committableLoadouts(data);
   if (candidates.length === 0) throw new Error('no committable AI loadouts');
-  const rng = createRng(seed);
+  // Salted so the enemy's generated names/ids never replay the same RNG stream as a roster
+  // generated from the same seed (they did: enemy troops had the player's names).
+  const rng = createRng((seed ^ AI_SEED_SALT) >>> 0);
 
   let chosen: AiLoadout;
   if (!lastPlayerComposition) {
