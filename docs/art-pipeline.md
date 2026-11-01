@@ -105,10 +105,7 @@ Clicking a candidate writes `picks.yaml` through a tiny dev endpoint, or prints 
 ## Open questions (Ivy)
 
 1. **Sprite size.** The docs say troops 16–24 px and generals 32–48 px. At 24 px the Soldier reads, but most of the generated detail is lost. Keep it, or go to ~32 px troops / ~64 px generals and let the camera zoom out?
-2. **Team colour.** Options:
-   - (a) reserve a tabard/banner colour in every prompt and palette-swap it per team. Strongest read, but the model must cooperate.
-   - (b) keep neutral sprites and show team only through the existing coloured ground marker and outline. Simplest.
-   - (c) post-process tint of an auto-detected cloth region. Fragile.
+2. **Team colour.** Ivy chose player-picked team and squad colours, so sprites need to take an arbitrary colour at runtime. Proposal: (a) every prompt reserves a "team cloth" key colour (a tabard, banner or collar in pure #00FF00). `process.ts` turns that key into a separate grayscale mask layer, and the renderer tints the mask per squad. Fallback while the art isn't ready: (b), coloured ground disc and outline only (being built now). Confirm (a).
 3. **Pixel-art look vs painterly.** The smoke test came back in a 16-bit SNES style. Is that the direction?
 4. **Raw storage.** Generated originals are ~4 MB each, ~100+ for a full pass. Gitignore them (local only) or use Git LFS?
 5. **Order.** Do the 12 MVP units + 2 generals first, then the other 3 classes' 27 units after you've designed their stats? Or all 45 now?
