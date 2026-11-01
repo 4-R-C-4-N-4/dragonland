@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { asepriteJson, classify, Px, processSheet, type Rgba } from '../../tools/art/process';
+import { asepriteJson, classify, packRows, Px, processSheet, rowFigureHeight, type Rgba } from '../../tools/art/process';
 
 // Synthetic "generated" sheet: magenta background, 5 rows x 4 cells, each with a body block,
 // a green team-cloth stripe and a pink fringe ring that must be removed.
@@ -72,5 +72,24 @@ describe('art processing', () => {
     const json = asepriteJson('dog', 'dog.png', res, opts.rows, 4, { idle: 100, walk: 100, attack: 80, hit: 90, death: 120 });
     expect(json.meta.frameTags.map((t) => t.name)).toEqual([...opts.rows]);
     expect(Object.keys(json.frames)).toHaveLength(20);
+  });
+
+  it('swaps a regenerated single-animation strip into a sheet (packRows)', () => {
+    const main = processSheet(synthSheet(), opts);
+    // A 1x6 walk strip with taller figures, scaled to match the main sheet's walk height.
+    const cell = 100, W = cell * 6, H = 140;
+    const data = new Uint8Array(W * H * 4);
+    for (let i = 0; i < W * H; i++) { data[i * 4] = 255; data[i * 4 + 2] = 255; data[i * 4 + 3] = 255; }
+    for (let k = 0; k < 6; k++) for (let y = 20; y < 130; y++) for (let x = k * cell + 30; x < k * cell + 70; x++) { const o = (y * W + x) * 4; data[o] = 90; data[o + 1] = 60; data[o + 2] = 30; }
+    const target = rowFigureHeight(main, 1, 4);
+    const strip = processSheet({ width: W, height: H, data }, { ...opts, rows: ['walk'], framesPerRow: 6, targetHeight: target });
+    expect(rowFigureHeight(strip, 0, 6)).toBeGreaterThanOrEqual(target - 1);
+    expect(rowFigureHeight(strip, 0, 6)).toBeLessThanOrEqual(target + 1);
+    const rows = opts.rows.map((anim, r) => (anim === 'walk' ? { anim, res: strip, row: 0, frames: 6 } : { anim, res: main, row: r, frames: 4 }));
+    const packed = packRows('dog', 'dog.png', rows, { idle: 1, walk: 1, attack: 1, hit: 1, death: 1 });
+    const tags = packed.json.meta.frameTags;
+    expect(tags.find((t) => t.name === 'walk')).toMatchObject({ from: 4, to: 9 });
+    expect(Object.keys(packed.json.frames)).toHaveLength(22);
+    expect(packed.body.height).toBe(main.frameH * 4 + strip.frameH);
   });
 });

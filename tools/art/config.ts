@@ -19,6 +19,8 @@ export interface Style {
   background: string;
   teamCloth: string;
   layout: { rows: Anim[]; framesPerRow: number; text: string };
+  /** Per-animation descriptions; also used for single-animation regeneration. */
+  animations?: Partial<Record<Anim, { frames: number; text: string; layout: string }>>;
   anchor: string;
 }
 export interface Sizes {
@@ -36,6 +38,7 @@ export interface UnitSpec {
   evolvesFrom?: string;
   /** Multiplier on the size-class height (quadrupeds and birds are shorter than a standing human). */
   heightScale?: number;
+  walkNotes?: string;
 }
 
 function readYaml<T>(path: string): T {
@@ -95,6 +98,7 @@ export function referencesFor(spec: UnitSpec, style: Style, picks: Record<string
 }
 
 export function buildPrompt(spec: UnitSpec, style: Style, refs: { role: string }[]): string {
+  const walk = style.animations?.walk;
   const lines = [
     style.style,
     style.camera,
@@ -102,6 +106,8 @@ export function buildPrompt(spec: UnitSpec, style: Style, refs: { role: string }
     spec.animationNotes ? `Animation notes: ${spec.animationNotes}` : '',
     style.teamCloth,
     style.layout.text,
+    walk ? `Walk description (use ${style.layout.framesPerRow} frames in the sheet: contact, passing, contact with the other leg, passing): ${walk.text}` : '',
+    spec.walkNotes ? `Walk notes for this character: ${spec.walkNotes}` : '',
     style.background,
   ];
   if (refs.some((r) => r.role === 'style'))
@@ -116,4 +122,36 @@ export function specHash(prompt: string, refs: { path: string }[]): string {
   const h = createHash('sha256').update(prompt);
   for (const r of refs) h.update(readFileSync(r.path));
   return h.digest('hex').slice(0, 8);
+}
+
+/** Asset key for a single-animation override, e.g. "soldier.walk" in picks.yaml and art/raw/soldier/walk/. */
+export const animKey = (id: string, anim: Anim) => `${id}.${anim}`;
+export const animRawDir = (id: string, anim: Anim) => join(rawDir(id), anim);
+
+export function listAnimRaw(id: string, anim: Anim): string[] {
+  const d = animRawDir(id, anim);
+  return existsSync(d) ? readdirSync(d).filter((f) => f.endsWith('.png')).sort() : [];
+}
+
+/**
+ * Prompt for regenerating ONE animation of an already-picked character. The picked full sheet is
+ * attached so the design is copied exactly; only the new strip is generated.
+ */
+export function buildAnimPrompt(spec: UnitSpec, style: Style, anim: Anim): string {
+  const a = style.animations?.[anim];
+  if (!a) throw new Error(`style.yaml has no animations.${anim} section`);
+  const notes = anim === 'walk' ? spec.walkNotes : undefined;
+  return [
+    style.style,
+    style.camera,
+    `Character: ${spec.name}. ${spec.description}`,
+    'The attached sprite sheet is the approved design of THIS exact character: copy its design, colours, proportions, outline, pixel density and scale exactly. Draw only the new animation described below.',
+    `Animation: ${anim}. ${a.text}`,
+    notes ? `Notes for this character: ${notes}` : '',
+    style.teamCloth,
+    a.layout.replace('{frames}', String(a.frames)),
+    style.background,
+  ]
+    .filter(Boolean)
+    .join('\n');
 }

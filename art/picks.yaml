@@ -1,5 +1,8 @@
 # assetId -> raw file chosen for the game (relative to art/raw/<assetId>/).
 # Set by `npm run art -- pick <assetId> <file>` or by hand.
 archer: 048e61b4-1.png
+archer.walk: bf9e6452-1.png
 dog: 935683c2-1.png
+dog.walk: f7bf8d31-1.png
 soldier: de089c64-1.png
+soldier.walk: f78ea053-1.png

@@ -40,60 +40,60 @@
    "frame": {
     "x": 0,
     "y": 40,
-    "w": 46,
-    "h": 40
+    "w": 38,
+    "h": 41
    },
    "duration": 120
   },
   "soldier 5": {
    "frame": {
-    "x": 46,
+    "x": 38,
     "y": 40,
-    "w": 46,
-    "h": 40
+    "w": 38,
+    "h": 41
    },
    "duration": 120
   },
   "soldier 6": {
    "frame": {
-    "x": 92,
+    "x": 76,
     "y": 40,
-    "w": 46,
-    "h": 40
+    "w": 38,
+    "h": 41
    },
    "duration": 120
   },
   "soldier 7": {
    "frame": {
-    "x": 138,
+    "x": 114,
     "y": 40,
-    "w": 46,
-    "h": 40
+    "w": 38,
+    "h": 41
    },
    "duration": 120
   },
   "soldier 8": {
    "frame": {
-    "x": 0,
-    "y": 80,
-    "w": 46,
-    "h": 40
+    "x": 152,
+    "y": 40,
+    "w": 38,
+    "h": 41
    },
-   "duration": 90
+   "duration": 120
   },
   "soldier 9": {
    "frame": {
-    "x": 46,
-    "y": 80,
-    "w": 46,
-    "h": 40
+    "x": 190,
+    "y": 40,
+    "w": 38,
+    "h": 41
    },
-   "duration": 90
+   "duration": 120
   },
   "soldier 10": {
    "frame": {
-    "x": 92,
-    "y": 80,
+    "x": 0,
+    "y": 81,
     "w": 46,
     "h": 40
    },
@@ -101,8 +101,8 @@
   },
   "soldier 11": {
    "frame": {
-    "x": 138,
-    "y": 80,
+    "x": 46,
+    "y": 81,
     "w": 46,
     "h": 40
    },
@@ -110,26 +110,26 @@
   },
   "soldier 12": {
    "frame": {
-    "x": 0,
-    "y": 120,
+    "x": 92,
+    "y": 81,
     "w": 46,
     "h": 40
    },
-   "duration": 110
+   "duration": 90
   },
   "soldier 13": {
    "frame": {
-    "x": 46,
-    "y": 120,
+    "x": 138,
+    "y": 81,
     "w": 46,
     "h": 40
    },
-   "duration": 110
+   "duration": 90
   },
   "soldier 14": {
    "frame": {
-    "x": 92,
-    "y": 120,
+    "x": 0,
+    "y": 121,
     "w": 46,
     "h": 40
    },
@@ -137,8 +137,8 @@
   },
   "soldier 15": {
    "frame": {
-    "x": 138,
-    "y": 120,
+    "x": 46,
+    "y": 121,
     "w": 46,
     "h": 40
    },
@@ -146,26 +146,26 @@
   },
   "soldier 16": {
    "frame": {
-    "x": 0,
-    "y": 160,
+    "x": 92,
+    "y": 121,
     "w": 46,
     "h": 40
    },
-   "duration": 140
+   "duration": 110
   },
   "soldier 17": {
    "frame": {
-    "x": 46,
-    "y": 160,
+    "x": 138,
+    "y": 121,
     "w": 46,
     "h": 40
    },
-   "duration": 140
+   "duration": 110
   },
   "soldier 18": {
    "frame": {
-    "x": 92,
-    "y": 160,
+    "x": 0,
+    "y": 161,
     "w": 46,
     "h": 40
    },
@@ -173,8 +173,26 @@
   },
   "soldier 19": {
    "frame": {
+    "x": 46,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "soldier 20": {
+   "frame": {
+    "x": 92,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "soldier 21": {
+   "frame": {
     "x": 138,
-    "y": 160,
+    "y": 161,
     "w": 46,
     "h": 40
    },
@@ -186,8 +204,8 @@
   "image": "soldier.png",
   "format": "RGBA8888",
   "size": {
-   "w": 184,
-   "h": 200
+   "w": 228,
+   "h": 201
   },
   "scale": "1",
   "frameTags": [
@@ -200,25 +218,25 @@
    {
     "name": "walk",
     "from": 4,
-    "to": 7,
+    "to": 9,
     "direction": "forward"
    },
    {
     "name": "attack",
-    "from": 8,
-    "to": 11,
+    "from": 10,
+    "to": 13,
     "direction": "forward"
    },
    {
     "name": "hit",
-    "from": 12,
-    "to": 15,
+    "from": 14,
+    "to": 17,
     "direction": "forward"
    },
    {
     "name": "death",
-    "from": 16,
-    "to": 19,
+    "from": 18,
+    "to": 21,
     "direction": "forward"
    }
   ]

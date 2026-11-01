@@ -65,7 +65,7 @@ async function card(unit, cand) {
     players.push({ cv, json, body, mask, tints: {} });
   }
   const cmd = document.createElement('div'); cmd.className = 'cmd'; cmd.title = 'click to copy';
-  cmd.textContent = `npm run art -- pick ${unit.id} ${cand.file}`;
+  cmd.textContent = cand.cmd;
   cmd.onclick = () => navigator.clipboard?.writeText(cmd.textContent);
   el.append(cmd);
   return el;

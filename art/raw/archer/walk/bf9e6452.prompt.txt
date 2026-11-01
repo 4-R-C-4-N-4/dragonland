@@ -1,0 +1,11 @@
+Pixel-art game sprite sheet in a 16-bit SNES era style (think Dragon Force, Ogre Battle, Final Fantasy Tactics). Limited palette, clean 1px dark outline, no anti-aliasing, crisp pixel clusters, strong readable silhouette that works at very small size, soft top-left lighting.
+Side view, the character faces RIGHT, full body visible, slight top-down tilt.
+Character: Archer. A lean human archer with a short bow, quiver on the back, hood and light leather armour. Team colour: the hood and a short cape.
+The attached sprite sheet is the approved design of THIS exact character: copy its design, colours, proportions, outline, pixel density and scale exactly. Draw only the new animation described below.
+Animation: walk. Walk cycle with big, clearly different, exaggerated poses that read at 32 pixels tall. Two-legged characters: frame 1 contact (front leg extended forward heel down, back leg stretched behind, legs wide apart), frame 2 down (weight on the front leg, knee bent, body lowest), frame 3 passing (back leg swings past the standing leg, knee raised high, body highest), frames 4-6 repeat 1-3 with the OTHER leg in front. Arms and held items swing opposite to the legs, torso bobs about 2 pixels. Four-legged animals: a trot where diagonal leg pairs move together, legs clearly extended in one frame and tucked in the next, back and head bob. Flying creatures: a wing-flap cycle (wings fully up, mid, fully down, mid...), body rising and sinking slightly. The character stays in place in its cell (walking on the spot), never drifting between cells.
+The character wears a team-colour element (tabard, sash, banner, scarf or collar, as described) painted in pure flat green #00FF00 with only darker green shading. Use #00FF00 nowhere else.
+Layout: ONE single horizontal row of 6 equal square cells, nothing else. Every cell shows the SAME character at the SAME scale with feet (or body) on the same baseline.
+Solid flat pure magenta #FF00FF background everywhere, including between cells. No ground, no cast shadows, no text, no labels, no numbers, no grid lines, no borders.
+
+references:
+  character: art/raw/archer/048e61b4-1.png

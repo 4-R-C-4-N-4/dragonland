@@ -196,8 +196,9 @@ export function processSheet(img: Rgba, opts: ProcessOptions): ProcessResult {
   // Sanity checks that catch common model failures without rejecting the sheet.
   const idleHeights = rows[0]!.map((b) => b.y1 - b.y0);
   if (Math.max(...idleHeights) / Math.min(...idleHeights) > 1.15) warnings.push('idle frames vary in height by >15% (scale drift)');
-  const walkBase = rows[1]!.map((b) => b.y1);
-  if (Math.max(...walkBase) - Math.min(...walkBase) > idleH * 0.08) warnings.push('walk frames do not share a baseline');
+  const walkRow = rows[opts.rows.indexOf('walk')];
+  const walkBase = walkRow?.map((b) => b.y1) ?? [];
+  if (walkBase.length && Math.max(...walkBase) - Math.min(...walkBase) > idleH * 0.08) warnings.push('walk frames do not share a baseline');
   let clothPx = 0, fgPx = 0;
   for (let i = 0; i < map.length; i++) { if (map[i] === Px.Cloth) clothPx++; if (map[i] !== Px.Bg) fgPx++; }
   if (clothPx / Math.max(1, fgPx) < 0.02) warnings.push('almost no #00FF00 team-cloth pixels: team colour will not show on the sprite');
@@ -337,4 +338,65 @@ export function asepriteJson(id: string, image: string, res: Pick<ProcessResult,
     frames,
     meta: { app: 'dragonland art pipeline', image, format: 'RGBA8888', size: { w: res.body.width, h: res.body.height }, scale: '1', frameTags },
   };
+}
+
+export interface RowRef {
+  anim: Anim;
+  res: ProcessResult;
+  row: number; // row index inside res
+  frames: number;
+}
+
+/**
+ * Pack animation rows taken from one or more processed sheets into a single sheet (each row keeps
+ * its own frame size; frames are bottom-centre anchored so mixed sizes line up in game).
+ * Used to swap a regenerated animation (e.g. walk) into an otherwise unchanged sheet.
+ */
+export function packRows(id: string, image: string, rows: RowRef[], frameMs: Record<Anim, number>) {
+  const W = Math.max(...rows.map((r) => r.res.frameW * r.frames));
+  const H = rows.reduce((n, r) => n + r.res.frameH, 0);
+  const body = new Uint8Array(W * H * 4);
+  const mask = new Uint8Array(W * H * 4);
+  const frames: Record<string, { frame: { x: number; y: number; w: number; h: number }; duration: number }> = {};
+  const frameTags: { name: string; from: number; to: number; direction: 'forward' }[] = [];
+  let y = 0;
+  let i = 0;
+  for (const r of rows) {
+    const { frameW: fw, frameH: fh } = r.res;
+    const SW = r.res.body.width;
+    for (let k = 0; k < r.frames; k++)
+      for (let yy = 0; yy < fh; yy++) {
+        const src = ((r.row * fh + yy) * SW + k * fw) * 4;
+        const dst = ((y + yy) * W + k * fw) * 4;
+        body.set(r.res.body.data.subarray(src, src + fw * 4), dst);
+        mask.set(r.res.mask.data.subarray(src, src + fw * 4), dst);
+      }
+    const from = i;
+    for (let k = 0; k < r.frames; k++, i++) frames[`${id} ${i}`] = { frame: { x: k * fw, y, w: fw, h: fh }, duration: frameMs[r.anim] };
+    frameTags.push({ name: r.anim, from, to: i - 1, direction: 'forward' });
+    y += fh;
+  }
+  return {
+    body: { width: W, height: H, data: body } as Rgba,
+    mask: { width: W, height: H, data: mask } as Rgba,
+    json: { frames, meta: { app: 'dragonland art pipeline', image, format: 'RGBA8888', size: { w: W, h: H }, scale: '1', frameTags } },
+  };
+}
+
+/** Median opaque height (px) of the frames in one row of a processed sheet. */
+export function rowFigureHeight(res: ProcessResult, row: number, frames: number): number {
+  const hs: number[] = [];
+  const SW = res.body.width;
+  for (let k = 0; k < frames; k++) {
+    let top = -1, bottom = -1;
+    for (let y = 0; y < res.frameH; y++)
+      for (let x = 0; x < res.frameW; x++)
+        if (res.body.data[(((row * res.frameH + y) * SW) + k * res.frameW + x) * 4 + 3]) {
+          if (top < 0) top = y;
+          bottom = y;
+        }
+    if (top >= 0) hs.push(bottom - top + 1);
+  }
+  hs.sort((a, b) => a - b);
+  return hs.length ? hs[Math.floor(hs.length / 2)]! : res.frameH;
 }

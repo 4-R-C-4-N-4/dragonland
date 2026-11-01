@@ -15,7 +15,13 @@ npm run art -- gen batch2 [-n 2] [--force]  generate (sequential Codex calls, ~7
 npm run art -- process                      raw picks -> assets/sprites/<id>.{png,mask.png,json}
 npm run art -- review                       then open /art/review.html under `npm run dev`
 npm run art -- pick <id> <file>
+npm run art -- gen <id|batch> --anim walk   regenerate ONE animation from the picked sheet (attached as reference)
+npm run art -- pick <id> <file> --anim walk (or `none` to drop the override)
 ```
+
+Animation overrides: `style.yaml` → `animations.<anim>` holds the description and frame count; units can add notes
+such as `walkNotes`. The regenerated strip is scaled to match that animation's height in the picked sheet. It is
+swapped in at processing time, and every other row of the picked sheet stays as it was.
 
 Per-unit size tweaks: `heightScale` in `art/units/<id>.yaml`. This only needs a reprocess.
 
