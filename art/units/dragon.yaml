@@ -6,8 +6,25 @@ heightScale: 1.0
 description: >-
   A general: a powerful winged dragon standing on four legs, red-bronze scales, large horned head, spread wings. The final evolution of Wyrm and Drake. Team colour: a cloth war banner strapped to its back.
 animationNotes: >-
-  Attack: lunging bite with a burst of fire breath.
+  Attack: lunging bite with a short compact burst of fire breath contained within its cell.
+  Keep wings partly folded and tail curled close to the body, never spanning adjacent cells.
+  Leave a generous uninterrupted magenta gutter on all four sides of EVERY cell, including
+  attack and death poses. Exactly twenty separate full-body figures in five straight rows of four;
+  no wings, fire, tail or banner may touch another figure. Reduce the figure's size within its
+  cell if necessary; on-screen size is restored during processing.
 # Previous evolution stage; its picked sheet is attached so the silhouette carries over.
 evolvesFrom: drake
 walkNotes: >-
-  Heavy four-legged stride, wings folded and rocking slightly.
+  Heavy grounded FOUR-legged stride, NOT a hop or a one-front-leg shuffle. Wings stay folded
+  above the shoulders and never hide the legs. Show two separate forelegs under the chest and
+  two separate hindlegs under the hips, near limbs lighter copper and far limbs darker brown;
+  preserve that identity in every frame. Do not merge forelegs into one central limb.
+  Six phases: 1 near forefoot reaches forward RIGHT and far forefoot is planted back LEFT;
+  2 near forefoot takes weight, far forefoot lifts and bends under the chest; 3 far forefoot
+  passes forward beneath the chest while near forefoot pushes back; 4 far forefoot reaches
+  forward RIGHT and near forefoot is planted back LEFT; 5 far forefoot takes weight, near
+  forefoot lifts and bends; 6 near forefoot passes forward beneath the chest to loop into 1.
+  Hindlegs move in opposing diagonal pairs with those forelegs. For four-frame sheets use
+  phases 1,3,4,6. Every frame has a different leg silhouette. Fixed shoulder/hip position,
+  at most one pixel of body bob, no lateral wobble or changes of body size. Tail curls behind
+  to the LEFT, head faces RIGHT, feet share one ground line. Leave space between all six cells.

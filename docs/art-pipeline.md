@@ -25,6 +25,27 @@ swapped in at processing time, and every other row of the picked sheet stays as 
 
 Per-unit size tweaks: `heightScale` in `art/units/<id>.yaml`. This only needs a reprocess.
 
+### Hand cleanup and source preservation
+
+- Full-sheet originals are in `art/raw/<id>/`; animation strips are in `art/raw/<id>/<anim>/`.
+  Raw PNGs are tracked with Git LFS. YAML direction, saved `.prompt.txt` files and `art/picks.yaml`
+  are versioned alongside the raw art; `assets/sprites/` contains the generated game assets.
+- Copy a source PNG to a new descriptive filename (for example `wolf-cleanup-1.png`) before
+  editing it. Keep its original dimensions, cell positions and flat magenta background. Reserve
+  saturated green for team cloth. Do not overwrite the generated original.
+- For a full sheet: `npm run art -- pick wolf wolf-cleanup-1.png`.
+  For a strip: save under `art/raw/wolf/walk/`, then
+  `npm run art -- pick wolf walk-cleanup-1.png --anim walk`.
+- Run `npm run art -- process wolf` and `npm run art -- review` to rebuild and inspect.
+  Editing only `assets/sprites/` is temporary: the next process run overwrites those files.
+- Candidate caches (`art/.cache/`) and `art/review.html` are ignored and reproducible with
+  `npm run art -- process` followed by `npm run art -- review`.
+- Character-specific walk notes replace generic gait choreography for single-animation strips.
+  The slicer retries less blob dilation if narrow gutters merge animation rows; grid validation
+  remains in force. A processing success is not a guarantee of good animation: inspect limbs,
+  weapon grips, repeated poses and jitter by eye.
+
+
 ## Goal
 
 Make all Dragonland art with Codex image generation, and keep every change cheap:

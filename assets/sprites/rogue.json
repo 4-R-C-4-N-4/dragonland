@@ -1,0 +1,244 @@
+{
+ "frames": {
+  "rogue 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 180
+  },
+  "rogue 1": {
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 180
+  },
+  "rogue 2": {
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 180
+  },
+  "rogue 3": {
+   "frame": {
+    "x": 144,
+    "y": 0,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 180
+  },
+  "rogue 4": {
+   "frame": {
+    "x": 0,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 5": {
+   "frame": {
+    "x": 43,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 6": {
+   "frame": {
+    "x": 86,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 7": {
+   "frame": {
+    "x": 129,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 8": {
+   "frame": {
+    "x": 172,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 9": {
+   "frame": {
+    "x": 215,
+    "y": 41,
+    "w": 43,
+    "h": 39
+   },
+   "duration": 120
+  },
+  "rogue 10": {
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 90
+  },
+  "rogue 11": {
+   "frame": {
+    "x": 48,
+    "y": 80,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 90
+  },
+  "rogue 12": {
+   "frame": {
+    "x": 96,
+    "y": 80,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 90
+  },
+  "rogue 13": {
+   "frame": {
+    "x": 144,
+    "y": 80,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 90
+  },
+  "rogue 14": {
+   "frame": {
+    "x": 0,
+    "y": 121,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 110
+  },
+  "rogue 15": {
+   "frame": {
+    "x": 48,
+    "y": 121,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 110
+  },
+  "rogue 16": {
+   "frame": {
+    "x": 96,
+    "y": 121,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 110
+  },
+  "rogue 17": {
+   "frame": {
+    "x": 144,
+    "y": 121,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 110
+  },
+  "rogue 18": {
+   "frame": {
+    "x": 0,
+    "y": 162,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 140
+  },
+  "rogue 19": {
+   "frame": {
+    "x": 48,
+    "y": 162,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 140
+  },
+  "rogue 20": {
+   "frame": {
+    "x": 96,
+    "y": 162,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 140
+  },
+  "rogue 21": {
+   "frame": {
+    "x": 144,
+    "y": 162,
+    "w": 48,
+    "h": 41
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "rogue.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 258,
+   "h": 203
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 9,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 10,
+    "to": 13,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 14,
+    "to": 17,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 18,
+    "to": 21,
+    "direction": "forward"
+   }
+  ]
+ }
+}

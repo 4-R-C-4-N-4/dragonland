@@ -170,12 +170,27 @@ export function processSheet(img: Rgba, opts: ProcessOptions): ProcessResult {
   const { width: W, height: H, data } = img;
   const warnings: string[] = [];
   const map = classMap(img);
-  const rows = gridFromBlobs(findBlobs(map, W, H));
+  let rows = gridFromBlobs(findBlobs(map, W, H));
+  // Dilation joins detached equipment, but can also bridge a narrow gutter between
+  // animation rows. Retry less dilation only when the original grid is invalid;
+  // each candidate must still pass the same row/column validation.
+  const validGrid = (grid: Box[][]) => grid.length === opts.rows.length
+    && grid.filter((r) => r.length === opts.framesPerRow).length >= Math.ceil(opts.rows.length / 2)
+    && grid.every((r) => r.length <= opts.framesPerRow);
+  if (!validGrid(rows)) {
+    for (const dilation of [1, 0]) {
+      const candidate = gridFromBlobs(findBlobs(map, W, H, 4, dilation));
+      if (!validGrid(candidate)) continue;
+      rows = candidate;
+      warnings.push(`reduced blob dilation to ${dilation} to preserve cell gutters`);
+      break;
+    }
+  }
   const counts = rows.map((r) => r.length);
   const fullRows = rows.filter((r) => r.length === opts.framesPerRow);
   // Rows must match; columns are estimated from complete rows. A row whose neighbouring figures touch
   // (e.g. two lying death frames) is still fine: pixels are assigned by cell, not by blob.
-  if (rows.length !== opts.rows.length || fullRows.length < Math.ceil(opts.rows.length / 2) || counts.some((c) => c > opts.framesPerRow)) {
+  if (!validGrid(rows)) {
     throw new Error(`expected ${opts.rows.length} rows x ${opts.framesPerRow} frames, found rows ${JSON.stringify(counts)}`);
   }
   if (fullRows.length < rows.length) warnings.push(`merged figures in row(s) ${counts.map((c, i) => (c < opts.framesPerRow ? opts.rows[i] : null)).filter(Boolean).join(', ')}; split by grid columns`);

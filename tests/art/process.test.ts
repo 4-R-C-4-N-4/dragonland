@@ -61,6 +61,25 @@ describe('art processing', () => {
     expect(Math.abs(leftEdge(1, 1) - leftEdge(1, 0))).toBeGreaterThanOrEqual(2);
   });
 
+  it('keeps adjacent animation rows separate when dilation bridges a raised weapon', () => {
+    const img = synthSheet();
+    // Extend one attack weapon to within 10px of the walk frame above: two dilation
+    // passes bridge the gutter, but one pass preserves the actual separation.
+    for (let y = 201; y < 235; y++) for (let x = 135; x < 165; x++) {
+      const p = (y * img.width + x) * 4;
+      img.data[p] = 120; img.data[p + 1] = 80; img.data[p + 2] = 40;
+    }
+    const res = processSheet(img, opts);
+    expect(res.body.height).toBe(res.frameH * 5);
+    for (let row = 0; row < 5; row++) for (let col = 0; col < 4; col++) {
+      let opaque = 0;
+      for (let y = 0; y < res.frameH; y++) for (let x = 0; x < res.frameW; x++) {
+        if (res.body.data[(((row * res.frameH + y) * res.body.width) + col * res.frameW + x) * 4 + 3]) opaque++;
+      }
+      expect(opaque).toBeGreaterThan(100);
+    }
+  });
+
   it('rejects sheets with the wrong grid', () => {
     const img = synthSheet();
     for (let i = 0; i < img.width * 100 * 4; i += 4) { img.data[i] = 255; img.data[i + 1] = 0; img.data[i + 2] = 255; } // blank the first row

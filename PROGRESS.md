@@ -1,6 +1,21 @@
 # Progress
 
-Branch: `mvp`. Gate: `npm run check` (tsc + vitest, 96 tests) and `npm run build`. Node 22.
+Branch: `mvp`. Gate: `npm run check` (tsc + vitest, 135 tests) and `npm run build`. Node 22.
+
+## Art handoff
+
+- All 14 MVP unit/general IDs have raw candidates; picks and processed sprites are provisional.
+- Raw full sheets and walk strips live in `art/raw/` (Git LFS), with YAML direction in `art/units/`
+  and `art/style.yaml`. Generated game assets live in `assets/sprites/`.
+- Targeted six-frame walks are selected for Soldier, Archer, Dog, Rogue, Paladin, Dragon and Wolf.
+  Rogue also has a revised full sheet with explicit knife grips; Wolf has a leaner quadrupedal
+  redesign. Other units retain four-frame full-sheet walks.
+- Fixed false invalid-grid failures from dilation bridging adjacent animation rows; added regression
+  coverage. Custom strip choreography replaces conflicting generic walk instructions.
+- Art remains a first pass: repeated gait poses, weapon/limb clarity and residual jitter may need
+  hand cleanup. This is not a final animation-quality signoff. See `docs/art-pipeline.md` for the
+  non-destructive hand-edit/reprocess workflow.
+
 
 | # | Milestone | State | Evidence / notes |
 | --- | --- | --- | --- |

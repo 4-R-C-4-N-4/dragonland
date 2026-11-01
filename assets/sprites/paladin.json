@@ -1,0 +1,244 @@
+{
+ "frames": {
+  "paladin 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 180
+  },
+  "paladin 1": {
+   "frame": {
+    "x": 86,
+    "y": 0,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 180
+  },
+  "paladin 2": {
+   "frame": {
+    "x": 172,
+    "y": 0,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 180
+  },
+  "paladin 3": {
+   "frame": {
+    "x": 258,
+    "y": 0,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 180
+  },
+  "paladin 4": {
+   "frame": {
+    "x": 0,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 5": {
+   "frame": {
+    "x": 72,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 6": {
+   "frame": {
+    "x": 144,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 7": {
+   "frame": {
+    "x": 216,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 8": {
+   "frame": {
+    "x": 288,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 9": {
+   "frame": {
+    "x": 360,
+    "y": 79,
+    "w": 72,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "paladin 10": {
+   "frame": {
+    "x": 0,
+    "y": 150,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 90
+  },
+  "paladin 11": {
+   "frame": {
+    "x": 86,
+    "y": 150,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 90
+  },
+  "paladin 12": {
+   "frame": {
+    "x": 172,
+    "y": 150,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 90
+  },
+  "paladin 13": {
+   "frame": {
+    "x": 258,
+    "y": 150,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 90
+  },
+  "paladin 14": {
+   "frame": {
+    "x": 0,
+    "y": 229,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 110
+  },
+  "paladin 15": {
+   "frame": {
+    "x": 86,
+    "y": 229,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 110
+  },
+  "paladin 16": {
+   "frame": {
+    "x": 172,
+    "y": 229,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 110
+  },
+  "paladin 17": {
+   "frame": {
+    "x": 258,
+    "y": 229,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 110
+  },
+  "paladin 18": {
+   "frame": {
+    "x": 0,
+    "y": 308,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 140
+  },
+  "paladin 19": {
+   "frame": {
+    "x": 86,
+    "y": 308,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 140
+  },
+  "paladin 20": {
+   "frame": {
+    "x": 172,
+    "y": 308,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 140
+  },
+  "paladin 21": {
+   "frame": {
+    "x": 258,
+    "y": 308,
+    "w": 86,
+    "h": 79
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "paladin.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 432,
+   "h": 387
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 9,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 10,
+    "to": 13,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 14,
+    "to": 17,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 18,
+    "to": 21,
+    "direction": "forward"
+   }
+  ]
+ }
+}

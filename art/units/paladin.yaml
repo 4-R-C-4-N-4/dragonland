@@ -4,6 +4,20 @@ size: general
 description: >-
   A general: a heroic paladin in ornate silver plate armour with a great shield and a glowing holy sword, flowing cape, commanding presence. The final evolution of Soldier and Knight. Team colour: the long cape and a tabard.
 animationNotes: >-
-  Attack: radiant two-handed sword sweep.
+  Attack: radiant one-handed sword sweep; the other hand retains the great shield.
+walkNotes: >-
+  Deliberate confident armoured stride, not the Rogue's crouch and not a high-knee stomp.
+  Six distinct sequential poses: 1 near leg forward heel contact, far leg extended behind;
+  2 near knee flexes slightly as weight transfers, far heel lifts; 3 far knee swings forward
+  past planted near leg; 4 far leg forward heel contact, near leg extended behind;
+  5 far knee flexes as weight transfers, near heel lifts; 6 near knee swings forward past
+  planted far leg, ready to loop to 1. Near leg is lighter silver, far leg darker blue-grey;
+  never swap this shading. For four-frame sheets use phases 1,3,4,6.
+  Hold head, shoulders, helmet plume and shield at constant cell positions, identical size
+  and view angle in every frame, no horizontal jitter or camera zoom. Pelvis follows a smooth
+  shallow arc with at most one game pixel of vertical bob. One hand keeps the shield close
+  to the chest; the sword hand holds the blade diagonally UP and RIGHT away from the legs.
+  No weapon hand swaps, shield resizing or flailing. Cape trails behind to the LEFT in a
+  restrained wave; feet contact the same ground line.
 # Previous evolution stage; its picked sheet is attached so the silhouette carries over.
 evolvesFrom: knight
