@@ -1,0 +1,16 @@
+{
+  "fierce": {
+    "holdPursuitDist": 140,
+    "fallBackEngageDist": 70
+  },
+  "mixed": {
+    "cohesionRadius": 90
+  },
+  "guard": {
+    "leashRadius": 180,
+    "ringRadius": 90
+  },
+  "separationWeight": 36,
+  "separationRadius": 16,
+  "generalLeashSpeedFrac": 0.6
+}

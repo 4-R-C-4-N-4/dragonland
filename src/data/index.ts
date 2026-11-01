@@ -7,18 +7,24 @@ import generalsJson from '../../data/generals.json';
 import formationsJson from '../../data/formations.json';
 import aiLoadoutsJson from '../../data/loadouts-ai.json';
 import namesJson from '../../data/names.json';
+import behaviorsJson from '../../data/behaviors.json';
+import aiPolicyJson from '../../data/ai.json';
 import {
   AiLoadoutSchema,
+  AiPolicySchema,
   ClassDefSchema,
   ConstantsSchema,
+  DispositionBehaviorSchema,
   FormationDefSchema,
   GeneralDefSchema,
   NamesSchema,
   UnitDefSchema,
   type AiLoadout,
+  type AiPolicy,
   type ClassDef,
   type ClassId,
   type Constants,
+  type DispositionBehavior,
   type FormationDef,
   type GeneralDef,
   type GeneralId,
@@ -36,6 +42,8 @@ export interface GameData {
   formations: FormationDef[];
   aiLoadouts: AiLoadout[];
   names: Names;
+  behaviors: DispositionBehavior;
+  aiPolicy: AiPolicy;
   // lookups
   classById: Map<ClassId, ClassDef>;
   unitById: Map<string, UnitDef>;
@@ -52,6 +60,8 @@ export interface RawGameData {
   formations: unknown;
   aiLoadouts: unknown;
   names: unknown;
+  behaviors: unknown;
+  aiPolicy: unknown;
 }
 
 export const rawGameData: RawGameData = {
@@ -62,6 +72,8 @@ export const rawGameData: RawGameData = {
   formations: formationsJson,
   aiLoadouts: aiLoadoutsJson,
   names: namesJson,
+  behaviors: behaviorsJson,
+  aiPolicy: aiPolicyJson,
 };
 
 /** Validate raw JSON and build lookups + cross-reference checks. Throws with a readable message. */
@@ -73,6 +85,8 @@ export function buildGameData(raw: RawGameData): GameData {
   const formations = z.array(FormationDefSchema).parse(raw.formations);
   const aiLoadouts = z.array(AiLoadoutSchema).parse(raw.aiLoadouts);
   const names = NamesSchema.parse(raw.names);
+  const behaviors = DispositionBehaviorSchema.parse(raw.behaviors);
+  const aiPolicy = AiPolicySchema.parse(raw.aiPolicy);
 
   const classById = new Map(classes.map((c) => [c.id, c] as const));
   const unitById = new Map(units.map((u) => [u.id, u] as const));
@@ -108,7 +122,22 @@ export function buildGameData(raw: RawGameData): GameData {
   }
   if (errors.length) throw new Error(`Invalid game data:\n  ${errors.join('\n  ')}`);
 
-  return { constants, classes, units, generals, formations, aiLoadouts, names, classById, unitById, generalById, formationById, aiLoadoutById };
+  return {
+    constants,
+    classes,
+    units,
+    generals,
+    formations,
+    aiLoadouts,
+    names,
+    behaviors,
+    aiPolicy,
+    classById,
+    unitById,
+    generalById,
+    formationById,
+    aiLoadoutById,
+  };
 }
 
 /** Clone game data with constants overridden (debug constants panel → next battle). */
