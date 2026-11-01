@@ -13,6 +13,8 @@ import { dataForBattle } from '../debug';
 import { getBattleCounter, bumpBattleCounter } from './battleCounter';
 import { flowReducer, initialFlowState, type FlowState } from './state';
 import { runHeadlessBattle } from './headlessBattle';
+import { resolveEnemySideColors } from './colors';
+import { DEFAULT_PLAYER_COLOR, resolveSideColors } from '../../data/colors';
 import './flow.css';
 
 export interface MountFlowOptions {
@@ -129,6 +131,10 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
       enemyClassCounts.set(cid, (enemyClassCounts.get(cid) ?? 0) + 1);
     }
 
+    const playerColors = resolveSideColors(sanitized.color, sanitized.squads.map((s) => s.color), DEFAULT_PLAYER_COLOR);
+    const enemyColors = resolveEnemySideColors(sanitized, commit.side.squads.length, commit.loadout.color);
+    const swatch = (color: string) => `<span class="dl-color-swatch" style="background:${color}"></span>`;
+
     const matchups = sanitized.squads.map((sq) => {
       const unitIds = sq.troopIds.map((id) => roster.find((t) => t.id === id)?.unitId).filter((u): u is string => Boolean(u));
       const verdict = matchupSummary(unitIds, enemyUnitIds, battleData);
@@ -144,24 +150,24 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
         <h1 class="dl-title">Prepare for Battle</h1>
 
         <div class="dl-panel dl-commit-card">
-          <h2>Enemy: ${enemyGeneral?.name ?? commit.side.generalId}</h2>
+          <h2>${swatch(enemyColors.team)} Enemy: ${enemyGeneral?.name ?? commit.side.generalId}</h2>
           <p class="dl-dim">HP ${enemyGeneral?.hp ?? '?'} · Special: ${enemyGeneral?.special.name ?? '?'} · Formation: ${battleData.formationById.get(commit.side.formationId)?.name ?? commit.side.formationId}</p>
           <ul class="dl-enemy-squads">
             ${commit.side.squads
-              .map((sq) => {
+              .map((sq, i) => {
                 const counts = new Map<string, number>();
                 for (const t of sq.troops) {
                   const cid = battleData.unitById.get(t.unitId)?.classId ?? '?';
                   counts.set(cid, (counts.get(cid) ?? 0) + 1);
                 }
-                return `<li><strong>${escapeHtml(sq.name)}</strong> (${sq.disposition}, ${sq.troops.length}): ${Array.from(counts.entries()).map(([c, n]) => `${c} ×${n}`).join(', ')}</li>`;
+                return `<li>${swatch(enemyColors.squads[i]!)} <strong>${escapeHtml(sq.name)}</strong> (${sq.disposition}, ${sq.troops.length}): ${Array.from(counts.entries()).map(([c, n]) => `${c} ×${n}`).join(', ')}</li>`;
               })
               .join('')}
           </ul>
         </div>
 
         <div class="dl-panel dl-response-card">
-          <h2>Your army: ${escapeHtml(sanitized.name)}</h2>
+          <h2>${swatch(playerColors.team)} Your army: ${escapeHtml(sanitized.name)}</h2>
           <p class="dl-dim">General: ${general?.name ?? sanitized.generalId}</p>
           <button id="dl-back-to-builder">← Edit in builder</button>
 
@@ -176,7 +182,7 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
           <p>${overall}</p>
           <ul class="dl-matchup-list">
             ${matchups
-              .map((m) => `<li class="dl-matchup-${m.verdict}">${icon[m.verdict]} <strong>${escapeHtml(m.squad.name)}</strong> — ${m.verdict}</li>`)
+              .map((m, i) => `<li class="dl-matchup-${m.verdict}">${swatch(playerColors.squads[i]!)} ${icon[m.verdict]} <strong>${escapeHtml(m.squad.name)}</strong> — ${m.verdict}</li>`)
               .join('')}
           </ul>
 
@@ -192,9 +198,14 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
     });
     screenEl.querySelector('#dl-fight')?.addEventListener('click', () => {
       const playerSide = loadoutToSideSetup(sanitized, roster, state.formationId);
+      const enemySide = {
+        ...commit.side,
+        color: enemyColors.team,
+        squads: commit.side.squads.map((sq, i) => ({ ...sq, color: enemyColors.squads[i] })),
+      };
       store.saveLoadout(sanitized);
       store.setLastComposition(companyComposition(sanitized, roster, battleData));
-      dispatch({ type: 'fight', setup: { seed: state.seed, sides: [playerSide, commit.side] } });
+      dispatch({ type: 'fight', setup: { seed: state.seed, sides: [playerSide, enemySide] } });
     });
   }
 
