@@ -320,7 +320,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
             <button class="dl-step-minus" data-unit-id="${unitId}" aria-label="Decrease">−</button>
             <input type="number" class="dl-count-input" data-unit-id="${unitId}" value="${n}" min="0" max="${MAX_COMPANY}" />
             <button class="dl-step-plus" data-unit-id="${unitId}" aria-label="Increase">+</button>
-            <span class="dl-dim dl-avail-hint">(${availForUnit} available)</span>
+            <span class="dl-dim dl-avail-hint" title="Unassigned ${escapeHtml(unit.name)}s left in your roster">${Math.max(0, availForUnit - n) ? `+${Math.max(0, availForUnit - n)} left` : 'none left'}</span>
             <button class="dl-remove-row" data-unit-id="${unitId}" aria-label="Remove row">✕</button>
           </div>
         `;
