@@ -1,5 +1,5 @@
 // Fixed-step entry point (implementation.md §5 step.ts, §6).
-import { retargetAndMoveTroops, runGenerals } from './behavior';
+import { retargetAndMoveTroops, runGenerals, settleBodies } from './behavior';
 import { canFireSpecialReal, chargeMetersByTime, doFireSpecial, tickSpecialCooldowns } from './specials';
 import { checkFightEnd } from './skirmish';
 import { runDuelTick } from './duel';
@@ -48,6 +48,7 @@ export function step(world: World): void {
   }
 
   if (world.phase === 'deploy') {
+    settleBodies(world);
     world.deployRemainingS = Math.max(0, world.deployRemainingS - dt);
     if (world.deployRemainingS === 0) {
       world.phase = 'fight';

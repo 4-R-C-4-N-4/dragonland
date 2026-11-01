@@ -167,7 +167,11 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     sideSetup.squads.forEach((sq, slot) => {
       const squadIndex = squads.length;
       const slotPos = slotPosition(data, side, formation, slot);
-      const positions = packAroundSlot(slotPos, sq.troops.length, data.constants.TROOP_SPACING);
+      // Never pack tighter than the largest body in the squad (D17).
+      let maxBody = 0;
+      for (const t of sq.troops) maxBody = Math.max(maxBody, data.unitById.get(t.unitId)?.bodyRadius ?? 0);
+      const spacing = Math.max(data.constants.TROOP_SPACING, 2 * maxBody + 1);
+      const positions = packAroundSlot(slotPos, sq.troops.length, spacing);
       const members: number[] = [];
       let minSpeed = Infinity;
       sq.troops.forEach((troop, i) => {

@@ -263,6 +263,12 @@ function resolveOverlaps(world: World, data: GameData, internal: WorldInternal, 
   }
 }
 
+/** Push apart overlapping bodies without moving anything else (used during deploy). */
+export function settleBodies(world: World): void {
+  const internal = internalOf(world);
+  resolveOverlaps(world, internal.data, internal, flyingFlags(internal, world.ents));
+}
+
 export function retargetAndMoveTroops(world: World, dt: number): void {
   const internal = internalOf(world);
   const data = internal.data;
