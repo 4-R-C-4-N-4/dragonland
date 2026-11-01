@@ -6,7 +6,7 @@ import { createAiController } from '../src/ai/policy';
 import { createBattle, createRng, step } from '../src/sim';
 const patch = JSON.parse(process.argv[2] ?? '{}');
 const runs = Number(process.argv[3] ?? 30);
-const pairs = (process.argv[4] ?? 'mirror-human:mirror-beast').split(',').map((p) => p.split(':'));
+const pairs = (process.argv[4] ?? 'lean-human:lean-beast').split(',').map((p) => p.split(':'));
 const raw = structuredClone(rawGameData) as any;
 for (const [id, o] of Object.entries(patch.units ?? {})) Object.assign(raw.units.find((u: any) => u.id === id), o);
 Object.assign(raw.constants, patch.constants ?? {});

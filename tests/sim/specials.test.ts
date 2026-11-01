@@ -26,7 +26,7 @@ function sideFromLoadout(id: string): SideSetup {
 }
 
 function setup(): BattleSetup {
-  return { seed: 1, sides: [sideFromLoadout('mirror-human'), sideFromLoadout('mirror-beast')] };
+  return { seed: 1, sides: [sideFromLoadout('lean-human'), sideFromLoadout('lean-beast')] };
 }
 
 describe('special meter / MP / cooldown (D2)', () => {

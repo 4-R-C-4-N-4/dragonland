@@ -26,7 +26,7 @@ function sideFromLoadout(id: string): SideSetup {
 }
 
 function setupFor(seed: number): BattleSetup {
-  return { seed, sides: [sideFromLoadout('mirror-human'), sideFromLoadout('mirror-beast')] };
+  return { seed, sides: [sideFromLoadout('lean-human'), sideFromLoadout('lean-beast')] };
 }
 
 function runToEnd(setup: BattleSetup, maxTicks = 20000) {

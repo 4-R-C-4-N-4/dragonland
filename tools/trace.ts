@@ -6,7 +6,7 @@ import { createAiController } from '../src/ai/policy';
 import { createRng } from '../src/sim/rng';
 import { createBattle, step } from '../src/sim';
 const data = getGameData();
-const [a,b,seed] = [process.argv[2]??'mirror-human', process.argv[3]??'mirror-beast', Number(process.argv[4]??1)];
+const [a,b,seed] = [process.argv[2]??'lean-human', process.argv[3]??'lean-beast', Number(process.argv[4]??1)];
 const rng = createRng(seed);
 const setup = { seed, sides: [buildSideSetupFromLoadout(data, data.aiLoadoutById.get(a)!, rng), buildSideSetupFromLoadout(data, data.aiLoadoutById.get(b)!, rng)] as any };
 const w = createBattle(data, setup);
