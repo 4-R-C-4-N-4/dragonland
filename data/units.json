@@ -7,7 +7,7 @@
     "stage": 1,
     "evolvesTo": "ranger",
     "moveSpeed": 45,
-    "attackRange": 220,
+    "attackRange": 120,
     "attackCooldownS": 1.6,
     "flying": false,
     "bodyRadius": 6
@@ -20,7 +20,7 @@
     "stage": 2,
     "evolvesTo": "deadeye",
     "moveSpeed": 48,
-    "attackRange": 220,
+    "attackRange": 120,
     "attackCooldownS": 1.5,
     "flying": false,
     "bodyRadius": 6
@@ -86,7 +86,7 @@
     "evolvesTo": "hawk",
     "moveSpeed": 85,
     "attackRange": 24,
-    "attackCooldownS": 1.0,
+    "attackCooldownS": 0.49,
     "flying": true,
     "bodyRadius": 5
   },
@@ -99,7 +99,7 @@
     "evolvesTo": "eagle",
     "moveSpeed": 90,
     "attackRange": 24,
-    "attackCooldownS": 0.95,
+    "attackCooldownS": 0.46,
     "flying": true,
     "bodyRadius": 5
   },
@@ -112,7 +112,7 @@
     "evolvesTo": "drake",
     "moveSpeed": 50,
     "attackRange": 24,
-    "attackCooldownS": 1.2,
+    "attackCooldownS": 0.58,
     "flying": false,
     "bodyRadius": 8
   },
@@ -125,7 +125,7 @@
     "evolvesTo": "dragon",
     "moveSpeed": 52,
     "attackRange": 24,
-    "attackCooldownS": 1.15,
+    "attackCooldownS": 0.54,
     "flying": false,
     "bodyRadius": 8
   },
@@ -138,7 +138,7 @@
     "evolvesTo": "wolf",
     "moveSpeed": 55,
     "attackRange": 24,
-    "attackCooldownS": 1.0,
+    "attackCooldownS": 0.49,
     "flying": false,
     "bodyRadius": 6
   },
@@ -151,7 +151,7 @@
     "evolvesTo": "warg",
     "moveSpeed": 58,
     "attackRange": 24,
-    "attackCooldownS": 0.95,
+    "attackCooldownS": 0.46,
     "flying": false,
     "bodyRadius": 6
   },

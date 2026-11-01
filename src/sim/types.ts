@@ -129,4 +129,6 @@ export interface World {
   events: SimEvent[];
   commandLog: RecordedCommand[];
   result: BattleResult | null;
+  /** Private sim internals (rng, grid, pending commands, caches). Opaque to consumers. */
+  _internal: unknown;
 }
