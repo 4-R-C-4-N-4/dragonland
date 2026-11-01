@@ -23,7 +23,7 @@ import type { GameData } from '../data';
 import type { Command, Disposition } from '../data/schemas';
 import type { World, SquadState, Side } from '../sim';
 import type { Camera } from '../battle/camera';
-import { lerp, pickAnimation } from '../battle/helpers';
+import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
 import { worldToScreen } from '../battle/camera';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
@@ -76,6 +76,10 @@ interface EntitySprite {
   lastHp: number;
   hitFlashT: number;
   attackFlashT: number;
+  track: AnimTrack;
+  facing?: 1 | -1;
+  pendingAttack: boolean;
+  pendingHit: boolean;
   lungeT: number;
   dying: boolean;
   deathT: number;
@@ -420,6 +424,9 @@ export class Battlefield {
       lastHp: -1,
       hitFlashT: 0,
       attackFlashT: 0,
+      track: { anim: 'idle', lockMs: 0 },
+      pendingAttack: false,
+      pendingHit: false,
       lungeT: 0,
       dying: false,
       deathT: 0,
@@ -489,9 +496,13 @@ export class Battlefield {
   private faceSheet(sp: EntitySprite, world: World, i: number): void {
     const ents = world.ents;
     const t = ents.target[i]!;
-    let dir = ents.side[i] === 0 ? 1 : -1;
-    if (t >= 0 && ents.alive[t]) dir = ents.x[t]! >= ents.x[i]! ? 1 : -1;
-    else if (Math.abs(ents.vx[i]!) > 2) dir = ents.vx[i]! > 0 ? 1 : -1;
+    // Deadbands keep units from flickering left/right when a target is straight above/below
+    // or crowd jostle reverses vx for a frame.
+    let dir = sp.facing ?? (ents.side[i] === 0 ? 1 : -1);
+    const dx = t >= 0 && ents.alive[t] ? ents.x[t]! - ents.x[i]! : 0;
+    if (Math.abs(dx) > 6) dir = dx > 0 ? 1 : -1;
+    else if (Math.abs(ents.vx[i]!) > 8) dir = ents.vx[i]! > 0 ? 1 : -1;
+    sp.facing = dir;
     for (const s of [sp.body, sp.halo, sp.cloth]) if (s) s.scale.x = Math.abs(s.scale.x) * dir;
   }
 
@@ -555,8 +566,21 @@ export class Battlefield {
         const unitId = this.data.units[unitIdx]?.id ?? '';
         const sheet = this.sheets.get(unitId);
         if (sheet && !sp.dying) {
-          const anim = pickAnimation({ alive: true, speed, recentAttack: sp.attackFlashT > 0, recentHit: sp.hitFlashT > 0, dying: false });
-          this.setAnim(sp, anim, sheet);
+          const moveSpeed = this.data.units[unitIdx]?.moveSpeed ?? 50;
+          const total = (a: AnimationName) => sheet.animations[a].frames.reduce((n, f) => n + f.durationMs, 0);
+          const step = stepAnim(sp.track, {
+            dtMs: dt * 1000,
+            speedFrac: speed / moveSpeed,
+            attacked: sp.pendingAttack,
+            hit: sp.pendingHit,
+            attackMs: total('attack'),
+            hitMs: total('hit'),
+          });
+          sp.pendingAttack = sp.pendingHit = false;
+          sp.track = step.track;
+          if (step.restart) sp.anim = null; // force setAnim to rewind
+          this.setAnim(sp, step.track.anim, sheet);
+          for (const s of [sp.body, sp.halo, sp.cloth]) if (s instanceof AnimatedSprite) s.animationSpeed = step.rate;
           this.faceSheet(sp, world, i);
         } else if (sheet && sp.dying) {
           this.setAnim(sp, 'death', sheet);
@@ -672,10 +696,14 @@ export class Battlefield {
     for (const ev of world.events) {
       if (ev.type === 'hit') {
         const targetSp = this.sprites[ev.target];
-        if (targetSp) targetSp.hitFlashT = 0.15;
+        if (targetSp) {
+          targetSp.hitFlashT = 0.15;
+          targetSp.pendingHit = true;
+        }
         const attackerSp = this.sprites[ev.attacker];
         if (attackerSp) {
           attackerSp.attackFlashT = 0.15;
+          attackerSp.pendingAttack = true;
           attackerSp.lungeT = 0.12;
         }
         if (ev.ranged) this.spawnProjectile(world, ev.attacker, ev.target);
