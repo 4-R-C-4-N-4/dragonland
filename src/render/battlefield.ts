@@ -28,6 +28,35 @@ import { worldToScreen } from '../battle/camera';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
 import { getDebugState } from '../debug/state';
+import type { FrameObject } from 'pixi.js';
+
+interface SheetLayers {
+  body: Record<AnimationName, FrameObject[]>;
+  cloth: Record<AnimationName, FrameObject[]> | null;
+  outline: Record<AnimationName, FrameObject[]> | null;
+}
+
+/**
+ * White silhouette dilated by 1px (8-neighbourhood) of a loaded sheet image, for a tintable outline.
+ * Returns null outside the browser or if the image resource isn't drawable.
+ */
+function outlineSourceFor(base: Texture): Texture['source'] | null {
+  const res = base.source.resource as CanvasImageSource | undefined;
+  if (typeof document === 'undefined' || !res) return null;
+  const w = base.source.width, h = base.source.height;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d');
+  if (!g) return null;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) g.drawImage(res, dx, dy);
+  g.globalCompositeOperation = 'source-in';
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, w, h);
+  const t = Texture.from(c);
+  t.source.scaleMode = 'nearest';
+  return t.source;
+}
 import { squadColorNumberFor, teamColorNumber, contrastMono, type SideColors } from './colorUi';
 
 export const Y_SQUASH = 0.65;
@@ -39,6 +68,7 @@ interface EntitySprite {
   ground: Sprite; // thin team-colour rim under the troop
   disc: Sprite; // squad-colour disc under the troop, inside the rim
   halo: Sprite | AnimatedSprite | null; // squad-colour outline/silhouette behind the body
+  cloth: AnimatedSprite | null; // art-pass team-cloth mask layer, tinted squad colour
   selOuter: Sprite; // selection double-ring, outer (white)
   selInner: Sprite; // selection double-ring, inner (black)
   usesSheet: boolean;
@@ -77,7 +107,7 @@ export class Battlefield {
 
   private placeholders: Map<string, UnitPlaceholder>;
   private sheets: Map<string, ParsedSheet>;
-  private sheetTextures = new Map<string, Record<AnimationName, Texture[]>>();
+  private sheetTextures = new Map<string, SheetLayers>();
   private sprites: (EntitySprite | undefined)[] = [];
   private damageNumbers: { text: Text; t: number; vy: number }[] = [];
   private squadBanners = new Map<string, SquadBanner>();
@@ -260,19 +290,27 @@ export class Battlefield {
     this.ground.addChild(edge);
   }
 
-  private sheetTexturesFor(sheet: ParsedSheet): Record<AnimationName, Texture[]> {
+  /** Frame lists (with per-frame durations) for body, team-cloth mask and outline layers. */
+  private sheetTexturesFor(sheet: ParsedSheet): SheetLayers {
     const cached = this.sheetTextures.get(sheet.unitId);
     if (cached) return cached;
     // Pixi v8: Texture.from(url) only works for already-loaded assets; preloadSheetImages() runs first.
     const baseTex = Assets.get<Texture>(sheet.imageUrl);
     if (!baseTex) throw new Error(`sprite sheet ${sheet.unitId}: image not preloaded`);
     baseTex.source.scaleMode = 'nearest'; // crisp pixel art
-    const out = {} as Record<AnimationName, Texture[]>;
-    for (const [name, anim] of Object.entries(sheet.animations) as [AnimationName, ParsedSheet['animations'][AnimationName]][]) {
-      out[name] = anim.frames.map((f) => new Texture({ source: baseTex.source, frame: new Rectangle(f.x, f.y, f.w, f.h) }));
-    }
-    this.sheetTextures.set(sheet.unitId, out);
-    return out;
+    const maskTex = sheet.maskUrl ? Assets.get<Texture>(sheet.maskUrl) : undefined;
+    if (maskTex) maskTex.source.scaleMode = 'nearest';
+    const outlineSource = outlineSourceFor(baseTex);
+    const layer = (src: Texture['source']) => {
+      const out = {} as Record<AnimationName, FrameObject[]>;
+      for (const [name, anim] of Object.entries(sheet.animations) as [AnimationName, ParsedSheet['animations'][AnimationName]][]) {
+        out[name] = anim.frames.map((f) => ({ texture: new Texture({ source: src, frame: new Rectangle(f.x, f.y, f.w, f.h) }), time: f.durationMs }));
+      }
+      return out;
+    };
+    const layers: SheetLayers = { body: layer(baseTex.source), cloth: maskTex ? layer(maskTex.source) : null, outline: outlineSource ? layer(outlineSource) : null };
+    this.sheetTextures.set(sheet.unitId, layers);
+    return layers;
   }
 
   /** Load every discovered sheet image; sheets whose image fails to load are dropped (placeholder kept). */
@@ -280,6 +318,7 @@ export class Battlefield {
     for (const [unitId, sheet] of [...this.sheets]) {
       try {
         await Assets.load<Texture>(sheet.imageUrl);
+        if (sheet.maskUrl) await Assets.load<Texture>(sheet.maskUrl).catch(() => console.warn(`sprite sheet ${unitId}: mask failed to load`));
       } catch (e) {
         console.warn(`sprite sheet ${unitId}: image failed to load, keeping placeholder`, e);
         this.sheets.delete(unitId);
@@ -328,25 +367,25 @@ export class Battlefield {
 
     let body: Sprite | AnimatedSprite;
     let halo: Sprite | AnimatedSprite | null = null;
+    let cloth: AnimatedSprite | null = null;
     let usesSheet = false;
     if (sheet) {
-      const frames = this.sheetTexturesFor(sheet);
-      body = new AnimatedSprite(frames.idle);
-      (body as AnimatedSprite).animationSpeed = 0.15;
-      (body as AnimatedSprite).loop = true;
-      (body as AnimatedSprite).play();
-      body.anchor.set(0.5, 1);
-      const scale = (isGeneral ? 56 : 26) / Math.max(sheet.frameW, sheet.frameH);
-      body.scale.set(scale);
+      // Sheets are produced at game-pixel scale by the art pipeline (art/sizes.yaml), so draw 1:1.
+      const layers = this.sheetTexturesFor(sheet);
+      const mk = (frames: FrameObject[]) => {
+        const s = new AnimatedSprite(frames);
+        s.loop = true;
+        s.anchor.set(0.5, 1);
+        s.y = footY + 1;
+        s.play();
+        return s;
+      };
+      body = mk(layers.body.idle);
       usesSheet = true;
-      // Art-pass units: a scaled-up tinted silhouette copy behind the body stands in for an outline.
-      const haloSprite = new AnimatedSprite(frames.idle);
-      haloSprite.animationSpeed = (body as AnimatedSprite).animationSpeed;
-      haloSprite.loop = true;
-      haloSprite.play();
-      haloSprite.anchor.set(0.5, 1);
-      haloSprite.scale.set(scale * 1.12);
-      halo = haloSprite;
+      // Squad-colour outline: a white 1px-dilated silhouette layer behind the body, tinted.
+      if (layers.outline) halo = mk(layers.outline.idle);
+      // Team cloth (tabard, cape...) tinted with the squad colour on top of the body.
+      if (layers.cloth) cloth = mk(layers.cloth.idle);
     } else {
       const tex = placeholder?.body ?? Texture.WHITE;
       body = new Sprite(tex);
@@ -360,13 +399,16 @@ export class Battlefield {
     if (isFlying) {
       body.y -= isGeneral ? 28 : 14;
       if (halo) halo.y = body.y;
+      if (cloth) cloth.y = body.y;
     }
     container.addChild(ground, selOuter, selInner, disc, shadow);
     if (halo) container.addChild(halo);
     container.addChild(body);
+    if (cloth) container.addChild(cloth);
     return {
       container,
       body,
+      cloth,
       shadow,
       ground,
       disc,
@@ -403,6 +445,7 @@ export class Battlefield {
       sprite.disc.tint = squadTint;
       sprite.ground.tint = teamTint;
       if (sprite.halo) sprite.halo.tint = squadTint;
+      if (sprite.cloth) sprite.cloth.tint = squadTint;
       if (ents.isGeneral[i] === 1) {
         // Generals: a large team-colour banner + a team-colour ground ring (not a squad disc).
         sprite.disc.tint = teamTint;
@@ -428,18 +471,28 @@ export class Battlefield {
 
   setAnim(sprite: EntitySprite, name: AnimationName, sheet: ParsedSheet): void {
     if (!sprite.usesSheet || sprite.anim === name) return;
-    const body = sprite.body as AnimatedSprite;
-    const frames = this.sheetTexturesFor(sheet);
-    body.textures = frames[name];
-    body.loop = sheet.animations[name].loop;
-    body.gotoAndPlay(0);
-    if (sprite.halo) {
-      const halo = sprite.halo as AnimatedSprite;
-      halo.textures = frames[name];
-      halo.loop = sheet.animations[name].loop;
-      halo.gotoAndPlay(0);
-    }
+    const layers = this.sheetTexturesFor(sheet);
+    const loop = sheet.animations[name].loop;
+    const apply = (s: Sprite | AnimatedSprite | null, frames: Record<AnimationName, FrameObject[]> | null) => {
+      if (!s || !frames || !(s instanceof AnimatedSprite)) return;
+      s.textures = frames[name];
+      s.loop = loop;
+      s.gotoAndPlay(0);
+    };
+    apply(sprite.body, layers.body);
+    apply(sprite.halo, layers.outline);
+    apply(sprite.cloth, layers.cloth);
     sprite.anim = name;
+  }
+
+  /** Sheets are drawn facing right; mirror toward the current target / movement / enemy side. */
+  private faceSheet(sp: EntitySprite, world: World, i: number): void {
+    const ents = world.ents;
+    const t = ents.target[i]!;
+    let dir = ents.side[i] === 0 ? 1 : -1;
+    if (t >= 0 && ents.alive[t]) dir = ents.x[t]! >= ents.x[i]! ? 1 : -1;
+    else if (Math.abs(ents.vx[i]!) > 2) dir = ents.vx[i]! > 0 ? 1 : -1;
+    for (const s of [sp.body, sp.halo, sp.cloth]) if (s) s.scale.x = Math.abs(s.scale.x) * dir;
   }
 
   /** Per-frame render update: interpolated positions, FX timers, depth sort, banners. */
@@ -504,6 +557,7 @@ export class Battlefield {
         if (sheet && !sp.dying) {
           const anim = pickAnimation({ alive: true, speed, recentAttack: sp.attackFlashT > 0, recentHit: sp.hitFlashT > 0, dying: false });
           this.setAnim(sp, anim, sheet);
+          this.faceSheet(sp, world, i);
         } else if (sheet && sp.dying) {
           this.setAnim(sp, 'death', sheet);
         }

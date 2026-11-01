@@ -23,6 +23,8 @@ export interface SheetAnimation {
 export interface ParsedSheet {
   unitId: string;
   imageUrl: string;
+  /** Optional `<id>.mask.png`: grey team-cloth layer, same layout as the image, tinted per squad. */
+  maskUrl?: string;
   frameW: number;
   frameH: number;
   /** Every required animation is present; missing tags fall back to idle (or frame 0). */
@@ -89,6 +91,7 @@ export function collectSheets(
 ): Map<string, ParsedSheet> {
   const byBase = (p: string) => p.replace(/^.*\//, '').replace(/\.(json|png)$/, '');
   const pngs = new Map(Object.entries(pngUrls).map(([p, url]) => [byBase(p), url] as const));
+  const masks = new Map([...pngs].filter(([k]) => k.endsWith('.mask')).map(([k, url]) => [k.slice(0, -'.mask'.length), url] as const));
   const out = new Map<string, ParsedSheet>();
   for (const [path, mod] of Object.entries(jsonModules).sort(([a], [b]) => a.localeCompare(b))) {
     const unitId = byBase(path);
@@ -99,7 +102,9 @@ export function collectSheets(
     }
     const json = (mod as { default?: unknown }).default ?? mod;
     try {
-      out.set(unitId, parseAsepriteSheet(unitId, url, json));
+      const sheet = parseAsepriteSheet(unitId, url, json);
+      const mask = masks.get(unitId);
+      out.set(unitId, mask ? { ...sheet, maskUrl: mask } : sheet);
     } catch (e) {
       onError(String(e instanceof Error ? e.message : e));
     }
