@@ -115,6 +115,8 @@ export const AiLoadoutSchema = z.object({
   formation: z.string(),
   /** Test-only loadouts (e.g. mirror pair) are excluded from enemy commit selection. */
   test: z.boolean().optional(),
+  /** Preferred team colour; replaced at commit time if it clashes with the player's colours. */
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   squads: z
     .array(
       z.object({
@@ -174,11 +176,20 @@ export const TroopSchema = z.object({
 });
 export type Troop = z.infer<typeof TroopSchema>;
 
+const HexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
 export const SquadSchema = z.object({
   id: z.string(),
   name: z.string(),
+  /** Resolved named troops. Derived from `composition` + `pinned` by the builder; what the battle uses. */
   troopIds: z.array(z.string()),
   disposition: DispositionSchema,
+  /** Desired unit counts (unitId -> count). The builder fills troopIds from the roster to match. */
+  composition: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  /** Troop ids the player chose by hand; never swapped out by auto-fill. */
+  pinned: z.array(z.string()).optional(),
+  /** Squad colour; when absent a shade of the team colour is derived. */
+  color: HexColorSchema.optional(),
 });
 export type Squad = z.infer<typeof SquadSchema>;
 
@@ -187,5 +198,7 @@ export const LoadoutSchema = z.object({
   name: z.string(),
   generalId: GeneralIdSchema,
   squads: z.array(SquadSchema),
+  /** Team colour. */
+  color: HexColorSchema.optional(),
 });
 export type Loadout = z.infer<typeof LoadoutSchema>;

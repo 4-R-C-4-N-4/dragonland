@@ -17,12 +17,16 @@ export interface SquadSetup {
   name: string;
   disposition: Disposition;
   troops: TroopSetup[];
+  /** Presentation only (sim ignores it): explicit squad colour '#rrggbb'. */
+  color?: string;
 }
 
 export interface SideSetup {
   generalId: GeneralId;
   formationId: string;
   squads: SquadSetup[];
+  /** Presentation only (sim ignores it): team colour '#rrggbb'. */
+  color?: string;
 }
 
 export interface BattleSetup {
