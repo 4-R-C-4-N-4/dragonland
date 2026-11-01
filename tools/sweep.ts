@@ -1,5 +1,6 @@
 
 // Unit-stat sweep: npx tsx tools/sweep.ts '<json patch>' runs  — patch = {"units":{"archer":{"attackCooldownS":2}},"constants":{...}}
+process.stdout.on('error', (e: NodeJS.ErrnoException) => { if (e.code === 'EPIPE') process.exit(0); throw e; });
 import { buildGameData, rawGameData } from '../src/data';
 import { buildSideSetupFromLoadout } from '../src/ai/commit';
 import { createAiController } from '../src/ai/policy';

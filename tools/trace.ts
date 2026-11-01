@@ -1,5 +1,6 @@
 // Single-battle timeline trace for tuning: npx tsx tools/trace.ts <loadoutA> <loadoutB> <seed>
 
+process.stdout.on('error', (e: NodeJS.ErrnoException) => { if (e.code === 'EPIPE') process.exit(0); throw e; });
 import { getGameData } from '../src/data';
 import { buildSideSetupFromLoadout } from '../src/ai/commit';
 import { createAiController } from '../src/ai/policy';

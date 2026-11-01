@@ -6,6 +6,7 @@
 //   npm run art -- pick <id> <file|#>         choose the candidate the game uses
 //   npm run art -- process [id...]            picks -> assets/sprites (+ candidates -> art/.cache)
 //   npm run art -- review                     write art/review.html (open /art/review.html in `npm run dev`)
+process.stdout.on('error', (e: NodeJS.ErrnoException) => { if (e.code === 'EPIPE') process.exit(0); throw e; });
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, copyFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';

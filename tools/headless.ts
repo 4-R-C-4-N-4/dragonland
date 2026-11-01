@@ -8,6 +8,7 @@
 //   add --json for machine-readable output
 //
 // Both sides are driven by the in-battle AI policy. Seeds run seed..seed+runs-1.
+process.stdout.on('error', (e: NodeJS.ErrnoException) => { if (e.code === 'EPIPE') process.exit(0); throw e; });
 import { getGameData, withConstants, type Constants, type GameData } from '../src/data';
 import { buildSideSetupFromLoadout } from '../src/ai/commit';
 import { createAiController } from '../src/ai/policy';
