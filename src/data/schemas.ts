@@ -41,6 +41,8 @@ export const ConstantsSchema = z.object({
   FORMATION_DEPTH: z.number().positive(),
   FORMATION_HALF_WIDTH: z.number().positive(),
   TROOP_SPACING: z.number().positive(),
+  JITTER_FRAC: z.number().nonnegative(),
+  DUEL_ENTRY_CHIP_PER_SURVIVOR: z.number().nonnegative(),
   DEPLOY_COUNTDOWN_S: z.number().nonnegative(),
   DUEL_CADENCE_S: z.number().positive(),
   DUEL_MAX_ROUNDS: z.number().int().positive(),
@@ -124,6 +126,33 @@ export const AiLoadoutSchema = z.object({
     .min(1),
 });
 export type AiLoadout = z.infer<typeof AiLoadoutSchema>;
+
+export const DispositionBehaviorSchema = z.object({
+  fierce: z.object({
+    holdPursuitDist: z.number().nonnegative(),
+    fallBackEngageDist: z.number().nonnegative(),
+  }),
+  mixed: z.object({
+    cohesionRadius: z.number().positive(),
+  }),
+  guard: z.object({
+    leashRadius: z.number().positive(),
+    ringRadius: z.number().positive(),
+  }),
+  separationWeight: z.number().nonnegative(),
+  separationRadius: z.number().positive(),
+  generalLeashSpeedFrac: z.number().positive(),
+});
+export type DispositionBehavior = z.infer<typeof DispositionBehaviorSchema>;
+
+export const AiPolicySchema = z.object({
+  generalLowHpFrac: z.number().positive(),
+  threatClearRadius: z.number().positive(),
+  specialMinEnemiesInArea: z.number().int().nonnegative(),
+  specialMinWoundedAllies: z.number().int().nonnegative(),
+  decisionIntervalS: z.number().positive(),
+});
+export type AiPolicy = z.infer<typeof AiPolicySchema>;
 
 export const NamesSchema = z.object({
   first: z.array(z.string()).min(1),
