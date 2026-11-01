@@ -76,7 +76,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
   function loadInitial(): void {
     const initial = (opts.initialLoadoutId && store.getLoadout(opts.initialLoadoutId)) || loadouts[0];
     if (initial) {
-      const resolved = resolveLoadout(initial, roster, data);
+      const resolved = fill(initial);
       loadout = resolved.loadout;
       lastResolve = resolved;
       const bits: string[] = [];
@@ -127,12 +127,27 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     return resolveLoadout(loadout, roster, data);
   }
 
+  /**
+   * Resolve a loadout against the roster. In demo mode (ROSTER_AUTO_RECRUIT, DECISIONS D20) any
+   * shortfall is covered by recruiting fresh named troops first, so compositions always fill.
+   */
+  function fill(l: Loadout): ResolveResult {
+    let r = resolveLoadout(l, roster, data);
+    if (data.constants.ROSTER_AUTO_RECRUIT && r.shortfalls.length) {
+      const needs: Record<string, number> = {};
+      for (const sf of r.shortfalls) needs[sf.unitId] = (needs[sf.unitId] ?? 0) + sf.missing;
+      roster = store.recruit(needs);
+      r = resolveLoadout(l, roster, data);
+    }
+    return r;
+  }
+
   function totalAssigned(): number {
     return loadout.squads.reduce((n, s) => n + Object.values(s.composition ?? {}).reduce((a, b) => a + b, 0), 0);
   }
 
   function mutate(next: Loadout, opts2: { skipResolve?: boolean } = {}): void {
-    loadout = opts2.skipResolve ? next : resolveLoadout(next, roster, data).loadout;
+    loadout = opts2.skipResolve ? next : fill(next).loadout;
     scheduleAutoSave();
     renderAll();
   }
@@ -185,7 +200,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
       } else {
         const found = store.getLoadout(id);
         if (found) {
-          const r = resolveLoadout(found, roster, data);
+          const r = fill(found);
           loadout = r.loadout;
           lastResolve = r;
           notice = r.replaced > 0 ? `${r.replaced} fallen troop(s) replaced from the roster.` : '';
@@ -248,7 +263,8 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
   function suggestedArmy(): Loadout {
     const byUnit = new Map<string, number>();
     for (const t of roster) byUnit.set(t.unitId, (byUnit.get(t.unitId) ?? 0) + 1);
-    const nonStage3 = data.units.filter((u) => u.stage !== 3 && (byUnit.get(u.id) ?? 0) > 0);
+    const recruit = data.constants.ROSTER_AUTO_RECRUIT === 1;
+    const nonStage3 = data.units.filter((u) => u.stage !== 3 && (recruit || (byUnit.get(u.id) ?? 0) > 0));
     const ranged = nonStage3.filter((u) => u.attackRange > data.constants.RANGED_THRESHOLD);
     const melee = nonStage3.filter((u) => u.attackRange <= data.constants.RANGED_THRESHOLD);
     const used = new Set<string>();
@@ -268,14 +284,16 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     const m1 = take(melee, 2);
     const m2 = take(melee, 2);
     const rest = take(nonStage3, 4);
+    // Split 25 per squad across its unit types (100 total when every squad has units).
+    const split = (units: typeof nonStage3) => units.map((u, i) => ({ unitId: u.id, count: Math.floor(25 / units.length) + (i < 25 % units.length ? 1 : 0) }));
     const squads = [
-      squadFrom('Archers', 'mixed', r.map((u) => ({ unitId: u.id, count: 13 }))),
-      squadFrom('Vanguard', 'fierce', m1.map((u) => ({ unitId: u.id, count: 13 }))),
-      squadFrom('Shieldwall', 'guard', m2.map((u) => ({ unitId: u.id, count: 13 }))),
-      squadFrom('Reserves', 'fierce', rest.map((u) => ({ unitId: u.id, count: 4 }))),
+      squadFrom('Archers', 'mixed', split(r)),
+      squadFrom('Vanguard', 'fierce', split(m1)),
+      squadFrom('Shieldwall', 'guard', split(m2)),
+      squadFrom('Reserves', 'fierce', split(rest)),
     ].filter((s) => Object.keys(s.composition ?? {}).length > 0);
     const next: Loadout = { ...loadout, squads: squads.length ? squads : loadout.squads };
-    return resolveLoadout(next, roster, data).loadout;
+    return fill(next).loadout;
   }
 
   // ---- notice ----
@@ -320,7 +338,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
             <button class="dl-step-minus" data-unit-id="${unitId}" aria-label="Decrease">−</button>
             <input type="number" class="dl-count-input" data-unit-id="${unitId}" value="${n}" min="0" max="${MAX_COMPANY}" />
             <button class="dl-step-plus" data-unit-id="${unitId}" aria-label="Increase">+</button>
-            <span class="dl-dim dl-avail-hint" title="Unassigned ${escapeHtml(unit.name)}s left in your roster">${Math.max(0, availForUnit - n) ? `+${Math.max(0, availForUnit - n)} left` : 'none left'}</span>
+            ${data.constants.ROSTER_AUTO_RECRUIT ? '' : `<span class="dl-dim dl-avail-hint" title="Unassigned ${escapeHtml(unit.name)}s left in your roster">${Math.max(0, availForUnit - n) ? `+${Math.max(0, availForUnit - n)} left` : 'none left'}</span>`}
             <button class="dl-remove-row" data-unit-id="${unitId}" aria-label="Remove row">✕</button>
           </div>
         `;
@@ -346,7 +364,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
         <div class="dl-add-row">
           <select class="dl-add-unit-select" data-squad-id="${squad.id}">
             <option value="">+ Add unit…</option>
-            ${addableUnits.map((u) => `<option value="${u.id}">${escapeHtml(u.name)} (${avail[u.id] ?? 0} avail)</option>`).join('')}
+            ${addableUnits.map((u) => `<option value="${u.id}">${escapeHtml(u.name)}${data.constants.ROSTER_AUTO_RECRUIT ? '' : ` (${avail[u.id] ?? 0} avail)`}</option>`).join('')}
           </select>
         </div>
         ${shortfalls.length ? `<p class="dl-shortfall">⚠ Not enough troops: ${shortfalls.map((s) => `${data.unitById.get(s.unitId)?.name ?? s.unitId} ×${s.missing} short`).join(', ')}</p>` : ''}
@@ -472,29 +490,43 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     pop.style.left = `${rect.left}px`;
     pop.style.zIndex = '50';
 
-    const isTeam = colorPopoverFor.kind === 'team';
+    const target = colorPopoverFor;
+    const isTeam = target.kind === 'team';
     const base = loadout.color ?? DEFAULT_PLAYER_COLOR;
-    const shades = isTeam ? TEAM_PALETTE : Array.from({ length: 4 }, (_, i) => deriveSquadColor(base, i));
+    const current = isTeam ? base : resolveSquadColor(loadout, loadout.squads.findIndex((s) => s.id === target.squadId));
+    const option = (c: string) => `<button class="dl-color-option${c.toLowerCase() === current.toLowerCase() ? ' dl-current' : ''}" data-color="${c}" style="background:${c}" title="${c}"></button>`;
+    const shadeRow = isTeam ? '' : `<div class="dl-color-label">Team shades</div><div class="dl-color-grid">${Array.from({ length: 4 }, (_, i) => option(deriveSquadColor(base, i))).join('')}</div>`;
 
     pop.innerHTML = `
-      <div class="dl-color-grid">
-        ${shades.map((c) => `<button class="dl-color-option" data-color="${c}" style="background:${c}"></button>`).join('')}
+      ${shadeRow}
+      <div class="dl-color-label">${isTeam ? 'Team colour' : 'Any colour'}</div>
+      <div class="dl-color-grid">${TEAM_PALETTE.map(option).join('')}</div>
+      <div class="dl-color-actions">
+        <label class="dl-custom-color">Custom… <input type="color" id="dl-custom-color-input" value="${current}" /></label>
+        ${isTeam ? '' : '<button id="dl-color-auto" title="Use a shade of the team colour">Auto</button>'}
       </div>
-      <label class="dl-custom-color">Custom <input type="color" id="dl-custom-color-input" value="${base}" /></label>
-      <button id="dl-color-auto">Auto</button>
     `;
     document.body.appendChild(pop);
 
     pop.querySelectorAll<HTMLButtonElement>('.dl-color-option').forEach((b) => {
       b.addEventListener('click', () => applyColorChoice(b.dataset.color!));
     });
-    pop.querySelector<HTMLInputElement>('#dl-custom-color-input')?.addEventListener('input', (e) => {
-      applyColorChoice((e.target as HTMLInputElement).value);
+    // Native picker: preview live on 'input' (swatch only, no re-render — re-rendering would destroy
+    // the input and close the OS picker after the first change), commit on 'change'.
+    const customInput = pop.querySelector<HTMLInputElement>('#dl-custom-color-input');
+    customInput?.addEventListener('input', () => {
+      const sw = anchor.querySelector<HTMLElement>('.dl-color-swatch');
+      if (sw) sw.style.background = customInput.value;
     });
+    customInput?.addEventListener('change', () => applyColorChoice(customInput.value));
     pop.querySelector('#dl-color-auto')?.addEventListener('click', () => applyColorChoice(undefined));
 
     const closeHandler = (ev: MouseEvent) => {
-      if (!pop.contains(ev.target as Node) && ev.target !== anchor) {
+      if (!document.body.contains(pop)) {
+        document.removeEventListener('mousedown', closeHandler);
+        return;
+      }
+      if (!pop.contains(ev.target as Node) && !anchor.contains(ev.target as Node)) {
         pop.remove();
         colorPopoverFor = null;
         document.removeEventListener('mousedown', closeHandler);
@@ -696,7 +728,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
         const squadId = sel.value;
         if (!squadId) return;
         loadout = pinTroop(loadout, squadId, troopId, roster);
-        loadout = resolveLoadout(loadout, roster, data).loadout;
+        loadout = fill(loadout).loadout;
         scheduleAutoSave();
         // Patch only this row + the squad grid + summary; the drawer list keeps its scroll.
         const row = drawerEl.querySelector<HTMLElement>(`.dl-drawer-row[data-troop-id="${troopId}"]`);

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { GameData } from '../data';
 import type { ClassId, Loadout, Troop } from '../data/schemas';
 import { LoadoutSchema, TroopSchema } from '../data/schemas';
-import { generateRoster } from './roster';
+import { generateRoster, recruitTroops } from './roster';
 import { sanitizeLoadout } from '../ui/builder/logic';
 
 export type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -36,6 +36,8 @@ function writeJson(storage: StorageLike, key: string, value: unknown): void {
 export interface Store {
   getRoster(): Troop[];
   resetRoster(seed: number): Troop[];
+  /** Add freshly generated named troops (unitId -> count); returns the new roster. */
+  recruit(needs: Record<string, number>): Troop[];
   listLoadouts(): Loadout[];
   getLoadout(id: string): Loadout | undefined;
   saveLoadout(loadout: Loadout): void;
@@ -64,6 +66,16 @@ export function createStore(storage: StorageLike, data: GameData): Store {
     const roster = generateRoster(data, seed);
     writeJson(storage, ROSTER_KEY, roster);
     return roster;
+  }
+
+  function recruit(needs: Record<string, number>): Troop[] {
+    const roster = getRoster();
+    // Seed from the roster itself so ids/names are reproducible for a given save, yet differ per call.
+    let seed = roster.length * 2654435761;
+    for (const t of roster) for (let i = 0; i < t.id.length; i++) seed = (Math.imul(seed, 31) + t.id.charCodeAt(i)) | 0;
+    const next = [...roster, ...recruitTroops(data, roster, needs, seed >>> 0)];
+    writeJson(storage, ROSTER_KEY, next);
+    return next;
   }
 
   function listLoadouts(): Loadout[] {
@@ -137,6 +149,7 @@ export function createStore(storage: StorageLike, data: GameData): Store {
   return {
     getRoster,
     resetRoster,
+    recruit,
     listLoadouts,
     getLoadout,
     saveLoadout,

@@ -39,3 +39,19 @@ export function generateRoster(data: GameData, seed: number): Troop[] {
   }
   return troops;
 }
+
+/**
+ * Fresh named troops for the given units (demo auto-recruit, DECISIONS D20). Names are unique
+ * against `existing`; deterministic for a given seed.
+ */
+export function recruitTroops(data: GameData, existing: Troop[], needs: Record<string, number>, seed: number): Troop[] {
+  const rng = createRng(seed);
+  const taken = new Set(existing.map((t) => t.name));
+  const out: Troop[] = [];
+  for (const [unitId, count] of Object.entries(needs).sort(([a], [b]) => a.localeCompare(b))) {
+    const unit = data.unitById.get(unitId);
+    if (!unit || unit.stage === 3) continue;
+    for (let i = 0; i < count; i++) out.push({ id: nextId(rng, 'troop'), name: uniqueName(rng, data.names, taken), unitId });
+  }
+  return out;
+}

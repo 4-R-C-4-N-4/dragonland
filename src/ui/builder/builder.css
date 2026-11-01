@@ -367,3 +367,15 @@
     width: 100%;
   }
 }
+
+/* colour popover */
+.dl-color-popover { padding: 10px; min-width: 200px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.dl-color-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--dl-text-dim, #9a9384); }
+.dl-color-grid { display: grid; grid-template-columns: repeat(5, 28px); gap: 6px; }
+.dl-color-option { width: 28px; height: 28px; border-radius: 6px; border: 2px solid rgba(255,255,255,.18); cursor: pointer; padding: 0; }
+.dl-color-option:hover { border-color: #fff; }
+.dl-color-option.dl-current { border-color: #fff; box-shadow: 0 0 0 2px #000 inset; }
+.dl-color-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 2px; }
+.dl-custom-color { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.dl-custom-color input[type=color] { width: 32px; height: 26px; padding: 0; border: none; background: none; cursor: pointer; }
+.dl-color-btn .dl-color-swatch, .dl-team-color-btn .dl-color-swatch { width: 18px; height: 18px; border-radius: 4px; display: inline-block; vertical-align: middle; }

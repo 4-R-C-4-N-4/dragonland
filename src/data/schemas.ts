@@ -47,6 +47,8 @@ export const ConstantsSchema = z.object({
   DUEL_CADENCE_S: z.number().positive(),
   DUEL_MAX_ROUNDS: z.number().int().positive(),
   ROSTER_SIZE: z.number().int().positive(),
+  /** Demo/testing: 1 = the builder recruits fresh named troops whenever a composition needs more than the roster has. 0 = scarce roster. */
+  ROSTER_AUTO_RECRUIT: z.number().int().min(0).max(1),
 });
 export type Constants = z.infer<typeof ConstantsSchema>;
 
