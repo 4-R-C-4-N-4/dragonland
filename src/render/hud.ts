@@ -6,7 +6,7 @@ import type { World } from '../sim';
 import { canFireSpecial } from '../sim';
 import { formatTimer } from '../battle/helpers';
 import type { Command } from '../data/schemas';
-import { squadHue } from '../render/battlefield';
+import { squadColorNumberFor, teamColorNumber, contrastMono, type SideColors } from './colorUi';
 
 export interface HudCallbacks {
   onSelectSquad(slot: number, additive: boolean): void;
@@ -187,6 +187,7 @@ export class Hud {
   constructor(
     private data: GameData,
     private labels: { player: string; enemy: string },
+    private sideColors: [SideColors, SideColors],
     private cb: HudCallbacks,
   ) {
     this.topBg = new Graphics();
@@ -229,7 +230,7 @@ export class Hud {
     ];
     for (const s of [0, 1] as const) {
       const c = new Container();
-      const badgeColor = s === 0 ? 0x3a7bd5 : 0xd5423a;
+      const badgeColor = teamColorNumber(this.sideColors[s]);
       const badge = new Graphics().circle(16, 16, 16).fill({ color: badgeColor }).circle(16, 16, 16).stroke({ color: 0xffffff, width: 2, alpha: 0.6 });
       c.addChild(badge, this.generalLabel[s], this.generalLevel[s], this.generalHp[s].bg, this.generalHp[s].fg, this.generalHpLabel[s]);
       c.addChild(this.generalMp[s].bg, this.generalMp[s].fg, this.generalMpLabel[s]);
@@ -411,11 +412,14 @@ export class Hud {
       c.lastKey = key;
 
       c.bg.clear();
-      const hue = squadHue(0, slot);
+      const hue = squadColorNumberFor(this.sideColors[0], slot);
+      const textColor = contrastMono(this.sideColors[0].squads[slot] ?? this.sideColors[0].team);
       c.bg.roundRect(0, 0, 146, 108, 8).fill({ color: selected ? 0x27392a : 0x15201a, alpha: 0.92 });
       c.bg.roundRect(0.5, 0.5, 145, 107, 8).stroke({ color: selected ? 0x8fe07a : 0x3c4a3f, width: selected ? 2 : 1 });
+      c.bg.roundRect(0, 0, 6, 108, 3).fill({ color: hue });
       c.bg.circle(16, 16, 11).fill({ color: hue });
       c.numHint.position.set(16, 16);
+      c.numHint.style.fill = textColor;
 
       c.name.position.set(32, 7);
       const dispoLabel = sq.disposition === 'fierce' ? 'Fierce' : sq.disposition === 'guard' ? 'Guard' : 'Mixed';

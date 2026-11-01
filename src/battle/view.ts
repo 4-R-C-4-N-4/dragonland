@@ -10,17 +10,20 @@ import { Selection } from './selection';
 import { attachInput } from './input';
 import { fitCamera, clampCamera, clampZoom, screenToWorld } from './camera';
 import type { Camera } from './camera';
+import { resolveBattleColors } from '../render/colorUi';
+import { DEFAULT_PLAYER_COLOR, DEFAULT_ENEMY_COLOR } from '../data/colors';
 
 export const startBattleView: StartBattleView = async (root, opts) => {
   const { data, setup, labels, onFinished } = opts;
   const world = createBattle(data, setup);
   const ai = createAiController(data, 1);
+  const sideColors = resolveBattleColors(setup, DEFAULT_PLAYER_COLOR, DEFAULT_ENEMY_COLOR);
 
   const app = new Application();
   await app.init({ resizeTo: root, antialias: true, background: '#1a2a1a' });
   root.appendChild(app.canvas);
 
-  const battlefield = new Battlefield(app.renderer, data, data.constants.FIELD_W, data.constants.FIELD_H);
+  const battlefield = new Battlefield(app.renderer, data, data.constants.FIELD_W, data.constants.FIELD_H, sideColors);
   await battlefield.preloadSheetImages();
   battlefield.ensureSprites(world);
   app.stage.addChild(battlefield.world2screen);
@@ -43,7 +46,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   }
 
   const selection = new Selection(data.constants.MAX_SQUADS);
-  const hud = new Hud(data, labels, {
+  const hud = new Hud(data, labels, sideColors, {
     onSelectSquad: (slot, additive) => (additive ? selection.toggle(slot) : selection.selectOnly(slot)),
     onSelectAll: () => selection.selectAll(),
     onCommand: (cmd) => {
