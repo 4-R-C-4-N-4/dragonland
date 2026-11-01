@@ -1,0 +1,39 @@
+[
+  {
+    "id": "paladin",
+    "unitId": "paladin",
+    "name": "Paladin",
+    "hp": 1500,
+    "mp": 100,
+    "level": 10,
+    "attack": 3.0,
+    "special": {
+      "id": "rally",
+      "name": "Rally",
+      "mpCost": 40,
+      "cooldownS": 20,
+      "kind": "radiusHeal",
+      "radius": 160,
+      "amount": 40
+    }
+  },
+  {
+    "id": "dragon",
+    "unitId": "dragon",
+    "name": "Dragon",
+    "hp": 1500,
+    "mp": 100,
+    "level": 10,
+    "attack": 3.0,
+    "special": {
+      "id": "breath",
+      "name": "Breath",
+      "mpCost": 40,
+      "cooldownS": 20,
+      "kind": "cone",
+      "radius": 220,
+      "amount": 40,
+      "coneHalfAngleDeg": 35
+    }
+  }
+]

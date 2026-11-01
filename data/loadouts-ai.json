@@ -1,0 +1,428 @@
+[
+  {
+    "id": "beast-horde",
+    "name": "Beast Horde",
+    "generalId": "dragon",
+    "formation": "wedge",
+    "squads": [
+      {
+        "name": "Talons",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 15
+          },
+          {
+            "unitId": "hawk",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Pack",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 15
+          },
+          {
+            "unitId": "wolf",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Wyrmguard",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 15
+          },
+          {
+            "unitId": "drake",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Scales",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 15
+          },
+          {
+            "unitId": "drake",
+            "count": 15
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "human-legion",
+    "name": "Human Legion",
+    "generalId": "paladin",
+    "formation": "line",
+    "squads": [
+      {
+        "name": "Bows",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 20
+          },
+          {
+            "unitId": "ranger",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Blades",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 15
+          },
+          {
+            "unitId": "rogue",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Shields",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 15
+          },
+          {
+            "unitId": "knight",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Line",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 15
+          },
+          {
+            "unitId": "knight",
+            "count": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mixed-host",
+    "name": "Mixed Host",
+    "generalId": "dragon",
+    "formation": "line",
+    "squads": [
+      {
+        "name": "Archers",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 15
+          },
+          {
+            "unitId": "ranger",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Hounds",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 15
+          },
+          {
+            "unitId": "wolf",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Knights",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 10
+          },
+          {
+            "unitId": "knight",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "name": "Wings",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 15
+          },
+          {
+            "unitId": "hawk",
+            "count": 10
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beast-wall",
+    "name": "Beast Wall",
+    "generalId": "paladin",
+    "formation": "guard",
+    "squads": [
+      {
+        "name": "Wolves",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 15
+          },
+          {
+            "unitId": "wolf",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "name": "Drakes",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 10
+          },
+          {
+            "unitId": "drake",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "name": "Hawks",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 10
+          },
+          {
+            "unitId": "hawk",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "name": "Dogs",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "human-skirmish",
+    "name": "Human Skirmishers",
+    "generalId": "dragon",
+    "formation": "wedge",
+    "squads": [
+      {
+        "name": "Rogues",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 15
+          },
+          {
+            "unitId": "rogue",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "name": "Rangers",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 15
+          },
+          {
+            "unitId": "ranger",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Spies",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 20
+          }
+        ]
+      },
+      {
+        "name": "Wardens",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 10
+          },
+          {
+            "unitId": "knight",
+            "count": 15
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mirror-human",
+    "name": "Mirror (Human)",
+    "generalId": "paladin",
+    "formation": "line",
+    "test": true,
+    "squads": [
+      {
+        "name": "A",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "M",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "Z",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "Mix",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "ranger",
+            "count": 5
+          },
+          {
+            "unitId": "rogue",
+            "count": 10
+          },
+          {
+            "unitId": "knight",
+            "count": 10
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mirror-beast",
+    "name": "Mirror (Beast)",
+    "generalId": "paladin",
+    "formation": "line",
+    "test": true,
+    "squads": [
+      {
+        "name": "A",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "M",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "Z",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "Mix",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "hawk",
+            "count": 5
+          },
+          {
+            "unitId": "drake",
+            "count": 10
+          },
+          {
+            "unitId": "wolf",
+            "count": 10
+          }
+        ]
+      }
+    ]
+  }
+]
