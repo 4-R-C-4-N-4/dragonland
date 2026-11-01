@@ -1,0 +1,50 @@
+.dl-debug-panel {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 320px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--dl-bg-panel);
+  border: 1px solid var(--dl-border-light);
+  border-radius: var(--dl-radius);
+  box-shadow: var(--dl-shadow);
+  padding: 8px 10px;
+  z-index: 1000;
+  font-size: 12px;
+}
+
+.dl-debug-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dl-debug-header button {
+  margin-left: auto;
+}
+
+.dl-debug-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dl-debug-consts {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dl-debug-consts td {
+  padding: 2px 4px;
+  border-bottom: 1px solid rgba(74, 58, 40, 0.3);
+}
+
+.dl-debug-consts td:first-child {
+  color: var(--dl-text-dim);
+}
+
+.dl-debug-consts input {
+  width: 100px;
+}

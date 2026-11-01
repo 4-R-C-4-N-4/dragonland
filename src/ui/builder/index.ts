@@ -51,6 +51,7 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
   let selected = new Set<string>();
   let filterText = '';
   let filterClass: ClassId | 'all' = 'all';
+  let filterLine: 'A' | 'M' | 'Z' | 'all' = 'all';
   let filterStage: 1 | 2 | 'all' = 'all';
   let sortKey: SortKey = 'unit';
   let sortDir: 1 | -1 = 1;
@@ -75,6 +76,9 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     }
     if (filterClass !== 'all') {
       list = list.filter((t) => data.unitById.get(t.unitId)?.classId === filterClass);
+    }
+    if (filterLine !== 'all') {
+      list = list.filter((t) => data.unitById.get(t.unitId)?.line === filterLine);
     }
     if (filterStage !== 'all') {
       list = list.filter((t) => data.unitById.get(t.unitId)?.stage === filterStage);
@@ -103,6 +107,15 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
       return cmp * sortDir;
     });
     return list;
+  }
+
+  function presentClasses(): ClassId[] {
+    const seen = new Set<ClassId>();
+    for (const t of roster) {
+      const cid = data.unitById.get(t.unitId)?.classId;
+      if (cid) seen.add(cid);
+    }
+    return data.classes.map((c: GameData['classes'][number]) => c.id).filter((c: ClassId) => seen.has(c));
   }
 
   function totalAssigned(): number {
@@ -147,7 +160,15 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
             <input id="dl-search" type="text" placeholder="Search name…" value="${escapeHtml(filterText)}" />
             <select id="dl-filter-class">
               <option value="all">All classes</option>
-              ${data.classes.map((c: GameData['classes'][number]) => `<option value="${c.id}" ${filterClass === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              ${presentClasses()
+                .map((cid) => `<option value="${cid}" ${filterClass === cid ? 'selected' : ''}>${data.classById.get(cid)?.name ?? cid}</option>`)
+                .join('')}
+            </select>
+            <select id="dl-filter-line">
+              <option value="all">All lines</option>
+              <option value="A" ${filterLine === 'A' ? 'selected' : ''}>Line A</option>
+              <option value="M" ${filterLine === 'M' ? 'selected' : ''}>Line M</option>
+              <option value="Z" ${filterLine === 'Z' ? 'selected' : ''}>Line Z</option>
             </select>
             <select id="dl-filter-stage">
               <option value="all">All stages</option>
@@ -352,6 +373,10 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     });
     root.querySelector<HTMLSelectElement>('#dl-filter-class')?.addEventListener('change', (e) => {
       filterClass = (e.target as HTMLSelectElement).value as ClassId | 'all';
+      render();
+    });
+    root.querySelector<HTMLSelectElement>('#dl-filter-line')?.addEventListener('change', (e) => {
+      filterLine = (e.target as HTMLSelectElement).value as 'A' | 'M' | 'Z' | 'all';
       render();
     });
     root.querySelector<HTMLSelectElement>('#dl-filter-stage')?.addEventListener('change', (e) => {

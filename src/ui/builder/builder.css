@@ -43,13 +43,14 @@
 
 .dl-main {
   display: grid;
-  grid-template-columns: minmax(420px, 1.3fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   gap: 12px;
 }
 
 .dl-roster-panel {
   padding: 10px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .dl-roster-toolbar,
@@ -122,6 +123,7 @@ tr.dl-row.dl-in-squad td:last-child {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .dl-totals {
@@ -144,13 +146,15 @@ tr.dl-row.dl-in-squad td:last-child {
 
 .dl-squad-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .dl-squad {
   padding: 8px;
   min-height: 140px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .dl-squad-header {
@@ -158,11 +162,13 @@ tr.dl-row.dl-in-squad td:last-child {
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
+  min-width: 0;
 }
 
 .dl-squad-name {
   flex: 1;
   font-weight: bold;
+  min-width: 0;
 }
 
 .dl-squad-count {
@@ -193,6 +199,16 @@ tr.dl-row.dl-in-squad td:last-child {
   align-items: center;
   padding: 2px 6px;
   border-bottom: 1px solid rgba(74, 58, 40, 0.3);
+  gap: 4px;
+  overflow: hidden;
+}
+
+.dl-squad-troops li > span.dl-dim {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .dl-dim {
