@@ -1,0 +1,19 @@
+{
+  "battles": 8,
+  "startingTroopsPerLine": 20,
+  "startingClasses": ["human", "beast", "mage", "ethereal", "construct"],
+  "encounterOfferCount": 2,
+  "recruitOfferCount": 3,
+  "recruitsPerOffer": 12,
+  "rosterCap": 160,
+  "enemyStartingTroops": 40,
+  "enemyTroopsPerDepth": 8,
+  "enemyMaxTroops": 100,
+  "enemyStage2Depth": 3,
+  "enemyStage3Depth": 6,
+  "enemyStage2Share": 0.3,
+  "enemyStage3Share": 0.15,
+  "enemyGeneralGrowthPerDepth": 0.03,
+  "bossGeneralMultiplier": 1.2,
+  "defaultTeamColor": "#5ba8ff"
+}
