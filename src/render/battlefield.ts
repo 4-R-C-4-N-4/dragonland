@@ -3,6 +3,7 @@
 // per-squad banners + per-troop squad markers (implementation.md §7.3).
 import {
   AnimatedSprite,
+  Assets,
   Container,
   Graphics,
   Rectangle,
@@ -226,13 +227,28 @@ export class Battlefield {
   private sheetTexturesFor(sheet: ParsedSheet): Record<AnimationName, Texture[]> {
     const cached = this.sheetTextures.get(sheet.unitId);
     if (cached) return cached;
-    const baseTex = Texture.from(sheet.imageUrl);
+    // Pixi v8: Texture.from(url) only works for already-loaded assets; preloadSheetImages() runs first.
+    const baseTex = Assets.get<Texture>(sheet.imageUrl);
+    if (!baseTex) throw new Error(`sprite sheet ${sheet.unitId}: image not preloaded`);
+    baseTex.source.scaleMode = 'nearest'; // crisp pixel art
     const out = {} as Record<AnimationName, Texture[]>;
     for (const [name, anim] of Object.entries(sheet.animations) as [AnimationName, ParsedSheet['animations'][AnimationName]][]) {
       out[name] = anim.frames.map((f) => new Texture({ source: baseTex.source, frame: new Rectangle(f.x, f.y, f.w, f.h) }));
     }
     this.sheetTextures.set(sheet.unitId, out);
     return out;
+  }
+
+  /** Load every discovered sheet image; sheets whose image fails to load are dropped (placeholder kept). */
+  async preloadSheetImages(): Promise<void> {
+    for (const [unitId, sheet] of [...this.sheets]) {
+      try {
+        await Assets.load<Texture>(sheet.imageUrl);
+      } catch (e) {
+        console.warn(`sprite sheet ${unitId}: image failed to load, keeping placeholder`, e);
+        this.sheets.delete(unitId);
+      }
+    }
   }
 
   private makeEntitySprite(unitId: string, side: 0 | 1, isGeneral: boolean, isFlying: boolean, squadIdx: number): EntitySprite {

@@ -21,6 +21,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   root.appendChild(app.canvas);
 
   const battlefield = new Battlefield(app.renderer, data, data.constants.FIELD_W, data.constants.FIELD_H);
+  await battlefield.preloadSheetImages();
   battlefield.ensureSprites(world);
   app.stage.addChild(battlefield.world2screen);
 
