@@ -1,0 +1,10 @@
+Pixel-art game sprite sheet in a 16-bit SNES era style (think Dragon Force, Ogre Battle, Final Fantasy Tactics). Limited palette, clean 1px dark outline, no anti-aliasing, crisp pixel clusters, strong readable silhouette that works at very small size, soft top-left lighting.
+Side view, the character faces RIGHT, full body visible, slight top-down tilt.
+Character: Soldier. A sturdy human foot soldier with a round wooden shield and a short sword, simple open-face helmet, leather and chainmail. Team colour: a short sleeveless tabard over the chest.
+Animation notes: Attack: shield-bash then short sword thrust.
+The character wears a team-colour element (tabard, sash, banner, scarf or collar, as described) painted in pure flat green #00FF00 with only darker green shading. Use #00FF00 nowhere else.
+Layout: a strict grid of 5 rows x 4 columns of equal square cells. Every cell shows the SAME character at the SAME scale with feet on the same baseline. Row 1 idle (subtle breathing), row 2 walk cycle, row 3 attack, row 4 taking a hit (flinch back), row 5 death (collapses and lies on the ground in the last frame).
+Solid flat pure magenta #FF00FF background everywhere, including between cells. No ground, no cast shadows, no text, no labels, no numbers, no grid lines, no borders.
+
+references:
+

@@ -188,6 +188,7 @@ function cmdProcess(args: string[]): void {
   let failures = 0;
   for (const id of ids) {
     // Candidates -> cache (for review)
+    mkdirSync(join(CACHE, id), { recursive: true });
     for (const f of listRaw(id)) {
       try {
         processOne(id, f, join(CACHE, id), f.replace(/\.png$/, ''));

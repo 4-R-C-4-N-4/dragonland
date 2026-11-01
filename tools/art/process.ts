@@ -82,7 +82,7 @@ export interface Box {
 }
 
 /** Connected foreground blobs on a downsampled + dilated mask (merges weapons/limbs into one figure). */
-export function findBlobs(map: Uint8Array, W: number, H: number, step = 4, dilate = 3): Box[] {
+export function findBlobs(map: Uint8Array, W: number, H: number, step = 4, dilate = 2): Box[] {
   const mw = Math.ceil(W / step), mh = Math.ceil(H / step);
   let m = new Uint8Array(mw * mh);
   for (let y = 0; y < mh; y++)
@@ -172,14 +172,18 @@ export function processSheet(img: Rgba, opts: ProcessOptions): ProcessResult {
   const map = classMap(img);
   const rows = gridFromBlobs(findBlobs(map, W, H));
   const counts = rows.map((r) => r.length);
-  if (rows.length !== opts.rows.length || counts.some((c) => c !== opts.framesPerRow)) {
+  const fullRows = rows.filter((r) => r.length === opts.framesPerRow);
+  // Rows must match; columns are estimated from complete rows. A row whose neighbouring figures touch
+  // (e.g. two lying death frames) is still fine: pixels are assigned by cell, not by blob.
+  if (rows.length !== opts.rows.length || fullRows.length < Math.ceil(opts.rows.length / 2) || counts.some((c) => c > opts.framesPerRow)) {
     throw new Error(`expected ${opts.rows.length} rows x ${opts.framesPerRow} frames, found rows ${JSON.stringify(counts)}`);
   }
+  if (fullRows.length < rows.length) warnings.push(`merged figures in row(s) ${counts.map((c, i) => (c < opts.framesPerRow ? opts.rows[i] : null)).filter(Boolean).join(', ')}; split by grid columns`);
 
   // Column centres shared by all rows (the model draws a uniform grid): anchoring frames to cells
   // instead of re-centring each figure keeps the animation from jittering sideways.
   const cx = (b: Box) => (b.x0 + b.x1) / 2;
-  const colCenters = Array.from({ length: opts.framesPerRow }, (_, k) => median(rows.map((r) => cx(r[k]!))));
+  const colCenters = Array.from({ length: opts.framesPerRow }, (_, k) => median(fullRows.map((r) => cx(r[k]!))));
   const pitchX = median(colCenters.slice(1).map((c, k) => c - colCenters[k]!)) || W / opts.framesPerRow;
   const rowBands = rows.map((r) => ({ top: Math.min(...r.map((b) => b.y0)), base: Math.max(...r.map((b) => b.y1)) }));
 
@@ -252,8 +256,48 @@ export function processSheet(img: Rgba, opts: ProcessOptions): ProcessResult {
     }
   }
 
+  removeSpecks(body, mask, SW, frameW, frameH, opts.framesPerRow, opts.rows.length);
   if (opts.outline) addOutline(body, SW, SH, frameW, frameH, opts.outline);
   return { frameW, frameH, body: { width: SW, height: SH, data: body }, mask: { width: SW, height: SH, data: mask }, warnings, scale };
+}
+
+/** Drop tiny detached islands (sparkles, stray pixels) per frame; keep anything >= 15% of the largest. */
+function removeSpecks(body: Uint8Array, mask: Uint8Array, SW: number, fw: number, fh: number, cols: number, rows: number): void {
+  const seen = new Uint8Array(fw * fh);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      seen.fill(0);
+      const comps: number[][] = [];
+      const idx = (x: number, y: number) => ((r * fh + y) * SW + c * fw + x) * 4;
+      for (let y = 0; y < fh; y++)
+        for (let x = 0; x < fw; x++) {
+          if (seen[y * fw + x] || !body[idx(x, y) + 3]) continue;
+          const comp: number[] = [];
+          const stack = [y * fw + x];
+          seen[y * fw + x] = 1;
+          while (stack.length) {
+            const p = stack.pop()!;
+            comp.push(p);
+            const px = p % fw, py = (p - px) / fw;
+            for (let dy = -1; dy <= 1; dy++)
+              for (let dx = -1; dx <= 1; dx++) {
+                const nx = px + dx, ny = py + dy;
+                if (nx < 0 || ny < 0 || nx >= fw || ny >= fh || seen[ny * fw + nx] || !body[idx(nx, ny) + 3]) continue;
+                seen[ny * fw + nx] = 1;
+                stack.push(ny * fw + nx);
+              }
+          }
+          comps.push(comp);
+        }
+      const largest = Math.max(0, ...comps.map((k) => k.length));
+      for (const k of comps)
+        if (k.length < largest * 0.15)
+          for (const p of k) {
+            const o = idx(p % fw, Math.floor(p / fw));
+            body[o + 3] = 0;
+            mask[o + 3] = 0;
+          }
+    }
 }
 
 /** 1px outline outside the silhouette, within each frame (helps readability at small size). */
