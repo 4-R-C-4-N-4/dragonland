@@ -251,7 +251,12 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
     const nonStage3 = data.units.filter((u) => u.stage !== 3 && (byUnit.get(u.id) ?? 0) > 0);
     const ranged = nonStage3.filter((u) => u.attackRange > data.constants.RANGED_THRESHOLD);
     const melee = nonStage3.filter((u) => u.attackRange <= data.constants.RANGED_THRESHOLD);
-    const pick = (list: typeof nonStage3, n: number) => list.slice(0, n);
+    const used = new Set<string>();
+    const take = (list: typeof nonStage3, n: number) => {
+      const picked = list.filter((u) => !used.has(u.id)).slice(0, n);
+      for (const u of picked) used.add(u.id);
+      return picked;
+    };
     const squadFrom = (name: string, disposition: Disposition, units: { unitId: string; count: number }[]): Squad => ({
       id: freshId('squad'),
       name,
@@ -259,14 +264,15 @@ export function mountBuilder(root: HTMLElement, opts: MountBuilderOptions): Moun
       troopIds: [],
       composition: Object.fromEntries(units.filter((u) => u.count > 0).map((u) => [u.unitId, u.count])),
     });
-    const r = pick(ranged, 2);
-    const m1 = pick(melee, 2);
-    const m2 = pick(melee.slice(2), 2);
+    const r = take(ranged, 2);
+    const m1 = take(melee, 2);
+    const m2 = take(melee, 2);
+    const rest = take(nonStage3, 4);
     const squads = [
       squadFrom('Archers', 'mixed', r.map((u) => ({ unitId: u.id, count: 13 }))),
       squadFrom('Vanguard', 'fierce', m1.map((u) => ({ unitId: u.id, count: 13 }))),
-      squadFrom('Shieldwall', 'guard', (m2.length ? m2 : m1).map((u) => ({ unitId: u.id, count: 13 }))),
-      squadFrom('Reserves', 'fierce', nonStage3.slice(0, 4).map((u) => ({ unitId: u.id, count: 6 }))),
+      squadFrom('Shieldwall', 'guard', m2.map((u) => ({ unitId: u.id, count: 13 }))),
+      squadFrom('Reserves', 'fierce', rest.map((u) => ({ unitId: u.id, count: 4 }))),
     ].filter((s) => Object.keys(s.composition ?? {}).length > 0);
     const next: Loadout = { ...loadout, squads: squads.length ? squads : loadout.squads };
     return resolveLoadout(next, roster, data).loadout;
