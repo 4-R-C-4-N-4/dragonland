@@ -34,6 +34,8 @@ export interface UnitSpec {
   description: string;
   animationNotes?: string;
   evolvesFrom?: string;
+  /** Multiplier on the size-class height (quadrupeds and birds are shorter than a standing human). */
+  heightScale?: number;
 }
 
 function readYaml<T>(path: string): T {

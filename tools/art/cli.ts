@@ -165,7 +165,7 @@ function processOne(id: string, rawFile: string, outDir: string, outName: string
   const style = loadStyle();
   const sizes = loadSizes();
   const spec = loadUnit(id);
-  const height = sizes.height[spec.size];
+  const height = sizes.height[spec.size] && Math.round(sizes.height[spec.size]! * (spec.heightScale ?? 1));
   if (!height) throw new Error(`${id}: size '${spec.size}' missing from sizes.yaml`);
   const res = processSheet(readPng(join(rawDir(id), rawFile)), {
     targetHeight: height,

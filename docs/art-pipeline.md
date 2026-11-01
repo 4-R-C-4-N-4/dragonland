@@ -1,6 +1,23 @@
 # Art pipeline (proposal)
 
-Status: draft for review. Nothing here is built yet, except a one-sheet smoke test (below).
+Status: **built** (`tools/art/`, `art/`). Decisions (Ivy):
+- troops ~32 px, generals ~64 px (bump if crowded);
+- 16-bit SNES style;
+- raw images in Git LFS;
+- generate in vetted batches (`art/batches.yaml`);
+- team colour through a `#00FF00` cloth key turned into a tintable mask.
+
+Usage:
+
+```
+npm run art -- status                       units, spec hash, candidates, picks
+npm run art -- gen batch2 [-n 2] [--force]  generate (sequential Codex calls, ~70 s each)
+npm run art -- process                      raw picks -> assets/sprites/<id>.{png,mask.png,json}
+npm run art -- review                       then open /art/review.html under `npm run dev`
+npm run art -- pick <id> <file>
+```
+
+Per-unit size tweaks: `heightScale` in `art/units/<id>.yaml`. This only needs a reprocess.
 
 ## Goal
 

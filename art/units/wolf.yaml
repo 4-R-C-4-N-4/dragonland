@@ -1,6 +1,8 @@
 # Wolf — beast, line Z, stage2. Edit, then `npm run art -- gen wolf`.
 name: Wolf
 size: stage2
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 0.8
 description: >-
   An evolved Dog: a big grey dire wolf with a thick mane and scarred muzzle, leather armour plates. Same silhouette family as the Dog, larger and more detailed. Team colour: a cloth mantle over the shoulders.
 animationNotes: >-

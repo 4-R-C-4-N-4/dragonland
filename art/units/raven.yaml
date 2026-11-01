@@ -1,6 +1,8 @@
 # Raven — beast, line A, stage1. Edit, then `npm run art -- gen raven`.
 name: Raven
 size: stage1
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 0.6
 description: >-
   A large black battle raven, flying, wings spread, sharp beak. Small and fast. Team colour: a cloth band tied around its neck.
 animationNotes: >-

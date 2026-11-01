@@ -1,6 +1,8 @@
 # Dragon — beast, line M, general. Edit, then `npm run art -- gen dragon`.
 name: Dragon
 size: general
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 1.0
 description: >-
   A general: a powerful winged dragon standing on four legs, red-bronze scales, large horned head, spread wings. The final evolution of Wyrm and Drake. Team colour: a cloth war banner strapped to its back.
 animationNotes: >-
