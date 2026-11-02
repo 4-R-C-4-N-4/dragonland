@@ -12,7 +12,7 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
 - Parent gate: 141 tests pass and production build passes. New flags regression tests observed red before removal.
 - Initial three Hermes workers failed before writing code due to Anthropic HTTP 429; no implementation was lost.
   Recovery used authenticated Codex CLI in the same isolated worktrees (content, art specs, pure progression).
-- Q1/Q2/Q3 merged into `mvp2` (gates green: 172 tests at merge); independent spec/quality reviews dispatched, results pending.
+- Q1/Q2/Q3 merged into `mvp2` (gates green: 172 tests at merge); independent spec review PASS, quality review APPROVED (follow-ups: art-spec drift test added; progression keeps its own chain check by design).
 - Q4 sim: per-troop `statMult`, hero `general` override, stage-3 troops keep troop stats (no longer overwritten by
   the same-species general profile), `STAGE3_STAT_MULT` 1.6.
 - Q5 run engine `src/run/*`: seeded encounters/recruits, frozen battles, idempotent results, versioned storage with

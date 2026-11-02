@@ -3,7 +3,7 @@
 height:
   stage1: 32
   stage2: 34
-  stage3: 40     # stage-3 units fielded as troops (later)
+  stage3: 40     # unused: stage-3 specs use `general` size so one sheet serves troop and general
   general: 64
 # Frame durations (ms) per animation.
 frameMs:
