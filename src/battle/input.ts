@@ -1,6 +1,7 @@
 // Keyboard input bindings (implementation.md §6 input). All actions also reachable via HUD.
-import { issueCommand, fireSpecial, setPaused } from '../sim';
+import { issueCommand, issueApproach, fireSpecial, setPaused } from '../sim';
 import type { World } from '../sim';
+import type { Approach } from '../data';
 import type { Selection } from './selection';
 import { updateDebugState, getDebugState } from '../debug/state';
 
@@ -9,7 +10,7 @@ export interface InputCallbacks {
 }
 
 /** Bindings: Space=pause, 1-4=select squad, A=select all, Q/W/E=Advance/Hold/FallBack,
- *  S=special, `=debug overlay, F=speed toggle. */
+ *  R/T/Y=Direct/FarFlank/NearFlank, S=special, `=debug overlay, F=speed toggle. */
 export function attachInput(target: Document | HTMLElement, world: World, selection: Selection, cb: InputCallbacks): () => void {
   const squadIdFor = (slot: number): string | undefined => world.squads.find((s) => s.side === 0 && s.slot === slot)?.id;
 
@@ -22,6 +23,15 @@ export function attachInput(target: Document | HTMLElement, world: World, select
         const id = squadIdFor(slot);
         if (id) issueCommand(world, 0, id, cmd);
       }
+    }
+  };
+
+  const approachToSelection = (approach: Approach): void => {
+    const sel = selection.selectedSlots();
+    if (sel === 'all') issueApproach(world, 0, 'all', approach);
+    else for (const slot of sel) {
+      const id = squadIdFor(slot);
+      if (id) issueApproach(world, 0, id, approach);
     }
   };
 
@@ -52,6 +62,18 @@ export function attachInput(target: Document | HTMLElement, world: World, select
       case 'e':
       case 'E':
         issueToSelection('fallBack');
+        break;
+      case 'r':
+      case 'R':
+        approachToSelection('direct');
+        break;
+      case 't':
+      case 'T':
+        approachToSelection('farFlank');
+        break;
+      case 'y':
+      case 'Y':
+        approachToSelection('nearFlank');
         break;
       case 's':
       case 'S':

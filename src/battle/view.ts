@@ -1,6 +1,6 @@
 // Battle view entry point (implementation.md §2.9-2.11, contract in src/battle/types.ts).
 import { Application, Graphics } from 'pixi.js';
-import { createBattle, issueCommand, fireSpecial, setPaused } from '../sim';
+import { createBattle, issueCommand, issueApproach, fireSpecial, setPaused } from '../sim';
 import type { BattleView, BattleViewOptions, StartBattleView } from './types';
 import { createAiController } from '../ai/policy';
 import { startLoop } from './loop';
@@ -60,6 +60,14 @@ export const startBattleView: StartBattleView = async (root, opts) => {
         }
       }
     },
+    onApproach: (approach) => {
+      const sel = selection.selectedSlots();
+      if (sel === 'all') issueApproach(world, 0, 'all', approach);
+      else for (const slot of sel) {
+        const sq = world.squads.find((s) => s.side === 0 && s.slot === slot);
+        if (sq) issueApproach(world, 0, sq.id, approach);
+      }
+    },
     onSpecial: () => fireSpecial(world, 0),
     onPauseToggle: () => setPaused(world, !world.paused),
     onSpeedToggle: () => {
@@ -73,7 +81,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   // HUD reserves fixed top/bottom bands; the field fills the remaining width/height so
   // troops read at a legible on-screen size (implementation.md §7.2).
   const TOP_BAND = 68;
-  const BOTTOM_BAND = 122;
+  const BOTTOM_BAND = 172;
 
   function camOpts() {
     const vw = app.renderer.width;

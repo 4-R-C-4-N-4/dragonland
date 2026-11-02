@@ -21,7 +21,9 @@
     "ringRadius": 70,
     "advanceFights": true
   },
+  "approach": { "laneFraction": 0.08, "arrivalRadius": 32, "turnDistance": 250 },
   "generalEngageRadius": 180,
+  "generalAggroMemoryS": 5,
   "separationWeight": 36,
   "separationRadius": 16,
   "generalLeashSpeedFrac": 0.6,

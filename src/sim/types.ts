@@ -1,6 +1,6 @@
 // Public sim contract. Render, UI, AI and the headless runner depend ONLY on this file and the functions
 // exported from src/sim/index.ts. Pure TS: no DOM, no Pixi, no Math.random, no Date.
-import type { Command, Disposition, GeneralDef, GeneralId, SpecialDef } from '../data/schemas';
+import type { Approach, Command, Disposition, GeneralDef, GeneralId, SpecialDef } from '../data/schemas';
 
 export type Side = 0 | 1; // 0 = player (left, faces +x), 1 = enemy (right, faces -x)  — DECISIONS D10
 
@@ -51,8 +51,11 @@ export interface SquadState {
   name: string;
   side: Side;
   slot: number; // 0..3 within its side (banner number - 1)
-  disposition: Disposition;
+  readonly disposition: Disposition; // fixed at deployment
   command: Command;
+  approach: Approach;
+  /** Reached the chosen flank lane; reset when changing approach or resuming Advance. */
+  flankReady: boolean;
   members: number[]; // entity indices (alive or dead)
   total: number;
   alive: number;
@@ -71,6 +74,8 @@ export interface GeneralState {
   specialCooldown: number; // seconds remaining; MP restored when it reaches 0 (D2)
   startX: number;
   startY: number;
+  /** Actual attackers, retained briefly after they stop focusing this general. */
+  aggro: { entity: number; expiresAtTick: number }[];
 }
 
 export type SimEvent =
@@ -114,7 +119,7 @@ export interface RecordedCommand {
   tick: number;
   side: Side;
   squadId: string | 'all'; // ignored for 'special'
-  command: Command | 'special';
+  command: Command | Approach | 'special';
 }
 
 export interface BattleResult {

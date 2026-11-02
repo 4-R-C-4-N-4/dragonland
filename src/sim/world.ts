@@ -1,7 +1,7 @@
 // World construction (implementation.md §5, §6). Builds the Entities SoA, squads, generals,
 // and the private internal state the rest of src/sim relies on.
 import type { GameData, UnitDef } from '../data';
-import type { Command } from '../data/schemas';
+import type { Approach, Command } from '../data/schemas';
 import { createRng, nextRange, type Rng } from './rng';
 import { generalPosition, packAroundSlot, slotPosition } from './formations';
 import { SpatialGrid } from './spatialGrid';
@@ -38,7 +38,7 @@ export function resolveUnitProfile(data: GameData, unit: UnitDef): ResolvedUnit 
 export interface PendingCommand {
   side: Side;
   squadId: string | 'all';
-  command: Command | 'special';
+  command: Command | Approach | 'special';
 }
 
 export interface WorldInternal {
@@ -164,6 +164,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
       specialCooldown: 0,
       startX: gp.x,
       startY: gp.y,
+      aggro: [],
     };
 
     sideSetup.squads.forEach((sq, slot) => {
@@ -221,6 +222,8 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
         slot,
         disposition: sq.disposition,
         command: 'advance',
+        approach: sq.disposition === 'fierce' ? (slot % 2 === 0 ? 'farFlank' : 'nearFlank') : 'direct',
+        flankReady: false,
         members,
         total: members.length,
         alive: members.length,

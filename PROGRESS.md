@@ -28,7 +28,9 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
   all Mixed 1.50 mean victories / 0% won; all Fierce 5.15 / 20% won; Mixed,Mixed,Fierce,Mixed 1.80 / 0%;
   Guard,Mixed,Fierce,Mixed 0.70 / 0%. Auto-arrange now defaults to all Fierce. Open: Fierce dominance
   (disposition balance) and run recovery tuning.
-- Gate now: 194 tests, build passes.
+- Hero retaliation: removed the fixed home leash that let ranged Imps chip a stationary hero forever. Actual attackers can be pursued across the field; aggro expires five sim seconds after they stop targeting the hero, or immediately on death. Heroes return to their original position when clear. Mirrored Imp regression tests, pursuit persistence, return/expiry, pause and determinism verified. Gate: 244 tests and production build pass.
+- Paused planning: order and approach previews update immediately in squad cards and button highlights without stepping the sim. Added Direct/Far Flank/Near Flank controls (R/T/Y); orders remain Q/W/E; disposition stays locked. Queued intentions execute/log on resume and replay identically. Browser checked both keyboard and mouse changes while paused. Gate: 247 tests and production build pass. Perspective projection has not changed in this pass.
+- Gate now: 194 tests, build passes (historical, before hero/special expansion).
 
 ## Art handoff
 

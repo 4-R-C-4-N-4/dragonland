@@ -6,6 +6,7 @@ export const ClassIdSchema = z.enum(['beast', 'mage', 'ethereal', 'construct', '
 export const LineSchema = z.enum(['A', 'M', 'Z']);
 export const DispositionSchema = z.enum(['fierce', 'mixed', 'guard']);
 export const CommandSchema = z.enum(['advance', 'hold', 'fallBack']);
+export const ApproachSchema = z.enum(['direct', 'farFlank', 'nearFlank']);
 /** Every stage-3 species can lead as a general (MVP2, D24). Ids equal their unit ids. */
 export const GeneralIdSchema = z.enum([
   'paladin', 'deadeye', 'assassin', 'dragon', 'eagle', 'warg', 'archmage', 'diabolist', 'hierophant',
@@ -16,6 +17,7 @@ export type ClassId = z.infer<typeof ClassIdSchema>;
 export type Line = z.infer<typeof LineSchema>;
 export type Disposition = z.infer<typeof DispositionSchema>;
 export type Command = z.infer<typeof CommandSchema>;
+export type Approach = z.infer<typeof ApproachSchema>;
 export type GeneralId = z.infer<typeof GeneralIdSchema>;
 
 export const ConstantsSchema = z.object({
@@ -211,8 +213,15 @@ export const DispositionBehaviorSchema = z.object({
     /** true = on Advance, guards with no threat fight enemy troops like Mixed; false = escort only. */
     advanceFights: z.boolean(),
   }),
-  /** Generals engage enemies within attackRange + this distance (they barely move). */
+  approach: z.object({
+    laneFraction: z.number().positive().lt(0.5),
+    arrivalRadius: z.number().positive(),
+    turnDistance: z.number().positive(),
+  }),
+  /** Unprovoked enemies are acquired within attackRange + this distance of the home position. */
   generalEngageRadius: z.number().nonnegative(),
+  /** Seconds to remember an attacker after it stops targeting the general. */
+  generalAggroMemoryS: z.number().positive(),
   separationWeight: z.number().nonnegative(),
   separationRadius: z.number().positive(),
   generalLeashSpeedFrac: z.number().positive(),

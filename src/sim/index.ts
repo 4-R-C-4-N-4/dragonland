@@ -1,7 +1,7 @@
 // Public sim API (implementation.md §5 index.ts). Everything outside src/sim must import from here.
 import type { GameData } from '../data';
 import { createBattle as createBattleImpl } from './world';
-import { step as stepImpl, setPaused as setPausedImpl, issueCommand as issueCommandImpl, fireSpecial as fireSpecialImpl } from './step';
+import { getSquadIntent, issueApproach, step as stepImpl, setPaused as setPausedImpl, issueCommand as issueCommandImpl, fireSpecial as fireSpecialImpl } from './step';
 import { canFireSpecial as canFireSpecialImpl } from './specials';
 import type { BattleSetup, RecordedCommand, Side, World } from './types';
 
@@ -12,6 +12,7 @@ export const createBattle = createBattleImpl;
 export const step = stepImpl;
 export const setPaused = setPausedImpl;
 export const issueCommand = issueCommandImpl;
+export { getSquadIntent, issueApproach };
 export const fireSpecial = fireSpecialImpl;
 export const canFireSpecial = canFireSpecialImpl;
 

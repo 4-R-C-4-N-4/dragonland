@@ -3,7 +3,7 @@ import { retargetAndMoveTroops, runGenerals, settleBodies } from './behavior';
 import { canFireSpecialReal, chargeMetersByTime, doFireSpecial, tickActiveEffects, tickSpecialCooldowns } from './specials';
 import { checkFightEnd } from './skirmish';
 import { runDuelTick } from './duel';
-import type { Command } from '../data/schemas';
+import type { Approach, Command } from '../data/schemas';
 import type { RecordedCommand, Side, World } from './types';
 import { internalOf, type PendingCommand, type WorldInternal } from './world';
 
@@ -22,7 +22,14 @@ function applyPendingCommands(world: World): void {
     }
     for (const squad of world.squads) {
       if (squad.side !== p.side) continue;
-      if (p.squadId === 'all' || squad.id === p.squadId) squad.command = p.command;
+      if (p.squadId !== 'all' && squad.id !== p.squadId) continue;
+      if (p.command === 'direct' || p.command === 'farFlank' || p.command === 'nearFlank') {
+        if (squad.approach !== p.command) squad.flankReady = false;
+        squad.approach = p.command;
+      } else {
+        if (squad.command !== p.command && p.command === 'advance') squad.flankReady = false;
+        squad.command = p.command;
+      }
     }
   }
 }
@@ -78,6 +85,25 @@ export function setPaused(world: World, paused: boolean): void {
 export function issueCommand(world: World, side: Side, squadId: string | 'all', command: Command): void {
   const internal = internalOf(world) as WorldInternal;
   internal.pending.push({ side, squadId, command });
+}
+
+/** Latest queued intent for HUD/planning, without executing a simulation tick. */
+export function getSquadIntent(world: World, squadIndex: number): { command: Command; approach: Approach; pending: boolean } {
+  const squad = world.squads[squadIndex];
+  if (!squad) throw new Error(`unknown squad index ${squadIndex}`);
+  let { command, approach } = squad;
+  let pending = false;
+  for (const p of internalOf(world).pending) {
+    if (p.side !== squad.side || (p.squadId !== 'all' && p.squadId !== squad.id) || p.command === 'special') continue;
+    if (p.command === 'direct' || p.command === 'farFlank' || p.command === 'nearFlank') approach = p.command;
+    else command = p.command;
+    pending = true;
+  }
+  return { command, approach, pending };
+}
+
+export function issueApproach(world: World, side: Side, squadId: string | 'all', approach: Approach): void {
+  internalOf(world).pending.push({ side, squadId, command: approach });
 }
 
 export function fireSpecial(world: World, side: Side): boolean {

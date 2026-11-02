@@ -6,6 +6,7 @@ import { computeDamage } from './combat';
 import { nextInt } from './rng';
 import type { ActiveEffect, GeneralState, Side, SpecialArea, World } from './types';
 import { internalOf } from './world';
+import { recordGeneralAggro } from './aggro';
 
 function enemySide(side: Side): Side {
   return side === 0 ? 1 : 0;
@@ -67,6 +68,7 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
     const dmg = computeDamage(data, { classId: caster.classId, line: caster.line, statMult: (amount * sp.power) / data.constants.BASE_DAMAGE }, t)
       * sideMods(world, enemy).defenseMult;
     ents.hp[i] = Math.max(0, ents.hp[i]! - dmg);
+    recordGeneralAggro(world, g.entity, i);
     affected.add(i);
     kill(world, i);
   };

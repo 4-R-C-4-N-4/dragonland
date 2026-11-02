@@ -5,6 +5,7 @@ import { dist, normalizeTo, separationForce } from './steering';
 import type { Entities, GeneralState, Side, SquadState, World } from './types';
 import { internalOf, type ResolvedUnit, type WorldInternal } from './world';
 import { sideMods } from './specials';
+import { recordGeneralAggro } from './aggro';
 
 function enemySide(side: Side): Side {
   return side === 0 ? 1 : 0;
@@ -58,6 +59,7 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
     dmg *= data.behaviors.fierce.generalDamageMult;
   }
   ents.hp[target] = Math.max(0, ents.hp[target]! - dmg);
+  recordGeneralAggro(world, attacker, target);
   emitHit(world, attacker, target, dmg, aProfile.attackRange > data.constants.RANGED_THRESHOLD);
   ents.cooldown[attacker] = aProfile.attackCooldownS;
   // Own troops' hits (and the general's own hits) charge that side's general meter. D2.
@@ -173,11 +175,17 @@ function moveTroop(
     } else if (d > profile.attackRange) {
       let gx = tx;
       let gy = ty;
-      const flank = data.behaviors.fierce.flankDist;
-      if (flank > 0 && squad.disposition === 'fierce' && ents.isGeneral[target] === 1 && Math.abs(tx - ents.x[e]!) > flank) {
-        // Flank: run along the top or bottom edge (alternating by squad slot) before turning in.
-        gy = squad.slot % 2 === 0 ? data.constants.FIELD_H * 0.08 : data.constants.FIELD_H * 0.92;
-        gx = tx - Math.sign(tx - ents.x[e]!) * flank * 0.5;
+      if (squad.command === 'advance' && squad.approach !== 'direct') {
+        const route = data.behaviors.approach;
+        const laneY = data.constants.FIELD_H * (squad.approach === 'farFlank' ? route.laneFraction : 1 - route.laneFraction);
+        if (!squad.flankReady) {
+          // First get out to the selected lane rather than cutting straight into
+          // the enemy. Keep some forward progress while spreading outward.
+          gx = ents.x[e]! + (tx - ents.x[e]!) * route.laneFraction;
+          gy = laneY;
+        } else if (Math.abs(tx - ents.x[e]!) > route.turnDistance) {
+          gy = laneY; // travel along the flank, then turn in toward the role's target
+        }
       }
       [vx, vy] = normalizeTo(gx - ents.x[e]!, gy - ents.y[e]!, speed);
     } else {
@@ -233,21 +241,49 @@ function runGeneral(world: World, data: GameData, internal: WorldInternal, side:
   const e = general.entity;
   if (ents.alive[e] === 0) return;
   const profile = internal.generalProfile[side];
-  const target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemySide(side), profile.attackRange + data.behaviors.generalEngageRadius);
+  ents.vx[e] = 0;
+  ents.vy[e] = 0;
+  const memoryTicks = Math.ceil(data.behaviors.generalAggroMemoryS * data.constants.SIM_HZ);
+  general.aggro = general.aggro.filter((a) => {
+    if (ents.alive[a.entity] === 0 || ents.side[a.entity] === side) return false;
+    // A known attacker still focusing us remains a threat, even between ranged
+    // volleys or outside our ordinary acquisition radius. No home-position leash.
+    if (ents.target[a.entity] === e) a.expiresAtTick = world.tick + memoryTicks;
+    return a.expiresAtTick > world.tick;
+  });
+  // Keep the current aggressor while valid to avoid oscillating between attackers.
+  let target = general.aggro.some((a) => a.entity === ents.target[e]) ? ents.target[e]! : -1;
+  if (target < 0 && general.aggro.length) {
+    let nearest = Infinity;
+    for (const a of general.aggro) {
+      const d = dist(ents.x[e]!, ents.y[e]!, ents.x[a.entity]!, ents.y[a.entity]!);
+      if (d < nearest) { nearest = d; target = a.entity; }
+    }
+  }
+  // Defend the original position, not a moving acquisition bubble that would
+  // chain-pull an idle general all the way across the field.
+  if (target < 0) target = nearestAliveEntity(ents, general.startX, general.startY, enemySide(side), profile.attackRange + data.behaviors.generalEngageRadius);
   ents.target[e] = target;
+  let toX = general.startX, toY = general.startY;
+  let stopAt = 0;
   if (target >= 0) {
     const d = dist(ents.x[e]!, ents.y[e]!, ents.x[target]!, ents.y[target]!);
-    if (d <= profile.attackRange) {
+    if (d <= profile.attackRange + 1e-9) {
       if (ents.cooldown[e]! <= 0) applyAttack(world, data, internal, e, target);
       return;
     }
-    const distFromStart = dist(ents.x[e]!, ents.y[e]!, general.startX, general.startY);
-    if (distFromStart < data.constants.GENERAL_LEASH) {
-      const [vx, vy] = normalizeTo(ents.x[target]! - ents.x[e]!, ents.y[target]! - ents.y[e]!, profile.moveSpeed * data.behaviors.generalLeashSpeedFrac);
-      ents.x[e] = ents.x[e]! + vx * (1 / data.constants.SIM_HZ);
-      ents.y[e] = ents.y[e]! + vy * (1 / data.constants.SIM_HZ);
-    }
+    toX = ents.x[target]!;
+    toY = ents.y[target]!;
+    stopAt = profile.attackRange;
   }
+  const dt = 1 / data.constants.SIM_HZ;
+  const remaining = Math.max(0, dist(ents.x[e]!, ents.y[e]!, toX, toY) - stopAt);
+  const speed = Math.min(profile.moveSpeed * data.behaviors.generalLeashSpeedFrac * sideMods(world, side).speedMult, remaining / dt);
+  const [vx, vy] = normalizeTo(toX - ents.x[e]!, toY - ents.y[e]!, speed);
+  ents.vx[e] = vx;
+  ents.vy[e] = vy;
+  ents.x[e] = Math.min(data.constants.FIELD_W, Math.max(0, ents.x[e]! + vx * dt));
+  ents.y[e] = Math.min(data.constants.FIELD_H, Math.max(0, ents.y[e]! + vy * dt));
 }
 
 function rebuildGrid(world: World, internal: WorldInternal): void {
@@ -321,6 +357,12 @@ export function retargetAndMoveTroops(world: World, dt: number): void {
   const data = internal.data;
   const ents = world.ents;
   const flying = flyingFlags(internal, ents);
+  for (const squad of world.squads) {
+    if (squad.command !== 'advance' || squad.approach === 'direct') continue;
+    const route = data.behaviors.approach;
+    const laneY = data.constants.FIELD_H * (squad.approach === 'farFlank' ? route.laneFraction : 1 - route.laneFraction);
+    if (Math.abs(squad.centroidY - laneY) <= route.arrivalRadius) squad.flankReady = true;
+  }
   rebuildGrid(world, internal);
   const retargetTicks = Math.max(1, Math.round(data.constants.RETARGET_INTERVAL_S * data.constants.SIM_HZ));
   // Alternate iteration direction by tick parity so neither side gets a persistent first-mover

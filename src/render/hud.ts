@@ -3,15 +3,16 @@
 import { Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
 import type { GameData } from '../data';
 import type { World } from '../sim';
-import { canFireSpecial } from '../sim';
+import { canFireSpecial, getSquadIntent } from '../sim';
 import { formatTimer } from '../battle/helpers';
-import type { Command } from '../data/schemas';
+import type { Approach, Command } from '../data/schemas';
 import { squadColorNumberFor, teamColorNumber, contrastMono, type SideColors } from './colorUi';
 
 export interface HudCallbacks {
   onSelectSquad(slot: number, additive: boolean): void;
   onSelectAll(): void;
   onCommand(cmd: 'advance' | 'hold' | 'fallBack'): void;
+  onApproach(approach: Approach): void;
   onSpecial(): void;
   onPauseToggle(): void;
   onSpeedToggle(): void;
@@ -150,6 +151,7 @@ interface SquadCard {
   name: Text;
   dispo: Text;
   command: Text;
+  approach: Text;
   bar: Bar;
   countLabel: Text;
   lastKey: string;
@@ -177,12 +179,13 @@ export class Hud {
   private topBg: Graphics;
   private bottomBg: Graphics;
   private cmdButtons: { advance: Button; hold: Button; fallBack: Button; all: Button };
+  private approachButtons: Record<Approach, Button>;
   private lastTimerStr = '';
   private lastPhaseStr = '';
   private width = 0;
   private height = 0;
   private topH = 68;
-  private bottomH = 122;
+  private bottomH = 172;
 
   constructor(
     private data: GameData,
@@ -247,10 +250,11 @@ export class Hud {
       const name = new Text({ text: '', style: { fill: 0xffffff, fontSize: 12, fontWeight: 'bold', fontFamily: FONT } });
       const dispo = new Text({ text: '', style: { fill: 0xffee88, fontSize: 11, fontFamily: FONT } });
       const command = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 11, fontFamily: FONT } });
+      const approach = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 11, fontFamily: FONT } });
       const bar = makeBar(118, 8, 0x44cc44);
       const countLabel = new Text({ text: '', style: { fill: 0xdddddd, fontSize: 10, fontFamily: FONT } });
-      root.addChild(bg, numHint, name, dispo, command, bar.bg, bar.fg, countLabel);
-      const card: SquadCard = { root, bg, numHint, name, dispo, command, bar, countLabel, lastKey: '' };
+      root.addChild(bg, numHint, name, dispo, command, approach, bar.bg, bar.fg, countLabel);
+      const card: SquadCard = { root, bg, numHint, name, dispo, command, approach, bar, countLabel, lastKey: '' };
       hitArea(root, 146, 108);
       root.on('pointertap', (e: FederatedPointerEvent) => {
         const additive = !!(e.shiftKey || e.ctrlKey);
@@ -266,13 +270,19 @@ export class Hud {
     const fallBack = new Button(84, MIN_TOUCH, 'Fall Back', 'E', () => cb.onCommand('fallBack'));
     this.cmdButtons = { advance, hold, fallBack, all };
     this.root.addChild(all.root, advance.root, hold.root, fallBack.root);
+    this.approachButtons = {
+      direct: new Button(84, MIN_TOUCH, 'Direct', 'R', () => cb.onApproach('direct')),
+      farFlank: new Button(84, MIN_TOUCH, 'Far Flank', 'T', () => cb.onApproach('farFlank')),
+      nearFlank: new Button(84, MIN_TOUCH, 'Near Flank', 'Y', () => cb.onApproach('nearFlank')),
+    };
+    for (const button of Object.values(this.approachButtons)) this.root.addChild(button.root);
 
     this.pauseOverlay = new Container();
     const dim = new Graphics();
     const txt = new Text({ text: 'PAUSED — issue orders', style: { fill: 0xffffff, fontSize: 30, fontWeight: 'bold', fontFamily: FONT } });
     txt.anchor.set(0.5);
     const hint = new Text({
-      text: 'SPACE resume · 1-4 select squad · Q/W/E advance/hold/fall back · S special',
+      text: 'SPACE resume · 1–4 select · Q/W/E orders · R/T/Y direct/far/near flank · disposition locked',
       style: { fill: 0xcccccc, fontSize: 14, fontFamily: FONT },
     });
     hint.anchor.set(0.5);
@@ -339,6 +349,10 @@ export class Hud {
     this.cmdButtons.advance.setPosition(cmdX + colW + colGap, cmdY);
     this.cmdButtons.hold.setPosition(cmdX, cmdY + MIN_TOUCH + rowGap);
     this.cmdButtons.fallBack.setPosition(cmdX + colW + colGap, cmdY + MIN_TOUCH + rowGap);
+
+    this.approachButtons.direct.setPosition(cmdX, cmdY + 110);
+    this.approachButtons.farFlank.setPosition(cmdX + colW + colGap, cmdY + 110);
+    this.approachButtons.nearFlank.setPosition(cmdX + 2 * (colW + colGap), cmdY + 110);
 
     this._pauseDim.clear();
     this._pauseDim.rect(0, 0, width, height).fill({ color: 0x000000, alpha: 0.45 });
@@ -407,7 +421,8 @@ export class Hud {
       }
       c.root.visible = true;
       const selected = selectedSlots === 'all' || selectedSlots.includes(slot);
-      const key = `${sq.name}|${sq.disposition}|${sq.command}|${selected}|${sq.alive}|${sq.total}`;
+      const intent = getSquadIntent(world, sq.index);
+      const key = `${sq.name}|${sq.disposition}|${intent.command}|${intent.approach}|${intent.pending}|${selected}|${sq.alive}|${sq.total}`;
       if (key === c.lastKey) return;
       c.lastKey = key;
 
@@ -425,9 +440,11 @@ export class Hud {
       const dispoLabel = sq.disposition === 'fierce' ? 'Fierce' : sq.disposition === 'guard' ? 'Guard' : 'Mixed';
       if (c.name.text !== sq.name) c.name.text = sq.name;
       c.dispo.position.set(32, 26);
-      c.dispo.text = dispoLabel;
+      c.dispo.text = `${dispoLabel} (locked)`;
       c.command.position.set(32, 42);
-      c.command.text = commandLabel(sq.command);
+      c.command.text = `${commandLabel(intent.command)}${intent.pending ? ' *' : ''}`;
+      c.approach.position.set(32, 58);
+      c.approach.text = approachLabel(intent.approach);
       c.bar.bg.position.set(14, 82);
       c.bar.fg.position.set(14, 82);
       setBar(c.bar, sq.alive / Math.max(1, sq.total), sq.alive / Math.max(1, sq.total) < 0.3 ? 0xcc4444 : 0x44cc44);
@@ -436,12 +453,15 @@ export class Hud {
     });
 
     this.cmdButtons.all.setActive(selectedSlots === 'all');
-    const sel0 = world.squads.find((s) => s.side === 0 && (selectedSlots === 'all' ? s.slot === 0 : selectedSlots.includes(s.slot)));
-    this.cmdButtons.advance.setActive(!!sel0 && sel0.command === 'advance');
-    this.cmdButtons.hold.setActive(!!sel0 && sel0.command === 'hold');
-    this.cmdButtons.fallBack.setActive(!!sel0 && sel0.command === 'fallBack');
+    const intents = world.squads.filter((s) => s.side === 0 && (selectedSlots === 'all' || selectedSlots.includes(s.slot))).map((s) => getSquadIntent(world, s.index));
+    for (const cmd of ['advance', 'hold', 'fallBack'] as const) {
+      this.cmdButtons[cmd].setActive(intents.length > 0 && intents.every((i) => i.command === cmd));
+    }
+    for (const approach of ['direct', 'farFlank', 'nearFlank'] as const) {
+      this.approachButtons[approach].setActive(intents.length > 0 && intents.every((i) => i.approach === approach));
+    }
     this.pauseBtn.setActive(world.paused);
-    for (const b of [this.pauseBtn, this.speedBtn, this.specialBtn, this.cmdButtons.all, this.cmdButtons.advance, this.cmdButtons.hold, this.cmdButtons.fallBack]) b.tick();
+    for (const b of [this.pauseBtn, this.speedBtn, this.specialBtn, this.cmdButtons.all, this.cmdButtons.advance, this.cmdButtons.hold, this.cmdButtons.fallBack, ...Object.values(this.approachButtons)]) b.tick();
 
     this.pauseOverlay.visible = world.paused && world.phase !== 'result';
 
@@ -475,6 +495,10 @@ export class Hud {
   setSpeedLabel(mult: 1 | 2): void {
     this.speedBtn.setLabel(`${mult}x`);
   }
+}
+
+function approachLabel(approach: Approach): string {
+  return approach === 'direct' ? 'Direct' : approach === 'farFlank' ? 'Far Flank' : 'Near Flank';
 }
 
 function commandLabel(cmd: Command): string {
