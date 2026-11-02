@@ -1,12 +1,14 @@
 {
-  "status": "provisional-not-mainline-approved",
+  "status": "provisional-game-scale-reviewed-integration-gates-pending",
   "notes": [
     "All15 picked sheets processed with shared common trim in a3127cb; all intended frames nonempty, exact sources below.",
     "Raw sources and exact picks remain unchanged. Technical alpha counts are not in-game approval.",
     "Independent source/extraction visual review accepted all15 provisionally: distinct identities, coherent sequences, no obvious chopping, neighbor contamination or magenta leakage.",
-    "Source contact review was performed on the processed strips at preview scale. Game-scale readability, projection, target placement, first-cast readiness and lifetime remain pending actual scene review.",
     "FX implementation passed independent spec and quality re-reviews before merge c16345e. These code reviews do not substitute for playback signoff.",
-    "Isolated browser runtime fixture verified all15 first casts with15 real effect assets ready, actual per-area side recipients, visible sprite frames at0.2s and zero remaining FX nodes after1.8s. Holy Rally, Sanctuary and Guiding Light currently double-render identical heal+buff auras on the same61 recipients (122 nodes); reducing duplicate overdraw is a pending presentation correction before final scene signoff."
+    "Parent visually inspected all15 actual projected game-scale captures; exact per-effect verdicts and limitations below. This is isolated scene verification, not a claim that the full campaign production smoke has passed.",
+    "All15 actual first casts had15 real FX assets ready and zero remaining FX nodes after2.15 presentation seconds. Pause held Holy Rally frames/placements fixed. Three waves advanced their maximum projected X from about474 at0.2s to1201\u20131205 at0.55s, then cleaned up.",
+    "Shared heal+buff auras were deduplicated by recipient identity with red\u2192green regression coverage, preserving distinct hostile strikes/debuffs and legacy side filtering. Holy Rally/Sanctuary/Guiding Light now draw61 auras instead of122.",
+    "Source art remains provisional. Dense aura/strike/debris peaks briefly obscure silhouettes. Real-GPU performance is not measured; browser used software rendering. Perspective code review/integration and final production smoke remain separate gates."
   ],
   "effects": [
     {
@@ -14,8 +16,8 @@
       "frames": 6,
       "minimumVisiblePixels": 6965,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/arrow-storm/adce4427-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -39,6 +41,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Distinct pale diagonal arrow rain on enemy troops. The fragile-target fixture killed selected troops; snapshots still placed30 visible impacts. Fine shafts merge in dense ranks.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/arrow-storm-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 30,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "random",
+            "count": 30,
+            "sides": [
+              1
+            ],
+            "killed": 30
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -46,8 +77,8 @@
       "frames": 8,
       "minimumVisiblePixels": 5162,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/dragon-breath/1e620f9f-2.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -71,6 +102,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Orange rolling flame stamps progress left-to-right across the projected plane; later0.55s view shows earlier stamps fading and the front nearing enemy ranks.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/dragon-breath-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 5,
+        "spritesAt055S": 11,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 33,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -78,8 +138,8 @@
       "frames": 6,
       "minimumVisiblePixels": 4809,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/earthquake/267772b5-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -111,6 +171,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Brown cracked ground and rising rock debris spread across the field, plus enemy debuff recipients. Large debris briefly obscures bodies; bounded centers and upright depth scale remain coherent.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/earthquake-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 82,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 40,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -118,8 +215,8 @@
       "frames": 6,
       "minimumVisiblePixels": 10561,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/guiding-light/3701b112-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -151,6 +248,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Pale gold slender columns on allies, with one shared aura per recipient. Hero healing and allied placement visible; dense columns briefly conceal ranks.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/guiding-light-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 61,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -158,8 +292,8 @@
       "frames": 8,
       "minimumVisiblePixels": 9347,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/hellfire-wave/57340553-2.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -183,6 +317,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Crimson-magenta flame crests distinct from orange breath; crossing advances on the same bounded projected geometry. Magenta follows flame shapes, not keyed background.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/hellfire-wave-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 5,
+        "spritesAt055S": 11,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 40,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -190,8 +353,8 @@
       "frames": 6,
       "minimumVisiblePixels": 5762,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/holy-rally/552bb66c-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -223,6 +386,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Warm gold-white pillars on allies only, including the general. Heal+buff now shares one aura per61 recipients instead of122. Dense ranks briefly obscure silhouettes.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/holy-rally-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 61,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -230,8 +430,8 @@
       "frames": 8,
       "minimumVisiblePixels": 6525,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/inferno/0841235b-2.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -263,6 +463,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Upright orange-red fire columns across the field and hostile burning recipients; clear difference from falling meteors. Brief cinematic overlap is acceptable.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/inferno-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 82,
+        "spritesAt055S": 81,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -270,8 +507,8 @@
       "frames": 8,
       "minimumVisiblePixels": 3785,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/judgement/3c6a2882-2.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -295,6 +532,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "White-gold sweeping crests visually distinct from both flame waves. Measured advancing positions and cleanup match other crossing effects.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/judgement-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 5,
+        "spritesAt055S": 11,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 28,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -302,8 +568,8 @@
       "frames": 8,
       "minimumVisiblePixels": 3060,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/meteor-fall/ef153fd8-2.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -327,6 +593,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Recognizable diagonal fiery meteors scattered over the field with restrained depth sizes. Global particles are cinematic, not literal collision/recipient markers.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/meteor-fall-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 41,
+        "spritesAt055S": 40,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -334,8 +629,8 @@
       "frames": 6,
       "minimumVisiblePixels": 7395,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/overclock/0de0b044-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -359,6 +654,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Blue electrical cages/arcs on allies and mechanical hero; no enemy aura. Denser than individual source frames in packed ranks, but brief and distinct from Sanctuary.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/overclock-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 61,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -366,8 +690,8 @@
       "frames": 6,
       "minimumVisiblePixels": 9475,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/pack-howl/2ffdd9a4-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -391,6 +715,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Gold radial energy around allied ranks and the wolf hero; no enemy aura. Individual rings merge into a collective shimmer in packed formations.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/pack-howl-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 61,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -398,8 +751,8 @@
       "frames": 6,
       "minimumVisiblePixels": 8142,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/plague-cloud/47f044c8-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -423,6 +776,35 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Yellow-green bubbling clouds on enemy ranks/general, with no allied cloud. Dense clouds deliberately read as a collective debuff.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/plague-cloud-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 41,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -430,8 +812,8 @@
       "frames": 6,
       "minimumVisiblePixels": 42101,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/sanctuary/33ebe0c8-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -463,6 +845,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Cyan geometric wards on allies and hero only. Shared heal+buff aura is61 nodes, not122. Dense wards briefly cover troop silhouettes.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/sanctuary-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 61,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -470,8 +889,8 @@
       "frames": 6,
       "minimumVisiblePixels": 1469,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/shadow-mark/adfc6558-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -503,6 +922,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Readable purple diagonal slashes at enemy general and12 troops; lethal troop snapshots retained. No allied impacts.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/shadow-mark-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 13,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "general",
+            "count": 1,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "random",
+            "count": 12,
+            "sides": [
+              1
+            ],
+            "killed": 12
+          }
+        ],
+        "errors": []
       }
     },
     {
@@ -510,8 +966,8 @@
       "frames": 6,
       "minimumVisiblePixels": 3160,
       "technical": "pass",
-      "visual": "pending",
-      "independentReview": "source-accepted-playback-pending",
+      "visual": "accept-provisional",
+      "independentReview": "source-extraction-accepted; parent-game-scale-reviewed",
       "source": "art/raw/fx/tempest-dive/ba0932b0-1.png",
       "sourceReview": {
         "verdict": "accept-provisional",
@@ -543,6 +999,43 @@
           }
         ],
         "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      },
+      "gameScaleReview": {
+        "reviewer": "parent",
+        "verdict": "accept-provisional",
+        "notes": "Bright blue-white slashes on enemy targets, visually distinct from Shadow Mark; the slow-effect area also remains on enemies. Brief dense peak occlusion.",
+        "evidence": "/home/ivy/.hermes/cache/scratch/polish-browser/fx-final/tempest-dive-02.png",
+        "canvas": [
+          1280,
+          800
+        ],
+        "fixture": "seed701 real sim events and actual renderer/HUD, wounded allies; Deadeye/Assassin enemy troops set to1HP to exercise lethal snapshots; presentation stepped at1/60 without further sim combat",
+        "branch": "polish-perspective",
+        "base": "0d8c4cf",
+        "rendererDiffSha256": "4b67f8f37b4ed1ee213f7ef2fcb31523784ae16028c77e925ded4c21f50e44f8",
+        "realAssetsReady": 15,
+        "fxNodesAt02S": 66,
+        "spritesAt055S": 0,
+        "remainingAfter215S": 0,
+        "areaTargets": [
+          {
+            "area": "random",
+            "count": 25,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "errors": []
       }
     }
   ]
