@@ -270,9 +270,19 @@ function recruitOffers(data: GameData, seed: number, depth: number, roster: Prog
   const rng = createRng(mixSeed(seed, SALT.recruit, depth));
   const taken = new Set(roster.map((t) => t.name));
   const pool = stage1Of(data);
+  const seen = new Set<string>();
   return Array.from({ length: cfg.recruitOfferCount }, (_, o) => {
-    const choices = [...pool];
-    const types = Array.from({ length: Math.min(3, choices.length) }, () => choices.splice(nextInt(rng, choices.length), 1)[0]!);
+    let types: UnitDef[] = [];
+    // Offers should be real alternatives: reroll a type set already offered (bounded attempts).
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const choices = [...pool];
+      types = Array.from({ length: Math.min(3, choices.length) }, () => choices.splice(nextInt(rng, choices.length), 1)[0]!);
+      const key = types.map((t) => t.id).sort().join();
+      if (!seen.has(key)) {
+        seen.add(key);
+        break;
+      }
+    }
     const troops: ProgressTroop[] = [];
     for (let n = 0; n < cfg.recruitsPerOffer; n++) {
       const unit = types[n % types.length]!;

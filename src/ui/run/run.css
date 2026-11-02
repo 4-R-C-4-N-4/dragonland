@@ -1,0 +1,21 @@
+.dl-run { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.dl-run h1 { margin: 0 0 4px; }
+.dl-run .dl-run-meta { color: var(--dl-text-dim); margin-bottom: 12px; }
+.dl-run .dl-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.dl-run .dl-row > .dl-panel { flex: 1 1 320px; }
+.dl-run button { cursor: pointer; }
+.dl-run .dl-choice { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 10px; }
+.dl-run .dl-choice strong { display: block; }
+.dl-run table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dl-run th, .dl-run td { padding: 3px 6px; border-bottom: 1px solid var(--dl-border); text-align: left; }
+.dl-run td input[type=number] { width: 56px; }
+.dl-run .dl-stage { font-size: 11px; color: var(--dl-text-dim); }
+.dl-run .dl-strong { color: var(--dl-good); }
+.dl-run .dl-weak { color: var(--dl-bad); }
+.dl-run .dl-issues { color: var(--dl-bad); min-height: 1.2em; }
+.dl-run .dl-squad-head { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.dl-run .dl-squad-head label { display: flex; gap: 4px; align-items: center; font-size: 13px; }
+.dl-run details summary { cursor: pointer; color: var(--dl-text-dim); font-size: 12px; }
+.dl-run .dl-vets { columns: 2; font-size: 12px; margin: 4px 0; }
+.dl-run .dl-evo { color: var(--dl-accent); }
+.dl-run .dl-mode-link { float: right; font-size: 12px; }

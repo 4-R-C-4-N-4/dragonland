@@ -171,6 +171,8 @@ describe('rewards', () => {
       for (const t of offer.troops) expect(data.unitById.get(t.unitId)!.stage).toBe(1);
     }
     const next = chooseRecruitOffer(data, state, state.recruitOffers[1]!.id);
+    const sets = state.recruitOffers.map((o) => [...new Set(o.troops.map((t) => t.unitId))].sort().join());
+    expect(new Set(sets).size).toBe(sets.length);
     expect(next.roster).toHaveLength(state.roster.length + cfg.recruitsPerOffer);
     expect(new Set(next.roster.map((t) => t.name)).size).toBe(next.roster.length);
     expect(next.phase).toBe('select');
