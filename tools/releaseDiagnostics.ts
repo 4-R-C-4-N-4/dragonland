@@ -6,7 +6,7 @@ import { getGameData, withConstants, type Approach, type GameData } from '../src
 import { createBattle, issueApproach, step, type BattleResult } from '../src/sim';
 import { createAiController } from '../src/ai/policy';
 import { applyBattleResult, chooseEncounter, chooseHeroUpgrade, chooseRecruitOffer, getRunConfig, newRun, startBattle, type RunState } from '../src/run';
-import { autoPlan, classEdge, planToArmy } from '../src/ui/run/logic';
+import { autoPlan, classEdge, planIssues, planToArmy } from '../src/ui/run/logic';
 
 export interface DiagnosticOptions {
   runsPerHero: number;
@@ -96,6 +96,8 @@ export function runReleaseDiagnostics(base: GameData, options: DiagnosticOptions
       const best = [...s.offers].sort((a, b) => edgeScore(data, s, b) - edgeScore(data, s, a))[0]!;
       s = chooseEncounter(s, best.id);
       const plan = autoPlan(data, s.roster);
+      const issues = planIssues(data, s.roster, plan);
+      if (issues.length) { blocked = issues.join(' '); break; }
       const army = planToArmy(data, s.roster, plan);
       if (!army.squads.length) { blocked = 'no deployable troops'; break; }
       s = startBattle(data, s, army);

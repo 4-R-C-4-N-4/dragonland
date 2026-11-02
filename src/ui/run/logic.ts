@@ -54,7 +54,22 @@ export function autoPlan(data: GameData, roster: ProgressTroop[], formationId = 
     room -= count;
     assignment[g.unit.id] = { count, squad: Math.min(LINE_ORDER[g.unit.line], data.constants.MAX_SQUADS - 1) };
   }
-  return { formationId, squads: DEFAULT_SQUADS.slice(0, data.constants.MAX_SQUADS).map((s) => ({ ...s })), assignment };
+  const plan = { formationId, squads: DEFAULT_SQUADS.slice(0, data.constants.MAX_SQUADS).map((s) => ({ ...s })), assignment };
+  // Attrition/evolution can leave a line below MIN_SQUAD. Keep its troops deployed
+  // by merging into the largest other squad, with stable index tie-breaking.
+  const sizes = squadSizes(data, plan);
+  for (let i = 0; i < sizes.length; i++) {
+    if (sizes[i] === 0 || sizes[i]! >= data.constants.MIN_SQUAD) continue;
+    let target = -1;
+    for (let j = 0; j < sizes.length; j++) {
+      if (j !== i && sizes[j]! > 0 && (target < 0 || sizes[j]! > sizes[target]!)) target = j;
+    }
+    if (target < 0) continue; // Insufficient total troops remains an explicit planning issue.
+    for (const a of Object.values(assignment)) if (a.squad === i) a.squad = target;
+    sizes[target]! += sizes[i]!;
+    sizes[i] = 0;
+  }
+  return plan;
 }
 
 function squadSizes(data: GameData, plan: ArmyPlan): number[] {

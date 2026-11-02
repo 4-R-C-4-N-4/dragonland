@@ -26,6 +26,31 @@ describe('run army planning', () => {
     expect(() => buildPlayerSide(data, run, army)).not.toThrow();
   });
 
+  it('merges an understrength line into another squad without losing or recruiting troops', () => {
+    const a = run.roster.filter((t) => data.unitById.get(t.unitId)!.line === 'A').slice(0, 2);
+    const m = run.roster.filter((t) => data.unitById.get(t.unitId)!.line === 'M').slice(0, 1);
+    const roster = [...a, ...m];
+    const before = structuredClone(roster);
+    const plan = autoPlan(data, roster);
+    expect(planIssues(data, roster, plan)).toEqual([]);
+    const army = planToArmy(data, roster, plan);
+    expect(army.squads.flatMap((s) => s.troopIds).sort()).toEqual(roster.map((t) => t.id).sort());
+    expect(() => buildPlayerSide(data, { ...run, roster }, army)).not.toThrow();
+    expect(roster).toEqual(before);
+  });
+
+  it('combines lonely lines when their total can form a legal squad', () => {
+    const roster = ['A', 'M', 'Z'].map((line) => run.roster.find((t) => data.unitById.get(t.unitId)!.line === line)!);
+    const plan = autoPlan(data, roster);
+    expect(planIssues(data, roster, plan)).toEqual([]);
+    expect(planToArmy(data, roster, plan).squads).toHaveLength(1);
+  });
+
+  it('still reports a roster too small to form even one legal squad', () => {
+    const roster = run.roster.slice(0, data.constants.MIN_SQUAD - 1);
+    expect(planIssues(data, roster, autoPlan(data, roster)).join()).toMatch(/at least/);
+  });
+
   it('caps the company at MAX_COMPANY and deploys the highest-level troops of a species first', () => {
     const big = [...run.roster, ...run.roster.map((t) => ({ ...t, id: `${t.id}x`, name: `${t.name}x` }))];
     big[0] = { ...big[0]!, xp: 100, level: 2 };
