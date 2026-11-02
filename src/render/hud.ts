@@ -5,6 +5,7 @@ import type { GameData } from '../data';
 import type { World } from '../sim';
 import { canFireSpecial, getSquadIntent } from '../sim';
 import { formatTimer } from '../battle/helpers';
+import { getHudLayout, type HudLayout } from '../battle/hudLayout';
 import type { Approach, Command } from '../data/schemas';
 import { squadColorNumberFor, teamColorNumber, contrastMono, type SideColors } from './colorUi';
 
@@ -159,7 +160,6 @@ interface SquadCard {
 
 export class Hud {
   readonly root = new Container();
-  private screenLayer = new Container(); // top/bottom bars, fixed in screen space
   private timerText: Text;
   private phaseText: Text;
   private pauseBtn: Button;
@@ -185,7 +185,12 @@ export class Hud {
   private width = 0;
   private height = 0;
   private topH = 68;
-  private bottomH = 172;
+  private bottomH = 230;
+  private geometry: HudLayout | null = null;
+  private orderHeading = new Text({ text: 'Order', style: { fill: 0xffffff, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
+  private approachHeading = new Text({ text: 'Approach', style: { fill: 0xffffff, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
+  private detailTitle = new Text({ text: '', style: { fill: 0xffee88, fontSize: 12, fontWeight: 'bold', fontFamily: FONT } });
+  private detailIntent = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 12, fontFamily: FONT } });
 
   constructor(
     private data: GameData,
@@ -195,7 +200,7 @@ export class Hud {
   ) {
     this.topBg = new Graphics();
     this.bottomBg = new Graphics();
-    this.root.addChild(this.topBg, this.bottomBg);
+    this.root.addChild(this.topBg, this.bottomBg, this.orderHeading, this.approachHeading, this.detailTitle, this.detailIntent);
 
     this.timerText = new Text({ text: '0:00', style: { fill: 0xffffff, fontSize: 24, fontWeight: 'bold', fontFamily: FONT } });
     this.timerText.anchor.set(0.5, 0);
@@ -311,8 +316,11 @@ export class Hud {
   private _specialMeterC!: Container;
 
   layout(width: number, height: number): void {
+    if (this.geometry && this.width === width && this.height === height) return;
     this.width = width;
     this.height = height;
+    this.geometry = getHudLayout(width, height);
+    this.bottomH = this.geometry.bottomBand.height;
 
     this.topBg.clear();
     this.topBg.rect(0, 0, width, this.topH).fill({ color: 0x0c140c, alpha: 0.88 });
@@ -321,47 +329,44 @@ export class Hud {
     this.bottomBg.rect(0, height - this.bottomH, width, this.bottomH).fill({ color: 0x0c140c, alpha: 0.9 });
     this.bottomBg.rect(0, height - this.bottomH, width, 1).fill({ color: 0x000000, alpha: 0.5 });
 
-    this.timerText.position.set(width / 2, 8);
-    this.phaseText.position.set(width / 2, 36);
-
-    this._genRoot0.position.set(14, 10);
-    this._genRoot1.position.set(Math.max(250, width - 250), 10);
-    this.layoutGeneral(this._genRoot0, 0);
-    this.layoutGeneral(this._genRoot1, 1);
-    this._specialMeterC.position.set(14, 52);
-
-    this.pauseBtn.setPosition(width - 170, height - this.bottomH + 14);
-    this.speedBtn.setPosition(width - 90, height - this.bottomH + 14);
-    this.specialBtn.setPosition(width - 170, height - this.bottomH + 64);
-
-    const cardW = 146;
-    const cardGap = 8;
-    const startX = 10;
-    const bannerTop = height - this.bottomH + 8;
-    this.squadCards.forEach((c, i) => c.root.position.set(startX + i * (cardW + cardGap), bannerTop));
-
-    const cmdX = startX + 4 * (cardW + cardGap) + 14;
-    const cmdY = bannerTop;
-    const colGap = 8;
-    const rowGap = 6;
-    const colW = 84;
-    this.cmdButtons.all.setPosition(cmdX, cmdY);
-    this.cmdButtons.advance.setPosition(cmdX + colW + colGap, cmdY);
-    this.cmdButtons.hold.setPosition(cmdX, cmdY + MIN_TOUCH + rowGap);
-    this.cmdButtons.fallBack.setPosition(cmdX + colW + colGap, cmdY + MIN_TOUCH + rowGap);
-
-    this.approachButtons.direct.setPosition(cmdX, cmdY + 110);
-    this.approachButtons.farFlank.setPosition(cmdX + colW + colGap, cmdY + 110);
-    this.approachButtons.nearFlank.setPosition(cmdX + 2 * (colW + colGap), cmdY + 110);
+    const layout = this.geometry!;
+    this.timerText.position.set(layout.timer.x + layout.timer.width / 2, layout.timer.y);
+    this.phaseText.position.set(layout.timer.x + layout.timer.width / 2, layout.timer.y + 30);
+    [this._genRoot0, this._genRoot1].forEach((root, side) => {
+      const r = layout.generals[side]!;
+      root.position.set(r.x, r.y);
+      this.layoutGeneral(root, side as 0 | 1);
+    });
+    this._specialMeterC.position.set(width - 105, layout.buttons.special.y - 14);
+    const buttons = { ...this.cmdButtons, ...this.approachButtons, pause: this.pauseBtn, speed: this.speedBtn, special: this.specialBtn };
+    for (const key of Object.keys(buttons) as (keyof typeof buttons)[]) {
+      const r = layout.buttons[key];
+      buttons[key].setPosition(r.x, r.y);
+    }
+    this.squadCards.forEach((c, i) => {
+      const r = layout.cards[i];
+      if (!r) return;
+      c.root.position.set(r.x, r.y);
+      hitArea(c.root, r.width, r.height);
+      c.lastKey = ''; // size changes invalidate the card chrome and text placement
+    });
+    this.orderHeading.position.set(layout.orderHeading.x, layout.orderHeading.y);
+    this.approachHeading.position.set(layout.approachHeading.x, layout.approachHeading.y);
+    this.detailTitle.position.set(layout.detail.x, layout.detail.y);
+    this.detailIntent.position.set(layout.detail.x, layout.detail.y + 22);
 
     this._pauseDim.clear();
-    this._pauseDim.rect(0, 0, width, height).fill({ color: 0x000000, alpha: 0.45 });
-    this._pauseTxt.position.set(width / 2, height / 2 - 14);
-    this._pauseHint.position.set(width / 2, height / 2 + 20);
+    const fieldHeight = Math.max(0, height - this.topH - this.bottomH);
+    const fieldCenterY = this.topH + fieldHeight / 2;
+    this._pauseDim.rect(0, this.topH, width, fieldHeight).fill({ color: 0x000000, alpha: 0.45 });
+    this._pauseTxt.position.set(width / 2, fieldCenterY - 14);
+    this._pauseHint.position.set(width / 2, fieldCenterY + 20);
+    fitText(this._pauseHint, width - 32);
+    for (const label of this.generalLabel) fitText(label, 210);
   }
 
   private layoutGeneral(c: Container, side: 0 | 1): void {
-    const labelX = side === 0 ? 38 : 38;
+    const labelX = 38;
     this.generalLabel[side].position.set(labelX, 1);
     this.generalLevel[side].position.set(labelX, 16);
     this.generalHp[side].bg.position.set(labelX, 30);
@@ -429,31 +434,43 @@ export class Hud {
       c.bg.clear();
       const hue = squadColorNumberFor(this.sideColors[0], slot);
       const textColor = contrastMono(this.sideColors[0].squads[slot] ?? this.sideColors[0].team);
-      c.bg.roundRect(0, 0, 146, 108, 8).fill({ color: selected ? 0x27392a : 0x15201a, alpha: 0.92 });
-      c.bg.roundRect(0.5, 0.5, 145, 107, 8).stroke({ color: selected ? 0x8fe07a : 0x3c4a3f, width: selected ? 2 : 1 });
-      c.bg.roundRect(0, 0, 6, 108, 3).fill({ color: hue });
+      const r = this.geometry!.cards[slot]!;
+      const compact = this.geometry!.compact;
+      c.bg.roundRect(0, 0, r.width, r.height, 8).fill({ color: selected ? 0x27392a : 0x15201a, alpha: 0.92 });
+      c.bg.roundRect(0.5, 0.5, r.width - 1, r.height - 1, 8).stroke({ color: selected ? 0x8fe07a : 0x3c4a3f, width: selected ? 2 : 1 });
+      c.bg.roundRect(0, 0, 6, r.height, 3).fill({ color: hue });
       c.bg.circle(16, 16, 11).fill({ color: hue });
       c.numHint.position.set(16, 16);
       c.numHint.style.fill = textColor;
 
       c.name.position.set(32, 7);
       const dispoLabel = sq.disposition === 'fierce' ? 'Fierce' : sq.disposition === 'guard' ? 'Guard' : 'Mixed';
-      if (c.name.text !== sq.name) c.name.text = sq.name;
+      setNameText(c.name, sq.name, r.width - 40);
       c.dispo.position.set(32, 26);
-      c.dispo.text = `${dispoLabel} (locked)`;
+      c.dispo.text = `${dispoLabel} (fixed)`;
+      c.dispo.visible = !compact;
+      c.command.visible = !compact;
+      c.approach.visible = !compact;
       c.command.position.set(32, 42);
-      c.command.text = `${commandLabel(intent.command)}${intent.pending ? ' *' : ''}`;
+      c.command.text = commandLabel(intent.command);
       c.approach.position.set(32, 58);
       c.approach.text = approachLabel(intent.approach);
-      c.bar.bg.position.set(14, 82);
-      c.bar.fg.position.set(14, 82);
+      c.bar.bg.position.set(14, compact ? 30 : 82);
+      c.bar.fg.position.set(14, compact ? 30 : 82);
       setBar(c.bar, sq.alive / Math.max(1, sq.total), sq.alive / Math.max(1, sq.total) < 0.3 ? 0xcc4444 : 0x44cc44);
-      c.countLabel.position.set(14, 92);
+      c.countLabel.position.set(14, compact ? 40 : 92);
       c.countLabel.text = `${sq.alive}/${sq.total}`;
     });
 
     this.cmdButtons.all.setActive(selectedSlots === 'all');
     const intents = world.squads.filter((s) => s.side === 0 && (selectedSlots === 'all' || selectedSlots.includes(s.slot))).map((s) => getSquadIntent(world, s.index));
+    const squads = world.squads.filter((s) => s.side === 0 && (selectedSlots === 'all' || selectedSlots.includes(s.slot)));
+    const consensus = (values: string[], mixed: string): string => values.length === 0 ? 'None selected' : values.every((v) => v === values[0]) ? values[0]! : mixed;
+    const selection = selectedSlots === 'all' ? 'All squads' : squads.length === 1 ? squads[0]!.name : `${squads.length} squads selected`;
+    const disposition = consensus(squads.map((s) => s.disposition === 'fierce' ? 'Fierce' : s.disposition === 'guard' ? 'Guard' : 'Mixed'), 'Mixed dispositions');
+    const pending = intents.some((i) => i.pending) ? (world.paused ? ' · Pending on resume' : ' · Pending next tick') : '';
+    setNameText(this.detailTitle, selection, this.geometry!.detail.width, ` · Disposition: ${disposition} (fixed)`);
+    this.detailIntent.text = `Order: ${consensus(intents.map((i) => commandLabel(i.command)), 'Mixed orders')} · Approach: ${consensus(intents.map((i) => approachLabel(i.approach)), 'Mixed approaches')}${pending}`;
     for (const cmd of ['advance', 'hold', 'fallBack'] as const) {
       this.cmdButtons[cmd].setActive(intents.length > 0 && intents.every((i) => i.command === cmd));
     }
@@ -492,6 +509,11 @@ export class Hud {
     }
   }
 
+  /** Screen-space reservation consumed by the battle camera/input owner after layout(). */
+  getBottomBandHeight(): number {
+    return this.bottomH;
+  }
+
   setSpeedLabel(mult: 1 | 2): void {
     this.speedBtn.setLabel(`${mult}x`);
   }
@@ -503,4 +525,23 @@ function approachLabel(approach: Approach): string {
 
 function commandLabel(cmd: Command): string {
   return cmd === 'advance' ? 'Advance' : cmd === 'hold' ? 'Hold' : 'Fall Back';
+}
+
+/** Bound names at native font size, reserving space for the complete status suffix. */
+function setNameText(text: Text, name: string, width: number, suffix = ''): void {
+  const chars = Array.from(name);
+  let length = Math.min(chars.length, 32);
+  const display = () => `${chars.slice(0, length).join('')}${length < chars.length ? '…' : ''}${suffix}`;
+  text.scale.set(1);
+  text.text = display();
+  while (text.width > width && length > 0) {
+    length--;
+    text.text = display();
+  }
+}
+
+/** Fit fixed labels to their assigned horizontal space. Names use ellipsis instead. */
+function fitText(text: Text, width: number): void {
+  text.scale.set(1);
+  if (text.width > width) text.scale.set(width / text.width, 1);
 }
