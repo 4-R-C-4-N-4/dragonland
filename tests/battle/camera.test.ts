@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { clampCamera, clampZoom, fitCamera, worldToScreen, screenToWorld } from '../../src/battle/camera';
+import { clampCamera, clampZoom, fitCamera, worldToScreen, screenToWorld, groundToScreen, screenToGround } from '../../src/battle/camera';
+import { createProjection, projectedBounds } from '../../src/render/projection';
 
 const opts = { fieldW: 1600, fieldH: 600, viewportW: 800, viewportH: 400, minZoom: 0.3, maxZoom: 3 };
 
@@ -32,6 +33,33 @@ describe('fitCamera', () => {
     const cam = fitCamera(opts);
     expect(cam.zoom).toBeGreaterThan(0);
     expect(cam.zoom).toBeLessThanOrEqual(opts.maxZoom);
+  });
+});
+
+describe('perspective camera composition', () => {
+  it('round-trips ground points after pan, zoom and HUD offset', () => {
+    const p = createProjection(1600, 600);
+    const cam = { x: 730, y: 220, zoom: 1.7 };
+    for (const x of [0, 100, 800, 1600]) for (const y of [0, 75, 300, 600]) {
+      const screen = groundToScreen(x, y, p, cam, 1024, 768, -81);
+      const point = screenToGround(...screen, p, cam, 1024, 768, -81);
+      expect(point[0]).toBeCloseTo(x, 8);
+      expect(point[1]).toBeCloseTo(y, 8);
+    }
+  });
+
+  it('fits the trapezoid inside the actual space between HUD bands', () => {
+    const p = createProjection(1600, 600);
+    const b = projectedBounds(p);
+    const top = 68, bottom = 256, width = 800, height = 600;
+    const cam = fitCamera({ ...opts, fieldW: b.width, fieldH: b.height, viewportW: width, viewportH: height - top - bottom });
+    for (const x of [0, 1600]) for (const y of [0, 600]) {
+      const [sx, sy] = groundToScreen(x, y, p, cam, width, height, (top - bottom) / 2);
+      expect(sx).toBeGreaterThanOrEqual(0);
+      expect(sx).toBeLessThanOrEqual(width);
+      expect(sy).toBeGreaterThanOrEqual(top);
+      expect(sy).toBeLessThanOrEqual(height - bottom);
+    }
   });
 });
 

@@ -1,4 +1,5 @@
 // Pure camera math (pan/zoom clamp) — testable without Pixi/DOM.
+import { projectGround, unprojectGround, type FieldProjection } from '../render/projection';
 export interface Camera {
   x: number; // world-space center x
   y: number; // world-space center y
@@ -50,4 +51,17 @@ export function worldToScreen(wx: number, wy: number, cam: Camera, viewportW: nu
 
 export function screenToWorld(sx: number, sy: number, cam: Camera, viewportW: number, viewportH: number): [number, number] {
   return [(sx - viewportW / 2) / cam.zoom + cam.x, (sy - viewportH / 2) / cam.zoom + cam.y];
+}
+
+/** Ground-space simulation point through perspective and camera into the full screen. */
+export function groundToScreen(wx: number, wy: number, projection: FieldProjection, cam: Camera, viewportW: number, viewportH: number, hudOffsetY = 0): [number, number] {
+  const [px, py] = projectGround(projection, wx, wy);
+  const [sx, sy] = worldToScreen(px, py, cam, viewportW, viewportH);
+  return [sx, sy + hudOffsetY];
+}
+
+/** Exact inverse of groundToScreen, including the screen-space HUD centering offset. */
+export function screenToGround(sx: number, sy: number, projection: FieldProjection, cam: Camera, viewportW: number, viewportH: number, hudOffsetY = 0): [number, number] {
+  const [px, py] = screenToWorld(sx, sy - hudOffsetY, cam, viewportW, viewportH);
+  return unprojectGround(projection, px, py);
 }
