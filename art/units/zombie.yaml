@@ -1,0 +1,28 @@
+# MVP2 stage 1; provisional design direction.
+name: Zombie
+size: stage1
+description: >-
+  A hunched undead human with ashen mauve skin, slack jaw, patchy brown hair and torn brown work
+  clothes. One shoulder hangs lower, arms reach forward with empty hands and exposed blunt
+  fingers; no saturated green skin or decay. Face RIGHT in every frame. Natural body, hair,
+  feathers, stone and metal use the stated non-green palette; saturated green is reserved
+  exclusively for team cloth. Team cloth: a broad ragged waist cloth in readable pure flat green
+  #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: uneven chest sway and jaw twitch. Walk: follow the body-specific walkNotes. Attack: rock
+  backward and draw near arm in; extend near hand RIGHT in a grabbing rake; fingers curl; drag arm
+  back to hunched guard. Hit: upper body jolts backward with dangling arms. Death: knees fail and
+  body slumps forward then rolls onto its side; final frame remains still. All five animations:
+  idle, walk, attack, hit, death. Use four distinct sequential attack poses: anticipation,
+  extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects
+  inside each cell with generous uninterrupted magenta gutters on all four sides, including death;
+  shrink pose reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell
+  overlap.
+walkNotes: >-
+  Asymmetric undead shuffle: near foot drags forward, weight sags over it, far foot drags through,
+  opposite weight transfer. Low toe clearance and uneven shoulders, not marching. Four-frame full
+  sheets use contact/passing/opposite contact/passing or the four flight phases above; six-frame
+  movement strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame
+  advances the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without
+  swapping identities. Preserve grip and limb count; leave magenta clearance around the entire
+  moving silhouette.

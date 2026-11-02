@@ -1,0 +1,28 @@
+# MVP2 stage 2; provisional design direction.
+name: Demon
+size: stage2
+evolvesFrom: imp
+description: >-
+  An evolved Imp: muscular crimson demon with the same pointed ears, swept horns, bat wings and
+  spade tail, now a broad chest, digitigrade hooves and longer forearm claws. Charcoal horn tips
+  and bronze wrist cuffs; no weapon. Face RIGHT in every frame. Natural body, hair, feathers,
+  stone and metal use the stated non-green palette; saturated green is reserved exclusively for
+  team cloth. Team cloth: a broad belted loincloth in readable pure flat green #00FF00; keep a
+  broad unobstructed panel visible.
+animationNotes: >-
+  Idle: chest breathing and restrained tail twitch. Walk: follow the body-specific walkNotes.
+  Attack: plant hooves and coil the near arm; drive near claws RIGHT; follow through with the
+  elbow bent; retract into guard. Hit: brace hooves and jerk torso back. Death: knees buckle,
+  folded wings cushion a side collapse; final frame remains still. All five animations: idle,
+  walk, attack, hit, death. Use four distinct sequential attack poses: anticipation, extension,
+  follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects inside each
+  cell with generous uninterrupted magenta gutters on all four sides, including death; shrink pose
+  reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Grounded digitigrade prowl: near hoof reaches, far hoof passes low, far hoof reaches, near hoof
+  passes. Flex hocks rather than lifting human knees; wings stay folded. Four-frame full sheets
+  use contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

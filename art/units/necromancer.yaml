@@ -1,0 +1,30 @@
+# MVP2 stage 2; provisional design direction.
+name: Necromancer
+size: stage2
+evolvesFrom: witch
+description: >-
+  An evolved Witch: gaunt tan human retaining the bent pointed charcoal hat and plum robe, now a
+  high bone collar, exposed angular hands and a rib-shaped ivory chest ornament. Near right hand
+  grips a black staff at waist height, knuckles enclosing shaft, small skull finial UP; far left
+  palm faces RIGHT. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use
+  the stated non-green palette; saturated green is reserved exclusively for team cloth. Team
+  cloth: a broad hanging waist apron in readable pure flat green #00FF00; keep a broad
+  unobstructed panel visible.
+animationNotes: >-
+  Idle: bone collar stays fixed while chest breathes. Walk: follow the body-specific walkNotes.
+  Attack: lean back and curl left fingers inward; extend left palm RIGHT while staff stays
+  upright; contract a small violet wisp; withdraw to guard. Hit: left arm folds defensively and
+  torso recoils. Death: knees give way, staff lowers within the cell and robe settles on its side;
+  final frame remains still. All five animations: idle, walk, attack, hit, death. Use four
+  distinct sequential attack poses: anticipation, extension, follow-through, recovery. Keep full
+  body, weapons, wings, tail, cloth and effects inside each cell with generous uninterrupted
+  magenta gutters on all four sides, including death; shrink pose reach if needed. Fixed scale and
+  anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Measured low robe stride with alternating visible boot tips and subtle hip shift, no high knees.
+  Upright staff held by right fist never changes hands. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

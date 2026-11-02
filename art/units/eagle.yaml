@@ -1,0 +1,29 @@
+# MVP2 stage 3; provisional design direction.
+name: Eagle
+size: general
+evolvesFrom: hawk
+description: >-
+  An evolved Hawk: large flying war eagle retaining the Raven/Hawk hooked beak, spread feathered
+  wings, forward talons and neck cloth silhouette. Brown back, cream head and breast, gold beak,
+  layered primary feathers and heavier hooked talons; no humanoid arms or weapons. Face RIGHT in
+  every frame. Natural body, hair, feathers, stone and metal use the stated non-green palette;
+  saturated green is reserved exclusively for team cloth. Team cloth: a broad neck scarf with
+  short ends in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: hover with a slight beak tilt. Walk: follow the body-specific walkNotes. Attack: raise
+  wings and pull talons beneath belly; extend both talons RIGHT in a compact airborne strike; curl
+  claws as wings brake; withdraw feet to hover. Hit: fold wings inward briefly and recoil in air.
+  Death: wings fold and bird falls to rest on its side; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Flying wingflap only: fully raised pinions, halfway down, fully lowered, halfway up. Distinct
+  feather silhouettes and shallow body bob, feet tucked, never walking or marching. Four-frame
+  full sheets use contact/passing/opposite contact/passing or the four flight phases above;
+  six-frame movement strips add intermediate weight-transfer or wing-transition poses. Every
+  adjacent frame advances the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs
+  darker, without swapping identities. Preserve grip and limb count; leave magenta clearance
+  around the entire moving silhouette.

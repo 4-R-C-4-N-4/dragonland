@@ -1,0 +1,32 @@
+# MVP2 stage 3; provisional design direction.
+name: Deadeye
+size: general
+evolvesFrom: ranger
+description: >-
+  An evolved Ranger: veteran human bowman retaining Archer/Ranger longbow, back quiver, layered
+  cloak, bracers and feathered cap. A taller split feather, angular shoulder cape and reinforced
+  leather shooting vest add a lean triangular silhouette. Tan skin, brown leather. Far left hand
+  grips bow centre ahead of chest, bow upright with limbs UP/DOWN; near right hand hooks string
+  beside cheek, arrow nocked and point RIGHT. Face RIGHT in every frame. Natural body, hair,
+  feathers, stone and metal use the stated non-green palette; saturated green is reserved
+  exclusively for team cloth. Team cloth: a broad short cloak panel in readable pure flat green
+  #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: quiet breathing with bow lowered slightly. Walk: follow the body-specific walkNotes.
+  Attack: raise bow and start drawing right hand back; reach full draw with right hand at cheek
+  and arrow RIGHT; release string as right fingers open; lower bow slightly and reset. No floating
+  arrows or hand swaps. Hit: bow arm bends inward and shoulders recoil. Death: knees buckle, bow
+  stays in left hand and body settles sideways; final frame remains still. All five animations:
+  idle, walk, attack, hit, death. Use four distinct sequential attack poses: anticipation,
+  extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects
+  inside each cell with generous uninterrupted magenta gutters on all four sides, including death;
+  shrink pose reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell
+  overlap.
+walkNotes: >-
+  Quiet ranger steps with low alternating boot contact and passing, knees soft and head level.
+  Carry bow upright in left fist, right hand near string, cloak trails LEFT. Four-frame full
+  sheets use contact/passing/opposite contact/passing or the four flight phases above; six-frame
+  movement strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame
+  advances the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without
+  swapping identities. Preserve grip and limb count; leave magenta clearance around the entire
+  moving silhouette.
