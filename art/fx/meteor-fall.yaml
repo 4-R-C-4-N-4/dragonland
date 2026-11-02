@@ -1,0 +1,7 @@
+# FX spec for `meteor-fall` (art/fx/meteor-fall.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Meteor Fall
+kind: overlay # overlay | wave | strike | aura
+frames: 8
+heroes: ['archmage']
+description: >-
+  A burning stone meteor streaking down trailing a fiery violet-orange tail, exploding into a small cratered burst of cinders and arcane purple sparks on impact; cosmic battle-mage energy.

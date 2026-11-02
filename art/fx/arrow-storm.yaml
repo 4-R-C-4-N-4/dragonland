@@ -1,0 +1,7 @@
+# FX spec for `arrow-storm` (art/fx/arrow-storm.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Arrow Storm
+kind: strike # overlay | wave | strike | aura
+frames: 6
+heroes: ['deadeye']
+description: >-
+  A cluster of steel-tipped arrows plunging down at a steep angle with motion-streak trails and a small dust-and-feather puff on impact; cold steel-blue and ash-brown palette.

@@ -1,0 +1,7 @@
+# FX spec for `judgement` (art/fx/judgement.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Judgement
+kind: wave # overlay | wave | strike | aura
+frames: 8
+heroes: ['archangel']
+description: >-
+  A sweeping wall of blinding white-gold holy fire with radiant feathered light-rays and faint cross-shaped glints rolling forward across the ground; righteous and overwhelming.

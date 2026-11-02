@@ -1,0 +1,7 @@
+# FX spec for `dragon-breath` (art/fx/dragon-breath.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Dragon Breath
+kind: wave # overlay | wave | strike | aura
+frames: 8
+heroes: ['dragon']
+description: >-
+  A roiling river of orange-red dragonfire rolling forward low across the ground, licking flame tongues and curling black-edged smoke, embers trailing behind; intensely hot core fading to charred fringes.

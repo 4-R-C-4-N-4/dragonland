@@ -1,0 +1,7 @@
+# FX spec for `hellfire-wave` (art/fx/hellfire-wave.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Hellfire Wave
+kind: wave # overlay | wave | strike | aura
+frames: 8
+heroes: ['diabolist']
+description: >-
+  A surging wall of infernal crimson-purple fire rolling forward with clawed flame tendrils and oily black smoke, hot magenta-red core edged in sulfurous violet; demonic and overwhelming.

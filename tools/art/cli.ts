@@ -7,6 +7,10 @@
 //   npm run art -- pick <id> <file> [--anim walk]              choose a candidate (--anim walk none = drop override)
 //   npm run art -- process [id...]                           picks -> assets/sprites (+ candidates -> art/.cache)
 //   npm run art -- review                                    write art/review.html (open /art/review.html in `npm run dev`)
+//   npm run art -- fx gen <fx|all> [-n 1] [--force]           special-fx strip (art/fx/<fx>.yaml -> art/raw/fx/<fx>/)
+//   npm run art -- fx pick <fx> <file>                        choose a candidate (art/picks.yaml key `fx/<fx>`)
+//   npm run art -- fx process [fx...]                         picks -> assets/fx/<fx>.png + .json
+//   npm run art -- fx status                                  fx specs, hashes, candidates, picks
 process.stdout.on('error', (e: NodeJS.ErrnoException) => { if (e.code === 'EPIPE') process.exit(0); throw e; });
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -18,6 +22,7 @@ import {
   loadPicks, loadSizes, loadStyle, loadUnit, rawDir, referencesFor, savePicks, specHash, type Anim, type UnitSpec,
 } from './config';
 import { asepriteJson, packRows, processSheet, rowFigureHeight, type ProcessResult, type Rgba, type RowRef } from './process';
+import { cmdFx } from './fx';
 
 function readPng(path: string): Rgba {
   const png = PNG.sync.read(readFileSync(path));
@@ -375,6 +380,7 @@ try {
   else if (cmd === 'pick') cmdPick(rest);
   else if (cmd === 'process') cmdProcess(rest);
   else if (cmd === 'review') cmdReview();
+  else if (cmd === 'fx') cmdFx(rest);
   else if (cmd === 'status' || !cmd) cmdStatus();
   else throw new Error(`unknown command ${cmd}`);
 } catch (e) {

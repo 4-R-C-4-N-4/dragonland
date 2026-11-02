@@ -117,6 +117,73 @@ export function buildPrompt(spec: UnitSpec, style: Style, refs: { role: string }
   return lines.filter(Boolean).join('\n');
 }
 
+// ---------- fx specs (art/fx/<fx>.yaml -> assets/fx/<fx>); see tools/art/fx.ts ----------
+
+export const FX_DIR = join(ART, 'fx');
+export const FX_RAW = join(RAW, 'fx');
+export const FX_OUT = join(ROOT, 'assets', 'fx');
+export type FxKind = 'overlay' | 'wave' | 'strike' | 'aura';
+
+export interface FxStyle {
+  style: string;
+  camera: string;
+  background: string;
+  layout: string;
+}
+
+export interface FxSpec {
+  id: string;
+  name: string;
+  kind: FxKind;
+  frames: number;
+  heroes: string[];
+  description: string;
+}
+
+export const loadFxStyle = (): FxStyle => {
+  const full = readYaml<{ fx?: FxStyle }>(join(ART, 'style.yaml'));
+  if (!full.fx) throw new Error('art/style.yaml has no `fx:` section');
+  return full.fx;
+};
+
+export function listFxIds(): string[] {
+  if (!existsSync(FX_DIR)) return [];
+  return readdirSync(FX_DIR)
+    .filter((f) => f.endsWith('.yaml'))
+    .map((f) => f.replace(/\.yaml$/, ''))
+    .sort();
+}
+
+export function loadFxSpec(id: string): FxSpec {
+  const p = join(FX_DIR, `${id}.yaml`);
+  if (!existsSync(p)) throw new Error(`no fx spec art/fx/${id}.yaml`);
+  return { id, ...readYaml<Omit<FxSpec, 'id'>>(p) };
+}
+
+export function fxRawDir(id: string): string {
+  return join(FX_RAW, id);
+}
+
+export function listFxRaw(id: string): string[] {
+  const d = fxRawDir(id);
+  return existsSync(d) ? readdirSync(d).filter((f) => f.endsWith('.png')).sort() : [];
+}
+
+/** Picks for fx sheets are stored under the `fx/<id>` key in the same picks.yaml as units. */
+export const fxPickKey = (id: string): string => `fx/${id}`;
+
+export function buildFxPrompt(spec: FxSpec, style: FxStyle): string {
+  return [
+    style.style,
+    style.camera,
+    `Effect: ${spec.name}. ${spec.description}`,
+    style.layout.replace('{frames}', String(spec.frames)),
+    style.background,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 /** Short content hash of everything that determines a generation. Changes => asset is stale. */
 export function specHash(prompt: string, refs: { path: string }[]): string {
   const h = createHash('sha256').update(prompt);

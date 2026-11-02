@@ -19,6 +19,7 @@ import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
 import { worldToScreen } from '../battle/camera';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
+import { discoverFx, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, wavePoints, type ParsedFx } from './fx';
 import { getDebugState } from '../debug/state';
 import type { FrameObject } from 'pixi.js';
 
@@ -91,6 +92,12 @@ export class Battlefield {
   private placeholders: Map<string, UnitPlaceholder>;
   private sheets: Map<string, ParsedSheet>;
   private sheetTextures = new Map<string, SheetLayers>();
+  private fxSheets: Map<string, ParsedFx>;
+  private fxTextures = new Map<string, Texture[]>();
+  private fxLoading = new Set<string>();
+  private screenShakeT = 0;
+  private screenShakeMag = 0;
+  private fxSeed = 1;
   private sprites: (EntitySprite | undefined)[] = [];
   private lastWorld: World | null = null;
   private damageNumbers: { text: Text; t: number; vy: number }[] = [];
@@ -107,6 +114,7 @@ export class Battlefield {
   ) {
     this.placeholders = buildPlaceholderTextures(renderer, data);
     this.sheets = discoverSheets((msg) => console.warn(msg));
+    this.fxSheets = discoverFx((msg) => console.warn(msg));
     this.genericDisc = this.bakeEllipseTexture(1, 1);
     this.generalRingTex = this.bakeEllipseRingTexture(26, 10, 3);
     this.world2screen.addChild(this.ground, this.ents, this.fx, this.debugLayer);
@@ -399,8 +407,17 @@ export class Battlefield {
     this.world2screen.position.set(viewportW / 2, viewportH / 2);
     this.world2screen.scale.set(cam.zoom);
     this.world2screen.pivot.set(cam.x, cam.y * Y_SQUASH);
+    if (this.screenShakeT > 0) {
+      this.screenShakeT = Math.max(0, this.screenShakeT - dt);
+      const mag = this.screenShakeMag * (this.screenShakeT / 0.3);
+      this.world2screen.position.x += (Math.random() * 2 - 1) * mag;
+      this.world2screen.position.y += (Math.random() * 2 - 1) * mag;
+    }
 
     const ents = world.ents;
+    // Sides currently under a buff/debuff (D24): a cheap tint pulse on their troops below.
+    const pulsingSides = new Set(world.activeEffects.map((e) => e.side));
+    const pulse = pulsingSides.size ? 0.85 + 0.15 * Math.sin(performance.now() / 180) : 1;
     for (let i = 0; i < ents.count; i++) {
       const sp = this.sprites[i];
       if (!sp) continue;
@@ -445,7 +462,8 @@ export class Battlefield {
         sp.body.tint = 0xffffff;
         sp.body.alpha = 1;
       } else {
-        sp.body.tint = 0xffffff;
+        const t = pulsingSides.has(ents.side[i]! as Side) ? Math.round(255 * pulse) : 255;
+        sp.body.tint = (t << 16) | (t << 8) | 255;
         sp.body.alpha = 1;
       }
       if (sp.usesSheet) {
@@ -549,33 +567,90 @@ export class Battlefield {
     requestAnimationFrame(tick);
   }
 
-  /** Placeholder special visuals until per-special fx sheets exist (assets/fx/<fx>). */
-  private spawnSpecialFx(ev: Extract<World['events'][number], { type: 'special' }>): void {
-    const g = new Graphics();
-    const ents = this.lastWorld?.ents;
-    for (const area of ev.areas) {
-      if (area === 'field') g.rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color: 0xff7040, alpha: 0.18 });
-      else if (area === 'wave') {
-        const len = Math.hypot(this.fieldW, this.fieldH) * 1.2;
-        const ang = Math.atan2(ev.dirY * Y_SQUASH, ev.dirX);
-        const band = new Graphics().rect(0, -ev.width * Y_SQUASH, len, ev.width * 2 * Y_SQUASH).fill({ color: 0xffa040, alpha: 0.35 });
-        band.rotation = ang;
-        band.position.set(ev.x, ev.y * Y_SQUASH);
-        g.addChild(band);
-      } else if (ents) {
-        const color = area === 'heal' || area === 'buff' ? 0x66ff99 : area === 'debuff' ? 0xb070ff : 0xff6666;
-        for (const i of ev.affected) g.circle(ents.x[i]!, ents.y[i]! * Y_SQUASH, 8).fill({ color, alpha: 0.5 });
-      }
+  /** Lazily loads & slices an fx sheet's texture frames; returns null until loaded (placeholder meanwhile). */
+  private getFxFrames(fxId: string): Texture[] | null {
+    const cached = this.fxTextures.get(fxId);
+    if (cached) return cached;
+    const sheet = this.fxSheets.get(fxId);
+    if (!sheet || this.fxLoading.has(fxId)) return null;
+    this.fxLoading.add(fxId);
+    Assets.load<Texture>(sheet.imageUrl)
+      .then((base) => {
+        base.source.scaleMode = 'nearest';
+        this.fxTextures.set(fxId, sheet.frames.map((f) => new Texture({ source: base.source, frame: new Rectangle(f.x, f.y, f.w, f.h) })));
+      })
+      .catch((e) => console.warn(`fx sheet ${fxId}: image failed to load, keeping placeholder`, e));
+    return null;
+  }
+
+  /** One fx instance at (x,y): the sliced sheet animation if loaded, else a cosmetic placeholder shape. */
+  private spawnFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number): void {
+    const frames = fxId ? this.getFxFrames(fxId) : null;
+    if (frames) {
+      const sheet = this.fxSheets.get(fxId!)!;
+      const sp = new AnimatedSprite(frames.map((texture, idx) => ({ texture, time: sheet.frames[idx]!.durationMs })));
+      sp.anchor.set(0.5, kind === 'overlay' || kind === 'wave' ? 0.8 : 0.5);
+      sp.loop = false;
+      sp.position.set(x, y);
+      sp.play();
+      sp.onComplete = () => sp.destroy();
+      this.fx.addChild(sp);
+      return;
     }
+    const g = new Graphics();
+    const r = kind === 'strike' ? 8 : kind === 'aura' ? 10 : 14;
+    g.circle(0, 0, r).fill({ color, alpha: 0.5 });
+    g.position.set(x, y);
     this.fx.addChild(g);
     let t = 0;
     const tick = (): void => {
       t += 1 / 60;
-      g.alpha = Math.max(0, 0.35 - t * 0.5);
-      if (t > 0.7) g.destroy();
+      g.alpha = Math.max(0, 0.6 - t * 0.9);
+      if (t > 0.6) g.destroy();
       else requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
+  }
+
+  /** Brief field-covering colour flash + camera-independent screen shake for big field/wave specials. */
+  private triggerBigFx(color: number): void {
+    this.screenShakeT = 0.3;
+    this.screenShakeMag = 6;
+    const g = new Graphics().rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color, alpha: 0.3 });
+    this.fx.addChild(g);
+    let t = 0;
+    const tick = (): void => {
+      t += 1 / 60;
+      g.alpha = Math.max(0, 0.3 - t * 0.6);
+      if (t > 0.5) g.destroy();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  /** Plays each special's effect areas: overlay (field), wave, strike (random/general) or aura (heal/buff/debuff). */
+  private spawnSpecialFx(ev: Extract<World['events'][number], { type: 'special' }>): void {
+    const ents = this.lastWorld?.ents;
+    this.fxSeed = (this.fxSeed * 48271) % 2147483647;
+    for (const area of ev.areas) {
+      const kind = kindForArea(area);
+      if (kind === 'overlay') {
+        this.triggerBigFx(0xff7040);
+        for (const [x, y] of overlayPoints(this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed, overlayScatterCount(this.fieldW, this.fieldH))) {
+          this.spawnFxInstance(x, y, ev.fx, 'overlay', 0xff7040);
+        }
+      } else if (kind === 'wave') {
+        this.triggerBigFx(0xffa040);
+        for (const [x, y] of wavePoints(ev.x, ev.y * Y_SQUASH, ev.dirX, ev.dirY * Y_SQUASH, ev.width * Y_SQUASH, this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed)) {
+          this.spawnFxInstance(x, y, ev.fx, 'wave', 0xffa040);
+        }
+      } else if (ents) {
+        const color = kind === 'aura' ? (area === 'heal' || area === 'buff' ? 0x66ff99 : 0xb070ff) : 0xff6666;
+        for (const [x, y] of perEntityPoints(ev.affected, (e) => (ents.alive[e] ? [ents.x[e]!, ents.y[e]! * Y_SQUASH] : null))) {
+          this.spawnFxInstance(x, y, ev.fx, kind, color);
+        }
+      }
+    }
   }
 
   private spawnDamageNumber(world: World, entity: number, amount: number): void {

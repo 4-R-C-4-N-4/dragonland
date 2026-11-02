@@ -1,0 +1,7 @@
+# FX spec for `inferno` (art/fx/inferno.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Inferno
+kind: overlay # overlay | wave | strike | aura
+frames: 8
+heroes: ['devil']
+description: >-
+  A jagged tongue of hellish orange-red flame erupting upward from a cracked scorched patch of ground, with curling black smoke and drifting embers; raw demonic combustion.
