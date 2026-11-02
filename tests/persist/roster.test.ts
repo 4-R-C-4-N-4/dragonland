@@ -10,10 +10,10 @@ describe('generateRoster', () => {
     expect(roster.length).toBe(data.constants.ROSTER_SIZE);
   });
 
-  it('covers all 12 stage-1/2 units', () => {
+  it('covers all 30 stage-1/2 units', () => {
     const roster = generateRoster(data, 1);
     const eligible = rosterEligibleUnitIds(data);
-    expect(eligible.length).toBe(12);
+    expect(eligible.length).toBe(30);
     const used = new Set(roster.map((t) => t.unitId));
     for (const id of eligible) expect(used.has(id)).toBe(true);
   });
@@ -50,10 +50,12 @@ describe('generateRoster', () => {
     expect(a).not.toEqual(b);
   });
 
-  it('leaves spare troops beyond MAX_COMPANY per unit distribution', () => {
+  it('distributes a finite sandbox roster evenly across eligible species', () => {
     const roster = generateRoster(data, 1);
     const counts = new Map<string, number>();
     for (const t of roster) counts.set(t.unitId, (counts.get(t.unitId) ?? 0) + 1);
-    for (const n of counts.values()) expect(n).toBeGreaterThanOrEqual(10);
+    const minimum = Math.floor(data.constants.ROSTER_SIZE / rosterEligibleUnitIds(data).length);
+    for (const n of counts.values()) expect(n).toBeGreaterThanOrEqual(minimum);
+    expect(Math.max(...counts.values()) - Math.min(...counts.values())).toBeLessThanOrEqual(1);
   });
 });

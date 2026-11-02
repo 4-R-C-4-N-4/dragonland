@@ -96,7 +96,27 @@ export function buildGameData(raw: RawGameData): GameData {
 
   const errors: string[] = [];
   for (const c of classes) if (!classById.has(c.strongAgainst)) errors.push(`class ${c.id}: unknown strongAgainst ${c.strongAgainst}`);
-  for (const u of units) if (!classById.has(u.classId)) errors.push(`unit ${u.id}: unknown class ${u.classId}`);
+  const seenUnitIds = new Set<string>();
+  for (const u of units) {
+    if (seenUnitIds.has(u.id)) errors.push(`duplicate unit id ${u.id}`);
+    seenUnitIds.add(u.id);
+    if (!classById.has(u.classId)) errors.push(`unit ${u.id}: unknown class ${u.classId}`);
+    // Strictly increasing stages and terminal stage 3 guarantee finite chains.
+    if (u.stage === 3) {
+      if (u.evolvesTo !== undefined) errors.push(`unit ${u.id}: stage 3 must terminate its evolution chain`);
+    } else if (u.evolvesTo === undefined) {
+      errors.push(`unit ${u.id}: stage ${u.stage} must evolve to stage ${u.stage + 1}`);
+    }
+    if (u.evolvesTo !== undefined) {
+      const target = unitById.get(u.evolvesTo);
+      if (!target) errors.push(`unit ${u.id}: unknown evolution target ${u.evolvesTo}`);
+      else {
+        if (target.stage !== u.stage + 1) errors.push(`unit ${u.id}: evolution target ${target.id} must increment stage by 1`);
+        if (target.classId !== u.classId) errors.push(`unit ${u.id}: evolution target ${target.id} must have the same class`);
+        if (target.line !== u.line) errors.push(`unit ${u.id}: evolution target ${target.id} must have the same line`);
+      }
+    }
+  }
   for (const g of generals) {
     const u = unitById.get(g.unitId);
     if (!u) errors.push(`general ${g.id}: unknown unit ${g.unitId}`);
@@ -112,7 +132,6 @@ export function buildGameData(raw: RawGameData): GameData {
       for (const e of s.units) {
         const u = unitById.get(e.unitId);
         if (!u) errors.push(`ai loadout ${l.id}: unknown unit ${e.unitId}`);
-        else if (u.stage === 3) errors.push(`ai loadout ${l.id}: stage-3 unit ${e.unitId} cannot be a troop`);
         n += e.count;
       }
       if (n < constants.MIN_SQUAD) errors.push(`ai loadout ${l.id}: squad ${s.name} below MIN_SQUAD`);
