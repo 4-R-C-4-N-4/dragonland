@@ -68,8 +68,12 @@ for (let r = 0; r < runs; r++) {
     }
     const w = createBattle(data, s.battle!.setup);
     const enemyAi = createAiController(data, 1); // same in-battle policy the browser uses for the enemy
+    // The bot plays the player side with the same policy (fires specials, pulls guards back), since a
+    // human fires their special too; without this the field-wide specials only ever help the enemy.
+    const playerAi = createAiController(data, 0);
     for (let t = 0; t < 20 * 60 * 8 && !w.result; t++) {
       if (!process.env.NOAI) enemyAi.update(w);
+      playerAi.update(w);
       step(w);
     }
     s = applyBattleResult(data, s, s.battle!.id, w.result!, cfg);
