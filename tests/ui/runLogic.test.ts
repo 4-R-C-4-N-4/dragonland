@@ -49,3 +49,17 @@ describe('run army planning', () => {
     expect(planIssues(data, run.roster, none).join()).toMatch(/Deploy/);
   });
 });
+
+describe('fight validation', () => {
+  const run = chooseEncounter(newRun(data, { seed: 3, generalId: 'paladin' }), 'enc-0-0');
+  it.each([NaN, Infinity, -1, 1.5])('blocks invalid count %s', (count) => {
+    const plan = autoPlan(data, run.roster);
+    plan.assignment[Object.keys(plan.assignment)[0]!]!.count = count;
+    expect(planIssues(data, run.roster, plan).length).toBeGreaterThan(0);
+  });
+  it.each([-1, 4, 0.5, NaN])('blocks invalid squad destination %s', (squad) => {
+    const plan = autoPlan(data, run.roster);
+    plan.assignment[Object.keys(plan.assignment)[0]!]!.squad = squad;
+    expect(planIssues(data, run.roster, plan).join(' ')).toMatch(/invalid squad/);
+  });
+});
