@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 294 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 322 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## MVP2 implementation (branch `mvp2`)
 
@@ -43,7 +43,7 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
 
 Checklist: `docs/plans/mainline-ux.md` (all findings from the readiness audit are in scope; no automatic main merge).
 
-- Active isolated implementation streams: `polish-hud` (responsive battle HUD/planning cues), `polish-campaign` (campaign readability/actions/help/results), `polish-fx` (first-cast/per-area targets/sizing/waves/FX lifetime). Workers do not push or commit; parent reviews and integrates.
+- Current state: HUD, campaign and corrected FX streams are integrated. `polish-perspective` is active in an isolated worktree based on `a3127cb`; parent gates/reviews/browser integration remain authoritative. The bullets below retain chronological implementation history, not current worker status.
 - Parent foundation implemented: battle drag handlers now detach on teardown, including cancel/lost-capture; destroy is idempotent. Three lifecycle regressions pass. Full repeated-battle browser verification is still pending.
 - Parent foundation implemented: pure shared perspective/inverse/depth-scale/bounds module with four geometry tests. It is **not wired into battlefield/camera yet**; integrate only after the FX stream to avoid conflicting edits.
 - Added Node22 GitHub CI and README. Local parent gate: **254 tests pass, production build passes**. Remote CI execution and clean-install verification are pending.
@@ -57,7 +57,10 @@ Checklist: `docs/plans/mainline-ux.md` (all findings from the readiness audit ar
 - Parent camera/projection composition now has two additional regressions (pan/zoom/HUD-offset inverse and projected bounds inside HUD bands); parent gate **262 tests and build pass**. Live renderer/camera wiring remains pending reviewed HUD/FX integration.
 - Campaign corrections passed independent spec review and quality re-review with no remaining findings, then merged as `ecc1de8` into `mvp2`. Parent combined gate: **283 tests and build pass**. Integrated final browser flow remains under the release checklist, not inferred from mocked DOM tests.
 - HUD quality re-review approved the corrected diff with no findings; merged as `0c10d49`. Parent integrated its dynamic band reservation into camera fit, HUD pointer/wheel exclusion and resize handling. Actual browser inspection at 1280×800, 1024×768 and 800×600 confirms visible controls, keyboard/mouse paused intent updates and honest mixed-selection highlights. Evidence: `/home/ivy/.hermes/cache/scratch/polish-browser/integrated-hud-*.png`. Combined gate: **294 tests and build pass**.
-- Independent spec/quality reviews, integrated browser evidence, per-FX visual verdicts, broader final balance diagnostics and release PR remain pending; a green foundation gate does not close those items.
+- FX corrections passed both independent re-reviews with no remaining findings (`fx-fixed-{spec,quality}-review.txt`), merged as `c16345e`. Parent processed all 15 picks using shared trim into runtime assets (`a3127cb`); raw picks unchanged. Parent gate: **318 tests and build pass**. Source contact review is separate from still-pending in-game playback signoff.
+- The broader diagnostic ensemble exposed illegal singleton auto-arrange squads after attrition. Added red→green planner regressions and explicit blocked-deployment reporting, fixed in `f2fac7a`; parent gate **322 tests/build pass**. Narrow independent review is active.
+- Final seeded diagnostic evidence: `docs/qa/release-diagnostics.{json,md}` — four variants, all 15 heroes, **90 campaigns / 588 completed battles**, both sides casting specials, zero blocked deployments after the planner fix. Compared 1600 versus 1400 width on seeds 701–702, plus whole-army far/near variants on seed 701. Retained 1600 simulation width deliberately: shorter travel changes outcomes/planning time, while perspective remains a presentation-only change. The near-only bot performs poorly; no claim of route/hero balance certification.
+- Integrated perspective browser evidence, per-FX game-scale visual verdicts, final production smoke, current-head CI/reviews and the release PR remain pending; green component gates do not close those items.
 
 ## Art handoff
 
