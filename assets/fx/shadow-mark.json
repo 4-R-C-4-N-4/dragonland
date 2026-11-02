@@ -4,53 +4,53 @@
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   },
   "shadow-mark 1": {
    "frame": {
-    "x": 374,
+    "x": 365,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   },
   "shadow-mark 2": {
    "frame": {
-    "x": 748,
+    "x": 730,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   },
   "shadow-mark 3": {
    "frame": {
-    "x": 1122,
+    "x": 1095,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   },
   "shadow-mark 4": {
    "frame": {
-    "x": 1496,
+    "x": 1460,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   },
   "shadow-mark 5": {
    "frame": {
-    "x": 1870,
+    "x": 1825,
     "y": 0,
-    "w": 374,
-    "h": 724
+    "w": 365,
+    "h": 395
    },
    "duration": 80
   }
@@ -60,8 +60,8 @@
   "image": "shadow-mark.png",
   "format": "RGBA8888",
   "size": {
-   "w": 2244,
-   "h": 724
+   "w": 2190,
+   "h": 395
   },
   "scale": "1",
   "frameTags": [

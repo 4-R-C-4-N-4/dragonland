@@ -4,53 +4,53 @@
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   },
   "guiding-light 1": {
    "frame": {
-    "x": 362,
+    "x": 246,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   },
   "guiding-light 2": {
    "frame": {
-    "x": 724,
+    "x": 492,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   },
   "guiding-light 3": {
    "frame": {
-    "x": 1086,
+    "x": 738,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   },
   "guiding-light 4": {
    "frame": {
-    "x": 1448,
+    "x": 984,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   },
   "guiding-light 5": {
    "frame": {
-    "x": 1810,
+    "x": 1230,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 246,
+    "h": 504
    },
    "duration": 80
   }
@@ -60,8 +60,8 @@
   "image": "guiding-light.png",
   "format": "RGBA8888",
   "size": {
-   "w": 2172,
-   "h": 724
+   "w": 1476,
+   "h": 504
   },
   "scale": "1",
   "frameTags": [

@@ -4,53 +4,53 @@
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   },
   "tempest-dive 1": {
    "frame": {
-    "x": 362,
+    "x": 361,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   },
   "tempest-dive 2": {
    "frame": {
-    "x": 724,
+    "x": 722,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   },
   "tempest-dive 3": {
    "frame": {
-    "x": 1086,
+    "x": 1083,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   },
   "tempest-dive 4": {
    "frame": {
-    "x": 1448,
+    "x": 1444,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   },
   "tempest-dive 5": {
    "frame": {
-    "x": 1810,
+    "x": 1805,
     "y": 0,
-    "w": 362,
-    "h": 724
+    "w": 361,
+    "h": 432
    },
    "duration": 80
   }
@@ -60,8 +60,8 @@
   "image": "tempest-dive.png",
   "format": "RGBA8888",
   "size": {
-   "w": 2172,
-   "h": 724
+   "w": 2166,
+   "h": 432
   },
   "scale": "1",
   "frameTags": [

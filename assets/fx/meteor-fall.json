@@ -4,71 +4,71 @@
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 1": {
    "frame": {
-    "x": 292,
+    "x": 291,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 2": {
    "frame": {
-    "x": 584,
+    "x": 582,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 3": {
    "frame": {
-    "x": 876,
+    "x": 873,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 4": {
    "frame": {
-    "x": 1168,
+    "x": 1164,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 5": {
    "frame": {
-    "x": 1460,
+    "x": 1455,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 6": {
    "frame": {
-    "x": 1752,
+    "x": 1746,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   },
   "meteor-fall 7": {
    "frame": {
-    "x": 2044,
+    "x": 2037,
     "y": 0,
-    "w": 292,
-    "h": 724
+    "w": 291,
+    "h": 467
    },
    "duration": 80
   }
@@ -78,8 +78,8 @@
   "image": "meteor-fall.png",
   "format": "RGBA8888",
   "size": {
-   "w": 2336,
-   "h": 724
+   "w": 2328,
+   "h": 467
   },
   "scale": "1",
   "frameTags": [
