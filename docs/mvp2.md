@@ -28,18 +28,18 @@ Cycle: Beast > Mage > Ethereal > Construct > Human > Beast. Other pairings neutr
 | Mage | Witch / Necromancer / Diabolist | Adept / Wizard / Archmage | Monk / Cleric / Hierophant |
 | Construct | Zombie / Skeleton / Servitor | Golem / Elemental / Kyilkhor | Automata / Machine / Anima |
 
-IDs are lower-case species names. General choice remains Paladin or Dragon in this iteration; all classes are available through starting troops/recruitment and enemies. Stage 3 species are not automatically generals: entity role determines general HP/specials, species determines troop movement/class/line. No mixing a troop profile with a same-species general profile.
+IDs are lower-case species names. General choice includes all 15 stage-3 species (D24). Starting troops come from the hero class and its fixed neutral partner; other classes unlock by defeating their generals. Recruitment is restricted to unlocked classes. Stage 3 species are not automatically generals: entity role determines general HP/specials, species determines troop movement/class/line. No mixing a troop profile with a same-species general profile.
 
 New roles use conservative starting profiles: A-line ranged casters except Beast birds/Construct undead melee; M-line medium melee except Mage Adept line ranged; Z-line slower close-combat durable troops. Flying Ethereals and birds keep identity. Concrete stats are placeholders in units JSON; do not invent unsupported complex abilities.
 
 ## Starting tuning defaults (editable, not claims of balance)
 
 - Run length: 8 victories, final encounter is a boss. Two committed encounter offers per step, with composition visible before choice. After selection the enemy cannot reroll when the player edits their company.
-- New run: choose Paladin/Dragon and starting troop class. 60 named stage-1 troops, 20 of each line of that class. Capacity 100, up to four squads. No artificial minimum company size beyond existing valid squad rules.
-- Troop total XP: level = min(12, 1 + floor(totalXP / 100)); evolution at levels 3 and 6. XP is cumulative and never resets at evolution; multi-level awards traverse both eligible evolution links. Only deployed survivors gain XP, 100 per normal victory, 150 for boss. No last-hit XP or bench XP. Preserve ID/name through promotions. Dead troops removed, not retained to earn XP.
+- New run: choose any of 15 heroes. 60 named stage-1 troops, 10 of each line in both the hero class and its neutral partner (D24). Capacity 100, up to four squads. No artificial minimum company size beyond existing valid squad rules.
+- Troop total XP: level = min(12, 1 + floor(totalXP / 100)); evolution at levels 3 and 6. XP is cumulative and never resets at evolution; multi-level awards traverse both eligible evolution links. Only deployed survivors gain XP, 100 per normal victory, 150 for boss. No last-hit XP or bench XP. Preserve ID/name through promotions. After victory, a seeded 50% of casualties recover as wounded and earn victory XP (D22); permanent losses are removed and earn no XP.
 - Troop HP/damage multiplier: stage multiplier (1, 1.3, 1.6) times (1 + 0.02 * (level - 1)). Do not double-apply stage multipliers. Speed/range/cadence remain species-defined.
 - General starts at level 1, total XP 0; +100 XP/victory, level threshold 150 XP, cap 12. HP/attack +3% per level above 1. Existing general JSON values are level-1 baselines for run mode; sandbox keeps existing behaviour. MP/cooldown design remains simple.
-- General milestones at levels 3, 5, 7, 9, 11: choose once between vitality (+10% max HP), might (+10% attack), or mastery (+10% special amount). Multiplicative rank bonuses, no new special buttons or extra MP economy. Reward phase cannot advance past an unclaimed milestone choice.
+- General milestones at levels 3, 5, 7, 9, 11: choose once between vitality (+10% max HP), might (+10% attack), or mastery (+10% special power). Multiplicative rank bonuses, no new special buttons or extra MP economy. Reward phase cannot advance past an unclaimed milestone choice.
 - Recruitment after each non-final victory: choose one of three seeded offers, each 12 stage-1 recruits; three distinct unit types per reward. May skip. Recruits level 1, XP 0; may bench surplus roster troops. Cap total roster at 160, reject offers that exceed it. No gold/shop/reroll economy yet.
 - Encounter troop count increases from 40 toward 100, general difficulty increases with encounter index. Species/stages/levels generated from run seed and depth, NEVER from the current response army; stage 3 appears late. Enemies blend classes rather than being monotype mirrors. Counter balance is measured, not assumed solved.
 
@@ -65,25 +65,29 @@ Each code step uses RED test -> minimal implementation -> GREEN test. Run npm ru
 | ID | Task and paths | Acceptance | State |
 |---|---|---|---|
 | Q0 | This contract and source baseline | Existing 135 tests green; clean baseline | written |
-| Q1 | Full roster in data/units.json; src/data/index.ts; focused roster tests | 45 unique species, 15 complete chains; stage-3 troops legal; old API preserved | pending |
-| Q2 | Art direction in art/units/*.yaml and batches | 45 specs, coherent provisional silhouettes/grips/motion with evolution references | pending |
-| Q3 | src/progression/* + data/progression.json; tests/progression/* | Pure troop XP/evolution, hero growth/milestones and stat derivation with JSON validation | pending |
-| Q4 | src/sim/types.ts/world.ts and builder setup conversion | Individual levels influence battle HP/damage; troop/general same-species isolation; deterministic replay | pending |
-| Q5 | src/run/* and tests/run/* | Seeded offers/enemies, finite state machine, losses/rewards/idempotency; versioned storage | pending |
-| Q6 | src/ui/run/* + src/main.ts; sandbox integration | Browser-playable start/select/prepare/fight/reward/continue/win/lose/resume flow | pending |
-| Q7 | src/render/battlefield.ts and battle selection | Field flags removed without breaking HUD selection; useful tint retained | pending |
-| Q8 | Art generation for 31 missing species, art/reviews/mvp2.json | Independent visual reviews; 45 runtime PNG/mask/JSON sets, all 225 animation tags | pending |
-| Q9 | Integration/headless/browsers; PROGRESS.md | Full gates; verify XP/evolution, restricted recruiting, reload safety, loss lockout, five-class encounters | pending |
+| Q1 | Full roster in data/units.json; src/data/index.ts; focused roster tests | 45 unique species, 15 complete chains; stage-3 troops legal; old API preserved | integrated |
+| Q2 | Art direction in art/units/*.yaml and batches | 45 specs, coherent provisional silhouettes/grips/motion with evolution references | integrated |
+| Q3 | src/progression/* + data/progression.json; tests/progression/* | Pure troop XP/evolution, hero growth/milestones and stat derivation with JSON validation | integrated |
+| Q4 | src/sim/types.ts/world.ts and builder setup conversion | Individual levels influence battle HP/damage; troop/general same-species isolation; deterministic replay | integrated |
+| Q5 | src/run/* and tests/run/* | Seeded offers/enemies, finite state machine, losses/rewards/idempotency; versioned storage | integrated |
+| Q6 | src/ui/run/* + src/main.ts; sandbox integration | Browser-playable start/select/prepare/fight/reward/continue/win/lose/resume flow | integrated; final release smoke pending |
+| Q7 | src/render/battlefield.ts and battle selection | Field flags removed without breaking HUD selection; useful tint retained | integrated |
+| Q8 | Art generation for 31 missing species, art/reviews/mvp2.json | Independent visual reviews; 45 runtime PNG/mask/JSON sets, all 225 animation tags | integrated, provisional art |
+| Q9 | Integration/headless/browsers; PROGRESS.md | Full gates; verify XP/evolution, restricted recruiting, reload safety, loss lockout, five-class encounters | gates pass; release checklist open |
 
 ## Phase B queue (D24: heroes, field specials, class unlocks)
 
 | ID | Task | Acceptance | State |
 |---|---|---|---|
 | B1 | Field-wide special effect system + 15 generals with specials | data-driven effects, tests per area, AI fires sensibly | done (parent) |
-| B2 | Run: 15 selectable heroes; starting troops = hero class + partner (H+M, M+C, C+B, B+E, E+H); recruits/offers only from unlocked classes; defeating an enemy general unlocks its class; encounter cards show general class + unlock | tests + browser | worker |
-| B3 | FX pipeline: art/fx specs, strip generation + processing to assets/fx, renderer plays fx per special kind (field overlay, travelling wave, per-target strikes, army glow) | tests + browser | worker |
-| B4 | Generate + independently review 15 special fx sheets | reviews recorded | after B3 |
-| B5 | Balance: specials vs disposition/run numbers via dispo.ts/runsim.ts | numbers in DECISIONS | parent |
+| B2 | Run: 15 selectable heroes; starting troops = hero class + partner (H+M, M+C, C+B, B+E, E+H); recruits/offers only from unlocked classes; defeating an enemy general unlocks its class; encounter cards show general class + unlock | tests + browser | integrated; see mainline-readiness.md |
+| B3 | FX pipeline: art/fx specs, strip generation + processing to assets/fx, renderer plays fx per special kind (field overlay, travelling wave, per-target strikes, army glow) | tests + browser | integrated; see mainline-readiness.md |
+| B4 | Generate + independently review 15 special fx sheets | reviews recorded | generated/processed; visual signoff pending |
+| B5 | Balance: specials vs disposition/run numbers via dispo.ts/runsim.ts | numbers in DECISIONS | rerun after current tactics changes |
+
+## Mainline release follow-up
+
+See [mainline-readiness.md](mainline-readiness.md) for the browser-evidenced UI/UX audit, FX correctness gaps, effort-ranked work and final merge gates. Integration into `mvp2` is not mainline visual/release approval.
 
 ## Deferred
 

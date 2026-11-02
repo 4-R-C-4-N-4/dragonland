@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp`. Gate: `npm run check` (tsc + vitest, 135 tests) and `npm run build`. Node 22.
+Branch: `mvp2`. Current gate: `npm run check` (tsc + vitest, 247 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## MVP2 implementation (branch `mvp2`)
 
@@ -31,6 +31,13 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
 - Hero retaliation: removed the fixed home leash that let ranged Imps chip a stationary hero forever. Actual attackers can be pursued across the field; aggro expires five sim seconds after they stop targeting the hero, or immediately on death. Heroes return to their original position when clear. Mirrored Imp regression tests, pursuit persistence, return/expiry, pause and determinism verified. Gate: 244 tests and production build pass.
 - Paused planning: order and approach previews update immediately in squad cards and button highlights without stepping the sim. Added Direct/Far Flank/Near Flank controls (R/T/Y); orders remain Q/W/E; disposition stays locked. Queued intentions execute/log on resume and replay identically. Browser checked both keyboard and mouse changes while paused. Gate: 247 tests and production build pass. Perspective projection has not changed in this pass.
 - Gate now: 194 tests, build passes (historical, before hero/special expansion).
+
+## Mainline preparation
+
+- Integrated local hero retaliation and pause/approach controls in `1e6cafd`; preserved provisional FX sources/runtime assets and slicer fixes in `02c1c70`.
+- Browser audit: hero selection, encounters and preparation at 1280×800; battle HUD at 800×600. Confirmed fixed-width HUD overlap/clipping, small metadata and primary actions below the fold.
+- `docs/mainline-readiness.md` ranks the focused UX pass, FX correctness/signoff, perspective work and release gates. No merge to `main` is authorized by this integration step.
+- FX review status is explicit in `art/reviews/fx.json`; generation/technical validity is not visual approval.
 
 ## Art handoff
 
