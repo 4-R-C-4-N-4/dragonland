@@ -1,0 +1,19 @@
+{
+  "troop": {
+    "xpPerVictory": 100,
+    "xpPerBossVictory": 150,
+    "xpPerLevel": 100,
+    "maxLevel": 12,
+    "evolutionLevels": [3, 6],
+    "stageMultipliers": [1, 1.3, 1.6],
+    "growthPerLevel": 0.02
+  },
+  "hero": {
+    "xpPerVictory": 100,
+    "xpPerLevel": 150,
+    "maxLevel": 12,
+    "growthPerLevel": 0.03,
+    "milestones": [3, 5, 7, 9, 11],
+    "upgradePerRank": 0.1
+  }
+}
