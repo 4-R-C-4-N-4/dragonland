@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "shepherd 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 180
+  },
+  "shepherd 1": {
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 180
+  },
+  "shepherd 2": {
+   "frame": {
+    "x": 144,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 180
+  },
+  "shepherd 3": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 180
+  },
+  "shepherd 4": {
+   "frame": {
+    "x": 0,
+    "y": 72,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 120
+  },
+  "shepherd 5": {
+   "frame": {
+    "x": 72,
+    "y": 72,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 120
+  },
+  "shepherd 6": {
+   "frame": {
+    "x": 144,
+    "y": 72,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 120
+  },
+  "shepherd 7": {
+   "frame": {
+    "x": 216,
+    "y": 72,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 120
+  },
+  "shepherd 8": {
+   "frame": {
+    "x": 0,
+    "y": 144,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 90
+  },
+  "shepherd 9": {
+   "frame": {
+    "x": 72,
+    "y": 144,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 90
+  },
+  "shepherd 10": {
+   "frame": {
+    "x": 144,
+    "y": 144,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 90
+  },
+  "shepherd 11": {
+   "frame": {
+    "x": 216,
+    "y": 144,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 90
+  },
+  "shepherd 12": {
+   "frame": {
+    "x": 0,
+    "y": 216,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 110
+  },
+  "shepherd 13": {
+   "frame": {
+    "x": 72,
+    "y": 216,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 110
+  },
+  "shepherd 14": {
+   "frame": {
+    "x": 144,
+    "y": 216,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 110
+  },
+  "shepherd 15": {
+   "frame": {
+    "x": 216,
+    "y": 216,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 110
+  },
+  "shepherd 16": {
+   "frame": {
+    "x": 0,
+    "y": 288,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 140
+  },
+  "shepherd 17": {
+   "frame": {
+    "x": 72,
+    "y": 288,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 140
+  },
+  "shepherd 18": {
+   "frame": {
+    "x": 144,
+    "y": 288,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 140
+  },
+  "shepherd 19": {
+   "frame": {
+    "x": 216,
+    "y": 288,
+    "w": 72,
+    "h": 72
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "shepherd.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 288,
+   "h": 360
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "necromancer 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "necromancer 1": {
+   "frame": {
+    "x": 47,
+    "y": 0,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "necromancer 2": {
+   "frame": {
+    "x": 94,
+    "y": 0,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "necromancer 3": {
+   "frame": {
+    "x": 141,
+    "y": 0,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "necromancer 4": {
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 120
+  },
+  "necromancer 5": {
+   "frame": {
+    "x": 47,
+    "y": 40,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 120
+  },
+  "necromancer 6": {
+   "frame": {
+    "x": 94,
+    "y": 40,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 120
+  },
+  "necromancer 7": {
+   "frame": {
+    "x": 141,
+    "y": 40,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 120
+  },
+  "necromancer 8": {
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "necromancer 9": {
+   "frame": {
+    "x": 47,
+    "y": 80,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "necromancer 10": {
+   "frame": {
+    "x": 94,
+    "y": 80,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "necromancer 11": {
+   "frame": {
+    "x": 141,
+    "y": 80,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "necromancer 12": {
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "necromancer 13": {
+   "frame": {
+    "x": 47,
+    "y": 120,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "necromancer 14": {
+   "frame": {
+    "x": 94,
+    "y": 120,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "necromancer 15": {
+   "frame": {
+    "x": 141,
+    "y": 120,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "necromancer 16": {
+   "frame": {
+    "x": 0,
+    "y": 160,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "necromancer 17": {
+   "frame": {
+    "x": 47,
+    "y": 160,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "necromancer 18": {
+   "frame": {
+    "x": 94,
+    "y": 160,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "necromancer 19": {
+   "frame": {
+    "x": 141,
+    "y": 160,
+    "w": 47,
+    "h": 40
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "necromancer.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 188,
+   "h": 200
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

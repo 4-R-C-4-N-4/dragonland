@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "kyilkhor 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "kyilkhor 1": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "kyilkhor 2": {
+   "frame": {
+    "x": 156,
+    "y": 0,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "kyilkhor 3": {
+   "frame": {
+    "x": 234,
+    "y": 0,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "kyilkhor 4": {
+   "frame": {
+    "x": 0,
+    "y": 68,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "kyilkhor 5": {
+   "frame": {
+    "x": 78,
+    "y": 68,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "kyilkhor 6": {
+   "frame": {
+    "x": 156,
+    "y": 68,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "kyilkhor 7": {
+   "frame": {
+    "x": 234,
+    "y": 68,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "kyilkhor 8": {
+   "frame": {
+    "x": 0,
+    "y": 136,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "kyilkhor 9": {
+   "frame": {
+    "x": 78,
+    "y": 136,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "kyilkhor 10": {
+   "frame": {
+    "x": 156,
+    "y": 136,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "kyilkhor 11": {
+   "frame": {
+    "x": 234,
+    "y": 136,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "kyilkhor 12": {
+   "frame": {
+    "x": 0,
+    "y": 204,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "kyilkhor 13": {
+   "frame": {
+    "x": 78,
+    "y": 204,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "kyilkhor 14": {
+   "frame": {
+    "x": 156,
+    "y": 204,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "kyilkhor 15": {
+   "frame": {
+    "x": 234,
+    "y": 204,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "kyilkhor 16": {
+   "frame": {
+    "x": 0,
+    "y": 272,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "kyilkhor 17": {
+   "frame": {
+    "x": 78,
+    "y": 272,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "kyilkhor 18": {
+   "frame": {
+    "x": 156,
+    "y": 272,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "kyilkhor 19": {
+   "frame": {
+    "x": 234,
+    "y": 272,
+    "w": 78,
+    "h": 68
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "kyilkhor.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 312,
+   "h": 340
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

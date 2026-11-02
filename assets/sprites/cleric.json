@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "cleric 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 180
+  },
+  "cleric 1": {
+   "frame": {
+    "x": 46,
+    "y": 0,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 180
+  },
+  "cleric 2": {
+   "frame": {
+    "x": 92,
+    "y": 0,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 180
+  },
+  "cleric 3": {
+   "frame": {
+    "x": 138,
+    "y": 0,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 180
+  },
+  "cleric 4": {
+   "frame": {
+    "x": 0,
+    "y": 42,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 120
+  },
+  "cleric 5": {
+   "frame": {
+    "x": 46,
+    "y": 42,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 120
+  },
+  "cleric 6": {
+   "frame": {
+    "x": 92,
+    "y": 42,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 120
+  },
+  "cleric 7": {
+   "frame": {
+    "x": 138,
+    "y": 42,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 120
+  },
+  "cleric 8": {
+   "frame": {
+    "x": 0,
+    "y": 84,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 90
+  },
+  "cleric 9": {
+   "frame": {
+    "x": 46,
+    "y": 84,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 90
+  },
+  "cleric 10": {
+   "frame": {
+    "x": 92,
+    "y": 84,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 90
+  },
+  "cleric 11": {
+   "frame": {
+    "x": 138,
+    "y": 84,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 90
+  },
+  "cleric 12": {
+   "frame": {
+    "x": 0,
+    "y": 126,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 110
+  },
+  "cleric 13": {
+   "frame": {
+    "x": 46,
+    "y": 126,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 110
+  },
+  "cleric 14": {
+   "frame": {
+    "x": 92,
+    "y": 126,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 110
+  },
+  "cleric 15": {
+   "frame": {
+    "x": 138,
+    "y": 126,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 110
+  },
+  "cleric 16": {
+   "frame": {
+    "x": 0,
+    "y": 168,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 140
+  },
+  "cleric 17": {
+   "frame": {
+    "x": 46,
+    "y": 168,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 140
+  },
+  "cleric 18": {
+   "frame": {
+    "x": 92,
+    "y": 168,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 140
+  },
+  "cleric 19": {
+   "frame": {
+    "x": 138,
+    "y": 168,
+    "w": 46,
+    "h": 42
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "cleric.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 184,
+   "h": 210
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "diabolist 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "diabolist 1": {
+   "frame": {
+    "x": 76,
+    "y": 0,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "diabolist 2": {
+   "frame": {
+    "x": 152,
+    "y": 0,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "diabolist 3": {
+   "frame": {
+    "x": 228,
+    "y": 0,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 180
+  },
+  "diabolist 4": {
+   "frame": {
+    "x": 0,
+    "y": 68,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "diabolist 5": {
+   "frame": {
+    "x": 76,
+    "y": 68,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "diabolist 6": {
+   "frame": {
+    "x": 152,
+    "y": 68,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "diabolist 7": {
+   "frame": {
+    "x": 228,
+    "y": 68,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 120
+  },
+  "diabolist 8": {
+   "frame": {
+    "x": 0,
+    "y": 136,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "diabolist 9": {
+   "frame": {
+    "x": 76,
+    "y": 136,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "diabolist 10": {
+   "frame": {
+    "x": 152,
+    "y": 136,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "diabolist 11": {
+   "frame": {
+    "x": 228,
+    "y": 136,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 90
+  },
+  "diabolist 12": {
+   "frame": {
+    "x": 0,
+    "y": 204,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "diabolist 13": {
+   "frame": {
+    "x": 76,
+    "y": 204,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "diabolist 14": {
+   "frame": {
+    "x": 152,
+    "y": 204,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "diabolist 15": {
+   "frame": {
+    "x": 228,
+    "y": 204,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 110
+  },
+  "diabolist 16": {
+   "frame": {
+    "x": 0,
+    "y": 272,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "diabolist 17": {
+   "frame": {
+    "x": 76,
+    "y": 272,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "diabolist 18": {
+   "frame": {
+    "x": 152,
+    "y": 272,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 140
+  },
+  "diabolist 19": {
+   "frame": {
+    "x": 228,
+    "y": 272,
+    "w": 76,
+    "h": 68
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "diabolist.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 304,
+   "h": 340
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}
