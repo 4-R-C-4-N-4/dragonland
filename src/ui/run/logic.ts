@@ -59,7 +59,7 @@ export function autoPlan(data: GameData, roster: ProgressTroop[], formationId = 
 
 function squadSizes(data: GameData, plan: ArmyPlan): number[] {
   const sizes = plan.squads.map(() => 0);
-  for (const a of Object.values(plan.assignment)) if (a.count > 0) sizes[a.squad] = (sizes[a.squad] ?? 0) + a.count;
+  for (const a of Object.values(plan.assignment)) if (Number.isInteger(a.count) && a.count > 0 && Number.isInteger(a.squad) && a.squad >= 0 && a.squad < sizes.length) sizes[a.squad] = (sizes[a.squad] ?? 0) + a.count;
   return sizes;
 }
 
@@ -71,6 +71,7 @@ export function planIssues(data: GameData, roster: ProgressTroop[], plan: ArmyPl
     const have = groups.get(unitId)?.troops.length ?? 0;
     if (a.count > have) issues.push(`${data.unitById.get(unitId)?.name ?? unitId}: only ${have} available`);
     if (a.count < 0 || !Number.isInteger(a.count)) issues.push(`${unitId}: invalid count`);
+    if (!Number.isInteger(a.squad) || a.squad < 0 || a.squad >= plan.squads.length) issues.push(`${unitId}: invalid squad`);
   }
   const sizes = squadSizes(data, plan);
   const total = sizes.reduce((n, s) => n + s, 0);
