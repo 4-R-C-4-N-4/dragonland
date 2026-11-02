@@ -36,11 +36,14 @@ export function speciesGroups(data: GameData, roster: ProgressTroop[]): SpeciesG
   return groups.sort((a, b) => b.unit.stage - a.unit.stage || LINE_ORDER[a.unit.line] - LINE_ORDER[b.unit.line] || a.unit.classId.localeCompare(b.unit.classId) || a.unit.id.localeCompare(b.unit.id));
 }
 
+// All Fierce by default: headless campaign runs (tools/runsim.ts) put all-Fierce at ~5 victories
+// on average vs ~1.5 for all-Mixed and ~0.7 for Guard/Mixed/Fierce. Disposition balance is an open
+// design question; the default should not handicap the player meanwhile.
 const DEFAULT_SQUADS: SquadPlan[] = [
   { name: 'Vanguard', disposition: 'fierce' },
-  { name: 'Center', disposition: 'mixed' },
-  { name: 'Shield', disposition: 'guard' },
-  { name: 'Reserve', disposition: 'mixed' },
+  { name: 'Center', disposition: 'fierce' },
+  { name: 'Shield', disposition: 'fierce' },
+  { name: 'Reserve', disposition: 'fierce' },
 ];
 
 /** Default plan: A-line -> squad 1, M -> 2, Z -> 3, up to MAX_COMPANY, higher stages first. */

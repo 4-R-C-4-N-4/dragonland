@@ -22,7 +22,10 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
   Fixed: duplicate recruit offers.
 - Q8 art: `tools/art/production.ts` running serially (Codex); contact sheets via `tools/art/contact.py`; isolated
   vision reviewers judge each batch. Picks are provisional until reviewed.
-- Balance (tools/runsim.ts, naive bot): runs currently end at 0-2 victories; attrition far too punishing. Open.
+- Balance (tools/runsim.ts, 20 runs, auto-deploy, best-edge encounter): disposition dominates outcomes.
+  all Mixed 1.50 mean victories / 0% won; all Fierce 5.15 / 20% won; Mixed,Mixed,Fierce,Mixed 1.80 / 0%;
+  Guard,Mixed,Fierce,Mixed 0.70 / 0%. Auto-arrange now defaults to all Fierce. Open: Fierce dominance
+  (disposition balance) and run recovery tuning.
 - Gate now: 194 tests, build passes.
 
 ## Art handoff

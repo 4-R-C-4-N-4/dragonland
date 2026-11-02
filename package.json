@@ -14,7 +14,8 @@
     "test": "vitest run",
     "sim": "tsx tools/headless.ts",
     "check": "tsc --noEmit && vitest run",
-    "art": "tsx tools/art/cli.ts"
+    "art": "tsx tools/art/cli.ts",
+    "runsim": "tsx tools/runsim.ts"
   },
   "dependencies": {
     "pixi.js": "^8.22.0",
