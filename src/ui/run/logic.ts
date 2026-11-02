@@ -104,3 +104,13 @@ export function classEdge(data: GameData, classId: string, enemyCounts: Map<stri
   }
   return score > 0 ? 'strong' : score < 0 ? 'weak' : 'neutral';
 }
+
+/** Single-class cycle relation: quarry = what myClass beats, nemesis = what beats myClass. */
+export function classRelation(data: GameData, myClass: string, otherClass: string): 'quarry' | 'nemesis' | 'neutral' {
+  if (myClass === otherClass) return 'neutral';
+  const mine = data.classes.find((c) => c.id === myClass);
+  const other = data.classes.find((c) => c.id === otherClass);
+  if (mine?.strongAgainst === otherClass) return 'quarry';
+  if (other?.strongAgainst === myClass) return 'nemesis';
+  return 'neutral';
+}

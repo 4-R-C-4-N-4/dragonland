@@ -9,6 +9,11 @@ import { getRunConfig } from '../../src/run/config';
 const data = getGameData();
 const cfg = getRunConfig();
 
+function heroClassOf(generalId: string): string {
+  const g = data.generalById.get(generalId as never)!;
+  return data.unitById.get(g.unitId)!.classId;
+}
+
 function armyOf(state: RunState, n = 40): PlayerArmy {
   const ids = state.roster.slice(0, n).map((t) => t.id);
   const half = Math.ceil(ids.length / 2);
@@ -38,29 +43,33 @@ function fight(state: RunState, won: boolean, deadCount = 0, runCfg = cfg): { st
 }
 
 describe('new run', () => {
-  it('starts with 60 stage-1 troops of the chosen class, 20 per line, and encounter offers', () => {
-    const s = newRun(data, { seed: 11, generalId: 'paladin', startClass: 'mage' });
+  it('starts with 60 stage-1 troops of the hero class + its neutral partner, 10 per line each, and encounter offers', () => {
+    const s = newRun(data, { seed: 11, generalId: 'archmage' });
     expect(s.phase).toBe('select');
     expect(s.roster).toHaveLength(60);
-    const byLine = new Map<string, number>();
+    const heroClass = heroClassOf('archmage');
+    const partnerClass = cfg.startingPartners[heroClass as never]!;
+    expect(s.unlockedClasses).toEqual([heroClass, partnerClass]);
+    const byClassLine = new Map<string, number>();
     for (const t of s.roster) {
       const u = data.unitById.get(t.unitId)!;
-      expect(u.classId).toBe('mage');
+      expect([heroClass, partnerClass]).toContain(u.classId);
       expect(u.stage).toBe(1);
       expect(t).toMatchObject({ xp: 0, level: 1 });
-      byLine.set(u.line, (byLine.get(u.line) ?? 0) + 1);
+      const key = `${u.classId}:${u.line}`;
+      byClassLine.set(key, (byClassLine.get(key) ?? 0) + 1);
     }
-    expect([...byLine.values()]).toEqual([20, 20, 20]);
+    expect([...byClassLine.values()]).toEqual([10, 10, 10, 10, 10, 10]);
     expect(new Set(s.roster.map((t) => t.name)).size).toBe(60);
     expect(s.offers).toHaveLength(cfg.encounterOfferCount);
-    expect(s.hero).toMatchObject({ generalId: 'paladin', xp: 0, level: 1 });
+    expect(s.hero).toMatchObject({ generalId: 'archmage', xp: 0, level: 1 });
   });
 
   it('is deterministic per seed', () => {
-    const a = newRun(data, { seed: 5, generalId: 'dragon', startClass: 'beast' });
-    const b = newRun(data, { seed: 5, generalId: 'dragon', startClass: 'beast' });
+    const a = newRun(data, { seed: 5, generalId: 'dragon' });
+    const b = newRun(data, { seed: 5, generalId: 'dragon' });
     expect(b).toEqual(a);
-    expect(newRun(data, { seed: 6, generalId: 'dragon', startClass: 'beast' }).roster).not.toEqual(a.roster);
+    expect(newRun(data, { seed: 6, generalId: 'dragon' }).roster).not.toEqual(a.roster);
   });
 });
 
@@ -87,6 +96,26 @@ describe('encounters', () => {
     expect(new Set(troops.map((t) => t.troopId)).size).toBe(troops.length);
     for (const t of troops) expect(t.statMult).toBeGreaterThan(0);
     for (const q of e.side.squads) expect(q.troops.length).toBeGreaterThanOrEqual(data.constants.MIN_SQUAD);
+  });
+
+  it('includes the enemy general class among the fielded troop classes', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const e = generateEncounter(data, seed, 4, 0, false);
+      const generalClass = data.unitById.get(data.generalById.get(e.side.generalId)!.unitId)!.classId;
+      const classes = new Set(e.side.squads.flatMap((q) => q.troops.map((t) => data.unitById.get(t.unitId)!.classId)));
+      expect(classes.has(generalClass)).toBe(true);
+    }
+  });
+
+  it('biases the first offer toward a locked class when one remains', () => {
+    const unlocked = ['human', 'mage'] as const;
+    let sawLocked = false;
+    for (let seed = 1; seed <= 20; seed++) {
+      const e = generateEncounter(data, seed, 0, 0, false, cfg, [...unlocked]);
+      const generalClass = data.unitById.get(data.generalById.get(e.side.generalId)!.unitId)!.classId;
+      if (!unlocked.includes(generalClass as never)) sawLocked = true;
+    }
+    expect(sawLocked).toBe(true);
   });
 });
 
@@ -115,7 +144,7 @@ describe('enemy dispositions', () => {
 });
 
 describe('battle resolution', () => {
-  const start = () => newRun(data, { seed: 21, generalId: 'paladin', startClass: 'human' });
+  const start = () => newRun(data, { seed: 21, generalId: 'paladin' });
 
   it('builds the player side from progression and freezes it at battle start', () => {
     let s = chooseEncounter(start(), start().offers[0]!.id);
@@ -204,20 +233,47 @@ describe('battle resolution', () => {
     expect(s.phase).toBe('won');
     expect(s.depth).toBe(cfg.battles);
   });
+
+  it('unlocks the enemy general class only on victory, not on defeat', () => {
+    const heroClass = heroClassOf('paladin');
+    const partnerClass = cfg.startingPartners[heroClass as never]!;
+    // find a seed/battle whose enemy general's class is not already unlocked
+    let s = start();
+    s = chooseEncounter(s, s.offers[0]!.id);
+    const generalClass = data.unitById.get(data.generalById.get(s.encounter!.side.generalId)!.unitId)!.classId;
+    const wasLocked = generalClass !== heroClass && generalClass !== partnerClass;
+    const army = armyOf(s);
+    s = startBattle(data, s, army);
+    const won = applyBattleResult(data, s, s.battle!.id, { winner: 0, dead: [[], []], survivors: [army.squads.flatMap((q) => q.troopIds), []] });
+    if (wasLocked) {
+      expect(won.unlockedClasses).toContain(generalClass);
+      expect(won.lastSummary!.unlockedClass).toBe(generalClass);
+    } else {
+      expect(won.lastSummary!.unlockedClass).toBeUndefined();
+    }
+    // defeat never unlocks
+    let s2 = start();
+    s2 = chooseEncounter(s2, s2.offers[0]!.id);
+    const army2 = armyOf(s2);
+    s2 = startBattle(data, s2, army2);
+    const lost = applyBattleResult(data, s2, s2.battle!.id, { winner: 1, dead: [army2.squads.flatMap((q) => q.troopIds), []], survivors: [[], []] });
+    expect(lost.unlockedClasses).toEqual(s2.unlockedClasses);
+    expect(lost.lastSummary!.unlockedClass).toBeUndefined();
+  });
 });
 
 describe('rewards', () => {
-  it('offers three distinct-type stage-1 recruit groups and adds the chosen one', () => {
-    const { state } = fight(newRun(data, { seed: 31, generalId: 'dragon', startClass: 'beast' }), true, 10);
+  it('offers recruit groups only of unlocked-class species and adds the chosen one', () => {
+    const { state } = fight(newRun(data, { seed: 31, generalId: 'dragon' }), true, 10);
     expect(state.recruitOffers).toHaveLength(cfg.recruitOfferCount);
     for (const offer of state.recruitOffers) {
       expect(offer.troops).toHaveLength(cfg.recruitsPerOffer);
-      expect(new Set(offer.troops.map((t) => t.unitId)).size).toBe(3);
-      for (const t of offer.troops) expect(data.unitById.get(t.unitId)!.stage).toBe(1);
+      for (const t of offer.troops) {
+        expect(data.unitById.get(t.unitId)!.stage).toBe(1);
+        expect(state.unlockedClasses).toContain(data.unitById.get(t.unitId)!.classId);
+      }
     }
     const next = chooseRecruitOffer(data, state, state.recruitOffers[1]!.id);
-    const sets = state.recruitOffers.map((o) => [...new Set(o.troops.map((t) => t.unitId))].sort().join());
-    expect(new Set(sets).size).toBe(sets.length);
     expect(next.roster).toHaveLength(state.roster.length + cfg.recruitsPerOffer);
     expect(new Set(next.roster.map((t) => t.name)).size).toBe(next.roster.length);
     expect(next.phase).toBe('select');
@@ -225,14 +281,14 @@ describe('rewards', () => {
   });
 
   it('rejects an offer that would exceed the roster cap but allows skipping', () => {
-    const { state } = fight(newRun(data, { seed: 32, generalId: 'dragon', startClass: 'beast' }), true);
+    const { state } = fight(newRun(data, { seed: 32, generalId: 'dragon' }), true);
     const padded: RunState = { ...state, roster: [...state.roster, ...Array.from({ length: cfg.rosterCap - state.roster.length - 1 }, (_, i) => ({ ...state.roster[0]!, id: `pad-${i}`, name: `Pad ${i}` }))] };
     expect(() => chooseRecruitOffer(data, padded, padded.recruitOffers[0]!.id)).toThrow(/cap/);
     expect(chooseRecruitOffer(data, padded, null).phase).toBe('select');
   });
 
   it('blocks leaving rewards until an earned milestone is chosen', () => {
-    let s = newRun(data, { seed: 33, generalId: 'paladin', startClass: 'human' });
+    let s = newRun(data, { seed: 33, generalId: 'paladin' });
     for (let i = 0; i < 2; i++) {
       ({ state: s } = fight(s, true));
       if (i === 0) s = chooseRecruitOffer(data, s, null);

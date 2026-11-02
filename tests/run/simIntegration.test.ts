@@ -14,7 +14,7 @@ function simulate(state: RunState) {
 
 describe('run with the real simulation', () => {
   it('plays frozen battles through the sim and applies their results once', () => {
-    let s = newRun(data, { seed: 77, generalId: 'paladin', startClass: 'human' });
+    let s = newRun(data, { seed: 77, generalId: 'paladin' });
     for (let round = 0; round < 2 && s.phase !== 'lost'; round++) {
       s = chooseEncounter(s, s.offers[0]!.id);
       const ids = s.roster.slice(0, 60).map((t) => t.id);

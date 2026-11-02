@@ -1,7 +1,8 @@
 {
   "battles": 8,
-  "startingTroopsPerLine": 20,
+  "startingTroopsPerLine": 10,
   "startingClasses": ["human", "beast", "mage", "ethereal", "construct"],
+  "startingPartners": { "human": "mage", "mage": "construct", "construct": "beast", "beast": "ethereal", "ethereal": "human" },
   "encounterOfferCount": 2,
   "recruitOfferCount": 3,
   "recruitsPerOffer": 12,
