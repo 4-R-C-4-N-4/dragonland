@@ -49,6 +49,10 @@ export const BattleSummarySchema = z.object({
   battleId: z.string(),
   won: z.boolean(),
   boss: z.boolean(),
+  /** Actual deployed survivors, excluding recovered wounded and benched troops. Absent in older v2 summaries. */
+  survived: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })).optional(),
+  /** Roster troops not deployed in this battle. Absent in older v2 summaries. */
+  benched: z.number().int().nonnegative().optional(),
   dead: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })),
   /** Fallen who were only wounded and rejoined after the victory. */
   recovered: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })).default([]),

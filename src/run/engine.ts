@@ -289,6 +289,11 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
   const deployed = new Set(state.battle.setup.sides[0].squads.flatMap((q) => q.troops.map((t) => t.troopId)));
   const won = outcome.winner === 0;
   const fallen = state.roster.filter((t) => deployed.has(t.id) && outcome.dead[0].includes(t.id));
+  const survivorIds = new Set(outcome.survivors[0]);
+  const fallenIds = new Set(fallen.map((t) => t.id));
+  const survived = state.roster.filter((t) => deployed.has(t.id) && survivorIds.has(t.id) && !fallenIds.has(t.id))
+    .map(({ id, name, unitId }) => ({ id, name, unitId }));
+  const benched = state.roster.filter((t) => !deployed.has(t.id)).length;
   // After a victory a seeded share of the fallen were only wounded: they rejoin as survivors.
   const recoveredIds = new Set<string>();
   if (won) {
@@ -306,7 +311,7 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
 
   if (!won) {
     const summary: BattleSummary = {
-      battleId, won: false, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered: [],
+      battleId, won: false, boss, survived, benched, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered: [],
       xpAwarded: 0, levelUps: 0, evolutions: [], heroLevelFrom: state.hero.level, heroLevelTo: state.hero.level,
     };
     return { ...state, ...common, phase: 'lost', roster: roster0, lastSummary: summary, recruitOffers: [] };
@@ -330,7 +335,7 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
   const unlockedClass = state.unlockedClasses.includes(enemyGeneralClass) ? undefined : enemyGeneralClass;
   const unlockedClasses = unlockedClass ? [...state.unlockedClasses, unlockedClass] : state.unlockedClasses;
   const summary: BattleSummary = {
-    battleId, won: true, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered,
+    battleId, won: true, boss, survived, benched, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered,
     xpAwarded: xp, levelUps, evolutions, heroLevelFrom: state.hero.level, heroLevelTo: hero.level,
     ...(unlockedClass ? { unlockedClass } : {}),
   };

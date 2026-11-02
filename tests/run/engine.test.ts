@@ -119,6 +119,19 @@ describe('encounters', () => {
   });
 });
 
+describe('battle result presentation data', () => {
+  it.each([true, false])('records deployed survivors separately from wounded and bench (won=%s)', (won) => {
+    const before = newRun(data, { seed: 13, generalId: 'paladin' });
+    const { state, deployed } = fight(before, won, 10);
+    const summary = state.lastSummary!;
+    expect(summary.survived?.map((t) => t.id)).toEqual(deployed.slice(10));
+    expect(summary.benched).toBe(before.roster.length - deployed.length);
+    expect(summary.survived?.some((t) => summary.recovered.some((r) => r.id === t.id))).toBe(false);
+    expect(summary.survived?.some((t) => summary.dead.some((r) => r.id === t.id))).toBe(false);
+    expect(summary.survived!.length + summary.recovered.length + summary.dead.length).toBe(deployed.length);
+  });
+});
+
 describe('enemy dispositions', () => {
   it('offers encounters led by different generals', () => {
     for (let seed = 1; seed <= 100; seed++) {
