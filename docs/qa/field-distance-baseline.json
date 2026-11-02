@@ -1,0 +1,751 @@
+{
+  "status": "baseline exploration, not final integrated balance approval",
+  "notes": [
+    "One identical seed per hero; 15 heroes. Too small to estimate a stable win rate.",
+    "No default simulation constants changed.",
+    "Rerun after integration with a larger seed ensemble.",
+    "Raw battle details in scratch reports; reproduce with tools/releaseDiagnostics.ts."
+  ],
+  "variants": [
+    {
+      "label": "baseline",
+      "commit": "e73fa7c91b2d0a3acbcd29c253528cf0db4fb3c6",
+      "options": {
+        "runsPerHero": 1,
+        "seed": 701,
+        "fieldWidth": 1600,
+        "approach": "default"
+      },
+      "policy": {
+        "encounters": "best roster class edge",
+        "deployment": "autoPlan",
+        "recruitment": "first affordable offer",
+        "milestones": "vitality",
+        "playerAi": true,
+        "enemyAi": true
+      },
+      "contentFingerprint": "733f43a7707fcf08453656df8cc91830b93508b5969ea0af18d5baddd8a0f181",
+      "summary": {
+        "runs": 15,
+        "won": 7,
+        "blocked": 0,
+        "battles": 100,
+        "generalDefeated": 100,
+        "duel": 0,
+        "timeouts": 0,
+        "meanDurationS": 47.834499999999444,
+        "minDurationS": 30.100000000000293,
+        "maxDurationS": 117.69999999999546
+      },
+      "meanFirstHitS": 6.3819999999999855,
+      "specialCasts": [
+        153,
+        136
+      ],
+      "perHero": [
+        {
+          "hero": "paladin",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 47.91249999999941,
+          "minDurationS": 39.19999999999991,
+          "maxDurationS": 68.09999999999827
+        },
+        {
+          "hero": "deadeye",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 45.443749999999554,
+          "minDurationS": 34.95000000000015,
+          "maxDurationS": 63.59999999999852
+        },
+        {
+          "hero": "assassin",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 6,
+          "battles": 7,
+          "generalDefeated": 7,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 45.31428571428528,
+          "minDurationS": 33.300000000000246,
+          "maxDurationS": 63.84999999999851
+        },
+        {
+          "hero": "dragon",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 50.41999999999928,
+          "minDurationS": 42.449999999999726,
+          "maxDurationS": 63.24999999999854
+        },
+        {
+          "hero": "eagle",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 50.64999999999926,
+          "minDurationS": 37.699999999999996,
+          "maxDurationS": 65.64999999999841
+        },
+        {
+          "hero": "warg",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 49.54999999999932,
+          "minDurationS": 37.000000000000036,
+          "maxDurationS": 76.5499999999978
+        },
+        {
+          "hero": "archmage",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 44.28999999999962,
+          "minDurationS": 35.950000000000095,
+          "maxDurationS": 53.899999999999075
+        },
+        {
+          "hero": "diabolist",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 7,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 46.174999999999514,
+          "minDurationS": 35.20000000000014,
+          "maxDurationS": 58.14999999999883
+        },
+        {
+          "hero": "hierophant",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 51.8812499999992,
+          "minDurationS": 39.19999999999991,
+          "maxDurationS": 68.99999999999822
+        },
+        {
+          "hero": "devil",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 39.862499999999855,
+          "minDurationS": 30.100000000000293,
+          "maxDurationS": 64.64999999999847
+        },
+        {
+          "hero": "shepherd",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 44.168749999999626,
+          "minDurationS": 36.55000000000006,
+          "maxDurationS": 65.49999999999842
+        },
+        {
+          "hero": "archangel",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 42.94999999999969,
+          "minDurationS": 31.100000000000307,
+          "maxDurationS": 71.2499999999981
+        },
+        {
+          "hero": "servitor",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 54.05999999999907,
+          "minDurationS": 38.749999999999936,
+          "maxDurationS": 73.84999999999795
+        },
+        {
+          "hero": "kyilkhor",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 3,
+          "battles": 4,
+          "generalDefeated": 4,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 68.42499999999825,
+          "minDurationS": 41.89999999999976,
+          "maxDurationS": 117.69999999999546
+        },
+        {
+          "hero": "anima",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 49.71999999999931,
+          "minDurationS": 37.10000000000003,
+          "maxDurationS": 66.84999999999835
+        }
+      ],
+      "outcomes": [
+        {
+          "hero": "paladin",
+          "classId": "human",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 66,
+          "blocked": null
+        },
+        {
+          "hero": "deadeye",
+          "classId": "human",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 59,
+          "blocked": null
+        },
+        {
+          "hero": "assassin",
+          "classId": "human",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 6,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "dragon",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "eagle",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 46,
+          "blocked": null
+        },
+        {
+          "hero": "warg",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "archmage",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "diabolist",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 7,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "hierophant",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 58,
+          "blocked": null
+        },
+        {
+          "hero": "devil",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 78,
+          "blocked": null
+        },
+        {
+          "hero": "shepherd",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 68,
+          "blocked": null
+        },
+        {
+          "hero": "archangel",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 63,
+          "blocked": null
+        },
+        {
+          "hero": "servitor",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "kyilkhor",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 3,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "anima",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        }
+      ]
+    },
+    {
+      "label": "short-field",
+      "commit": "e73fa7c91b2d0a3acbcd29c253528cf0db4fb3c6",
+      "options": {
+        "runsPerHero": 1,
+        "seed": 701,
+        "fieldWidth": 1200,
+        "approach": "default"
+      },
+      "policy": {
+        "encounters": "best roster class edge",
+        "deployment": "autoPlan",
+        "recruitment": "first affordable offer",
+        "milestones": "vitality",
+        "playerAi": true,
+        "enemyAi": true
+      },
+      "contentFingerprint": "fe1462fee292329bbbe1180fa4ecbdca3ed22936e017f6946a379d0bf763f1f7",
+      "summary": {
+        "runs": 15,
+        "won": 8,
+        "blocked": 0,
+        "battles": 102,
+        "generalDefeated": 100,
+        "duel": 2,
+        "timeouts": 0,
+        "meanDurationS": 37.706862745097915,
+        "minDurationS": 23.350000000000197,
+        "maxDurationS": 84.84999999999732
+      },
+      "meanFirstHitS": 2.9642156862745073,
+      "specialCasts": [
+        144,
+        136
+      ],
+      "perHero": [
+        {
+          "hero": "paladin",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 37.84374999999996,
+          "minDurationS": 28.350000000000268,
+          "maxDurationS": 51.949999999999186
+        },
+        {
+          "hero": "deadeye",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 34.82500000000009,
+          "minDurationS": 25.60000000000023,
+          "maxDurationS": 48.099999999999405
+        },
+        {
+          "hero": "assassin",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 6,
+          "battles": 7,
+          "generalDefeated": 7,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 38.73571428571413,
+          "minDurationS": 27.70000000000026,
+          "maxDurationS": 59.199999999998774
+        },
+        {
+          "hero": "dragon",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 6,
+          "battles": 7,
+          "generalDefeated": 7,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 44.96428571428529,
+          "minDurationS": 31.600000000000314,
+          "maxDurationS": 71.94999999999806
+        },
+        {
+          "hero": "eagle",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 35.993750000000006,
+          "minDurationS": 24.750000000000217,
+          "maxDurationS": 48.54999999999938
+        },
+        {
+          "hero": "warg",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 35.01875000000003,
+          "minDurationS": 23.6500000000002,
+          "maxDurationS": 46.19999999999951
+        },
+        {
+          "hero": "archmage",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 48.099999999999405,
+          "minDurationS": 35.55000000000012,
+          "maxDurationS": 84.84999999999732
+        },
+        {
+          "hero": "diabolist",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 35.387500000000024,
+          "minDurationS": 23.350000000000197,
+          "maxDurationS": 55.54999999999898
+        },
+        {
+          "hero": "hierophant",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 46.38999999999949,
+          "minDurationS": 30.950000000000305,
+          "maxDurationS": 60.599999999998694
+        },
+        {
+          "hero": "devil",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 28.51250000000023,
+          "minDurationS": 24.30000000000021,
+          "maxDurationS": 35.65000000000011
+        },
+        {
+          "hero": "shepherd",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 33.768750000000104,
+          "minDurationS": 26.45000000000024,
+          "maxDurationS": 44.6499999999996
+        },
+        {
+          "hero": "archangel",
+          "runs": 1,
+          "won": 1,
+          "meanVictories": 8,
+          "battles": 8,
+          "generalDefeated": 8,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 29.956250000000182,
+          "minDurationS": 24.650000000000215,
+          "maxDurationS": 36.70000000000005
+        },
+        {
+          "hero": "servitor",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 44.58999999999956,
+          "minDurationS": 29.15000000000028,
+          "maxDurationS": 55.69999999999897
+        },
+        {
+          "hero": "kyilkhor",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 3,
+          "battles": 4,
+          "generalDefeated": 2,
+          "duel": 2,
+          "timeouts": 0,
+          "meanDurationS": 47.08749999999942,
+          "minDurationS": 29.750000000000288,
+          "maxDurationS": 62.849999999998566
+        },
+        {
+          "hero": "anima",
+          "runs": 1,
+          "won": 0,
+          "meanVictories": 4,
+          "battles": 5,
+          "generalDefeated": 5,
+          "duel": 0,
+          "timeouts": 0,
+          "meanDurationS": 41.19999999999972,
+          "minDurationS": 26.30000000000024,
+          "maxDurationS": 65.29999999999843
+        }
+      ],
+      "outcomes": [
+        {
+          "hero": "paladin",
+          "classId": "human",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 76,
+          "blocked": null
+        },
+        {
+          "hero": "deadeye",
+          "classId": "human",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 64,
+          "blocked": null
+        },
+        {
+          "hero": "assassin",
+          "classId": "human",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 6,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "dragon",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 6,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "eagle",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 61,
+          "blocked": null
+        },
+        {
+          "hero": "warg",
+          "classId": "beast",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 52,
+          "blocked": null
+        },
+        {
+          "hero": "archmage",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "diabolist",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 65,
+          "blocked": null
+        },
+        {
+          "hero": "hierophant",
+          "classId": "mage",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "devil",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 73,
+          "blocked": null
+        },
+        {
+          "hero": "shepherd",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 64,
+          "blocked": null
+        },
+        {
+          "hero": "archangel",
+          "classId": "ethereal",
+          "seed": 701,
+          "phase": "won",
+          "victories": 8,
+          "roster": 70,
+          "blocked": null
+        },
+        {
+          "hero": "servitor",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "kyilkhor",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 3,
+          "roster": 0,
+          "blocked": null
+        },
+        {
+          "hero": "anima",
+          "classId": "construct",
+          "seed": 701,
+          "phase": "lost",
+          "victories": 4,
+          "roster": 0,
+          "blocked": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 254 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 258 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## MVP2 implementation (branch `mvp2`)
 
@@ -47,7 +47,10 @@ Checklist: `docs/plans/mainline-ux.md` (all findings from the readiness audit ar
 - Parent foundation implemented: battle drag handlers now detach on teardown, including cancel/lost-capture; destroy is idempotent. Three lifecycle regressions pass. Full repeated-battle browser verification is still pending.
 - Parent foundation implemented: pure shared perspective/inverse/depth-scale/bounds module with four geometry tests. It is **not wired into battlefield/camera yet**; integrate only after the FX stream to avoid conflicting edits.
 - Added Node22 GitHub CI and README. Local parent gate: **254 tests pass, production build passes**. Remote CI execution and clean-install verification are pending.
-- Independent spec/quality reviews, integrated browser evidence, per-FX visual verdicts, current balance diagnostics and release PR remain pending; a green foundation gate does not close those items.
+- Node22 remote CI passed for `e73fa7c`: https://github.com/4-R-C-4-N-4/dragonland/actions/runs/41489935249.
+- HUD stream implementation completed and parent gate passed (255 tests on its isolated baseline); independent spec/quality reviews and live integration are pending.
+- Added `tools/releaseDiagnostics.ts` (validated arguments, per-hero seed ensemble, both AIs/specials, first-hit timing, battle duration/end reasons and blocked-run reporting). Parent gate now **258 tests and build pass**. Executed baseline and 1200-wide comparison, one seed for each of 15 heroes: baseline 7/15 campaigns won, 100 battles, no timeouts; short-field 8/15, 102 battles, no timeouts. This is exploration, not a statistically stable balance claim; defaults unchanged. Durable data: `docs/qa/field-distance-baseline.json`.
+- Independent spec/quality reviews, integrated browser evidence, per-FX visual verdicts, broader final balance diagnostics and release PR remain pending; a green foundation gate does not close those items.
 
 ## Art handoff
 
