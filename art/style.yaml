@@ -48,3 +48,22 @@ animations:
       shows the SAME character at the SAME scale with feet (or body) on the same baseline.
 # Raw sheet of this unit is attached as a style/scale reference to every other generation.
 anchor: soldier
+# Special-attack FX sheets (art/fx/<fx>.yaml -> assets/fx/<fx>). Separate from the unit `style`
+# above because fx sheets are a single horizontal strip on magenta, no character, no team cloth.
+fx:
+  style: >-
+    Pixel-art special-attack VFX sprite strip in the same 16-bit SNES era style as the unit
+    sheets (think Dragon Force, Final Fantasy Tactics spell effects). Limited palette, no
+    anti-aliasing, crisp pixel clusters, glowing highlights, strong readable silhouette, no
+    characters or creatures drawn, effect only.
+  camera: >-
+    Side view, same ground plane and scale as the unit sprites.
+  background: >-
+    Solid flat pure magenta #FF00FF background everywhere, including between frames. No ground,
+    no characters, no text, no labels, no numbers, no grid lines, no borders. Never use pure
+    green #00FF00 anywhere in the artwork.
+  layout: >-
+    Layout: ONE single horizontal strip of {frames} equal square cells, nothing else. Every cell
+    shows one frame of the SAME continuous effect animation at the same scale, roughly centred in
+    its cell (the effect may grow, move or fade across frames, but keep it from touching the cell
+    edges so slicing lines up cleanly).

@@ -10,7 +10,7 @@ import {
   applyBattleResult, chooseEncounter, chooseHeroUpgrade, chooseRecruitOffer, clearRun, getRunConfig, loadRun, newRun,
   saveRun, startBattle, type Encounter, type RunState, type StorageLike,
 } from '../../run';
-import { autoPlan, classEdge, planIssues, planToArmy, speciesGroups, type ArmyPlan } from './logic';
+import { autoPlan, classEdge, classRelation, planIssues, planToArmy, speciesGroups, type ArmyPlan } from './logic';
 import { runHeadlessBattle } from '../flow/headlessBattle';
 
 export interface MountRunOptions {
@@ -83,9 +83,11 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
 
   function header(s: RunState): string {
     const g = data.generalById.get(s.hero.generalId)!;
+    const unlocked = s.unlockedClasses.map((c) => esc(className(c))).join(', ');
     return `<a href="#" class="dl-mode-link" id="dl-sandbox">Sandbox mode</a>
       <h1 class="dl-title">Battle ${Math.min(s.depth + 1, cfg.battles)} of ${cfg.battles}</h1>
-      <div class="dl-run-meta">${esc(g.name)} · Lv ${s.hero.level} (${s.hero.xp} XP) · ${s.roster.length} troops in your company roster</div>`;
+      <div class="dl-run-meta">${esc(g.name)} · Lv ${s.hero.level} (${s.hero.xp} XP) · ${s.roster.length} troops in your company roster</div>
+      <div class="dl-run-meta dl-dim">Unlocked classes: ${unlocked}</div>`;
   }
 
   function wireHeader(): void {
@@ -97,29 +99,44 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
 
   // ------------------------------------------------------------ title / new run
   function renderTitle(): void {
-    const classes = cfg.startingClasses.map((c) => `<option value="${c}">${esc(className(c))}</option>`).join('');
-    const generals = data.generals.map((g, i) => `<label><input type="radio" name="dl-gen" value="${g.id}" ${i === 0 ? 'checked' : ''}> ${esc(g.name)}</label>`).join(' ');
+    const cfgPartners = cfg.startingPartners;
+    const byClass = new Map<string, typeof data.generals>();
+    for (const g of data.generals) {
+      const c = data.unitById.get(g.unitId)!.classId;
+      (byClass.get(c) ?? byClass.set(c, []).get(c)!).push(g);
+    }
+    const heroCard = (g: (typeof data.generals)[number], i: number) => {
+      const c = data.unitById.get(g.unitId)!.classId;
+      const u = data.unitById.get(g.unitId)!;
+      const partner = cfgPartners[c];
+      return `<label class="dl-hero-card">
+        <input type="radio" name="dl-gen" value="${g.id}" ${i === 0 ? 'checked' : ''}>
+        <strong>${esc(g.name)}</strong> <span class="dl-stage">${esc(className(c))} ${u.line}</span>
+        <div class="dl-dim">${esc(g.special.name)}: ${esc(g.special.description)}</div>
+        <div class="dl-dim">Starts with ${esc(className(c))} + ${esc(className(partner!))}</div>
+      </label>`;
+    };
+    const groups = [...byClass.entries()].map(([c, generals]) =>
+      `<div class="dl-hero-group"><h3>${esc(className(c))}</h3>${generals.map((g) => heroCard(g, data.generals.indexOf(g))).join('')}</div>`).join('');
     screen.innerHTML = `
       <a href="#" class="dl-mode-link" id="dl-sandbox">Sandbox mode</a>
       <h1 class="dl-title">Dragonland — Campaign</h1>
       <p class="dl-flavor">Win ${cfg.battles} battles. Your troops level up and evolve; the fallen are gone. If your general falls, the run ends.</p>
       ${corrupt ? `<div class="dl-panel"><p class="dl-error">Your saved run could not be loaded: ${esc(corrupt)}</p><p>Starting a new run will discard it.</p></div>` : ''}
       <div class="dl-panel">
-        <h2>New run</h2>
-        <p>General: ${generals}</p>
-        <p><label>Starting troops: <select id="dl-class">${classes}</select></label> <span class="dl-dim">(${cfg.startingTroopsPerLine} of each line)</span></p>
+        <h2>Choose your hero</h2>
+        ${groups}
         <p><label>Team colour: <input type="color" id="dl-color" value="${cfg.defaultTeamColor}"></label></p>
         <button class="dl-primary" id="dl-new">Begin</button>
       </div>`;
     wireHeader();
     screen.querySelector('#dl-new')!.addEventListener('click', () => {
       const generalId = (screen.querySelector<HTMLInputElement>('input[name=dl-gen]:checked')!.value) as GeneralId;
-      const startClass = screen.querySelector<HTMLSelectElement>('#dl-class')!.value as ClassId;
       const color = screen.querySelector<HTMLInputElement>('#dl-color')!.value;
       const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
       corrupt = null;
       plan = null;
-      commit(newRun(data, { seed, generalId, startClass, color }));
+      commit(newRun(data, { seed, generalId, color }));
     });
   }
 
@@ -139,8 +156,14 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
       return `<span class="dl-${v}">${esc(className(c))}: ${v}</span>`;
     }).join(' · ');
     const g = e.side.general!;
+    const generalClass = data.unitById.get(data.generalById.get(e.side.generalId)!.unitId)!.classId;
+    const locked = !s.unlockedClasses.includes(generalClass);
+    const heroClass = data.unitById.get(data.generalById.get(s.hero.generalId)!.unitId)!.classId;
+    const relation = classRelation(data, heroClass, generalClass);
+    const badge = locked ? ` <span class="dl-strong">Defeat to unlock ${esc(className(generalClass))}</span>` : '';
+    const relBadge = relation !== 'neutral' ? ` <span class="dl-${relation === 'quarry' ? 'strong' : 'weak'}">${relation}</span>` : '';
     const doctrine = e.doctrine ? ` <span class="dl-stage">(${e.doctrine} doctrine)</span>` : '';
-    return `<strong>${e.boss ? '👑 ' : ''}${esc(e.name)}</strong>${doctrine}
+    return `<strong>${e.boss ? '👑 ' : ''}${esc(e.name)}</strong>${doctrine}${badge}${relBadge}
       ${esc(g.name)} Lv ${g.level} · HP ${Math.round(g.hp)} · ${troops.length} troops (${byStage.map((n, i) => (n ? `${n} stage ${i + 1}` : '')).filter(Boolean).join(', ')})<br>
       ${[...byClass].map(([c, n]) => `${esc(className(c))} ×${n}`).join(', ')}<br>
       <span class="dl-dim">Your classes vs them: ${edges}</span>`;
@@ -268,6 +291,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
     const evo = r.evolutions.map((e) => `<li class="dl-evo">${esc(e.name)}: ${esc(unitName(e.from))} → ${esc(unitName(e.to))}</li>`).join('');
     return `<div class="dl-panel"><h2>${r.won ? 'Victory' : 'Defeat'}${r.boss ? ' over the warlord' : ''}</h2>
       <p>${r.dead.length} fallen${r.recovered.length ? ` · ${r.recovered.length} wounded rejoined` : ''}${r.won ? ` · survivors earned ${r.xpAwarded} XP · ${r.levelUps} level-ups` : ''} · General Lv ${r.heroLevelFrom}${r.heroLevelTo !== r.heroLevelFrom ? ` → ${r.heroLevelTo}` : ''}</p>
+      ${r.unlockedClass ? `<p class="dl-strong">New class unlocked: ${esc(className(r.unlockedClass))}!</p>` : ''}
       ${evo ? `<h3>Evolved</h3><ul class="dl-troop-list">${evo}</ul>` : ''}
       ${r.dead.length ? `<details><summary>Fallen (${r.dead.length})</summary><ul class="dl-troop-list dl-fallen">${r.dead.map((d) => `<li>${esc(d.name)} (${esc(unitName(d.unitId))})</li>`).join('')}</ul></details>` : ''}
     </div>`;

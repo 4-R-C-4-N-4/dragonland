@@ -28,6 +28,9 @@ export function validateRun(data: GameData, state: RunState): void {
   const pending = pendingMilestones(state.hero);
   if (pending.join() !== state.pendingMilestones.join()) throw new Error('pending hero milestones do not match hero progress');
   if (!data.generalById.has(state.hero.generalId)) throw new Error(`unknown general ${state.hero.generalId}`);
+  const heroUnit = data.unitById.get(data.generalById.get(state.hero.generalId)!.unitId);
+  if (!heroUnit || !state.unlockedClasses.includes(heroUnit.classId)) throw new Error('unlockedClasses must include the hero class');
+  if (new Set(state.unlockedClasses).size !== state.unlockedClasses.length) throw new Error('duplicate entries in unlockedClasses');
   if (state.phase === 'battle' && !state.battle) throw new Error('battle phase without a frozen battle');
   if ((state.phase === 'prepare' || state.phase === 'battle') && !state.encounter) throw new Error(`${state.phase} phase without an encounter`);
   if (state.phase === 'select' && state.offers.length === 0) throw new Error('select phase without encounter offers');

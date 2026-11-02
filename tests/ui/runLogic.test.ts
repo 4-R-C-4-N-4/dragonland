@@ -6,10 +6,10 @@ import { autoPlan, planToArmy, planIssues, speciesGroups } from '../../src/ui/ru
 const data = getGameData();
 
 describe('run army planning', () => {
-  const run = chooseEncounter(newRun(data, { seed: 3, generalId: 'paladin', startClass: 'human' }), 'enc-0-0');
+  const run = chooseEncounter(newRun(data, { seed: 3, generalId: 'paladin' }), 'enc-0-0');
 
   it('groups the roster by species with veterans first', () => {
-    const roster = run.roster.map((t, i) => (i === 59 ? { ...t, xp: 250, level: 3, unitId: data.unitById.get(t.unitId)!.evolvesTo! } : t));
+    const roster = run.roster.map((t, i) => (i === run.roster.length - 1 ? { ...t, xp: 250, level: 3, unitId: data.unitById.get(t.unitId)!.evolvesTo! } : t));
     const groups = speciesGroups(data, roster);
     expect(groups.reduce((n, g) => n + g.troops.length, 0)).toBe(60);
     const vetGroup = groups.find((g) => g.unit.stage === 2)!;
@@ -39,7 +39,7 @@ describe('run army planning', () => {
     const plan = autoPlan(data, run.roster);
     const first = Object.keys(plan.assignment)[0]!;
     plan.assignment[first] = { count: 99, squad: 0 };
-    expect(planIssues(data, run.roster, plan).join()).toMatch(/only 20/);
+    expect(planIssues(data, run.roster, plan).join()).toMatch(/only 10/);
     const lonely = autoPlan(data, run.roster);
     for (const k of Object.keys(lonely.assignment)) lonely.assignment[k] = { count: 0, squad: 0 };
     lonely.assignment[first] = { count: 1, squad: 3 };

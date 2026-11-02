@@ -57,18 +57,21 @@ export const BattleSummarySchema = z.object({
   evolutions: z.array(z.object({ troopId: z.string(), name: z.string(), from: z.string(), to: z.string() })),
   heroLevelFrom: z.number().int(),
   heroLevelTo: z.number().int(),
+  /** Class newly unlocked by defeating this battle's enemy general (victory only). */
+  unlockedClass: ClassIdSchema.optional(),
 });
 
 export const RunPhaseSchema = z.enum(['select', 'prepare', 'battle', 'rewards', 'won', 'lost']);
 
 export const RunStateSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   id: z.string(),
   seed: z.number().int().nonnegative(),
   phase: RunPhaseSchema,
   /** Victories so far. */
   depth: z.number().int().nonnegative(),
-  startClass: ClassIdSchema,
+  /** Classes available for starting troops/recruiting; grows by defeating enemy generals of locked classes. */
+  unlockedClasses: z.array(ClassIdSchema).min(1),
   color: Hex,
   hero: HeroProgressSchema,
   /** Earned, unclaimed hero milestone levels (mirrors progression.pendingMilestones). */

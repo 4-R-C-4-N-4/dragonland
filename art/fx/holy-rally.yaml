@@ -1,0 +1,7 @@
+# FX spec for `holy-rally` (art/fx/holy-rally.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Holy Rally
+kind: aura # overlay | wave | strike | aura
+frames: 6
+heroes: ['paladin']
+description: >-
+  A descending pillar of warm golden-white light with soft radiant rays and rising motes of holy sparkle; the glow pulses outward in rings, giving a blessed, armored-paladin feel.

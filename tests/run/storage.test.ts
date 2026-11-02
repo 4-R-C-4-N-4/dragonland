@@ -11,7 +11,7 @@ function memory(): StorageLike & { map: Map<string, string> } {
 
 describe('run storage', () => {
   it('round-trips a run through one key', () => {
-    const s = newRun(data, { seed: 4, generalId: 'paladin', startClass: 'construct' });
+    const s = newRun(data, { seed: 4, generalId: 'paladin' });
     const store = memory();
     expect(loadRun(store, data)).toEqual({ kind: 'none' });
     saveRun(store, s);
@@ -22,7 +22,7 @@ describe('run storage', () => {
   });
 
   it('keeps a frozen battle so a reload restarts the same fight', () => {
-    let s = newRun(data, { seed: 4, generalId: 'paladin', startClass: 'ethereal' });
+    let s = newRun(data, { seed: 4, generalId: 'paladin' });
     s = chooseEncounter(s, s.offers[0]!.id);
     const ids = s.roster.slice(0, 4).map((t) => t.id);
     s = startBattle(data, s, { formationId: 'wedge', squads: [{ name: 'A', disposition: 'mixed', troopIds: ids }] });
@@ -34,7 +34,7 @@ describe('run storage', () => {
   });
 
   it('accepts an empty roster as a legitimate save', () => {
-    let s = newRun(data, { seed: 8, generalId: 'dragon', startClass: 'beast' });
+    let s = newRun(data, { seed: 8, generalId: 'dragon' });
     s = chooseEncounter(s, s.offers[0]!.id);
     const ids = s.roster.map((t) => t.id);
     s = startBattle(data, s, { formationId: 'line', squads: [{ name: 'All', disposition: 'fierce', troopIds: ids }] });
@@ -49,7 +49,7 @@ describe('run storage', () => {
     const store = memory();
     store.setItem(RUN_KEY, '{not json');
     expect(loadRun(store, data).kind).toBe('corrupt');
-    const s = newRun(data, { seed: 4, generalId: 'paladin', startClass: 'human' });
+    const s = newRun(data, { seed: 4, generalId: 'paladin' });
     store.setItem(RUN_KEY, JSON.stringify({ ...s, roster: [{ ...s.roster[0]!, level: 9 }] }));
     const bad = loadRun(store, data);
     expect(bad.kind).toBe('corrupt');
@@ -58,5 +58,23 @@ describe('run storage', () => {
     store.setItem(RUN_KEY, JSON.stringify({ ...s, roster: [{ ...s.roster[0]!, unitId: 'ghost' }] }));
     expect(loadRun(store, data).kind).toBe('corrupt');
     expect(store.getItem(RUN_KEY)).not.toBeNull();
+  });
+
+  it('rejects a save missing the hero class from unlockedClasses', () => {
+    const s = newRun(data, { seed: 4, generalId: 'paladin' });
+    const store = memory();
+    const heroUnit = data.unitById.get(data.generalById.get(s.hero.generalId)!.unitId)!;
+    const stripped = { ...s, unlockedClasses: s.unlockedClasses.filter((c) => c !== heroUnit.classId) };
+    store.setItem(RUN_KEY, JSON.stringify(stripped));
+    expect(loadRun(store, data).kind).toBe('corrupt');
+  });
+
+  it('reports a pre-D24 version-1 save as corrupt, never silently granting a fresh army', () => {
+    const s = newRun(data, { seed: 4, generalId: 'paladin' });
+    const store = memory();
+    const { unlockedClasses, ...rest } = s;
+    void unlockedClasses;
+    store.setItem(RUN_KEY, JSON.stringify({ ...rest, version: 1, startClass: 'human' }));
+    expect(loadRun(store, data).kind).toBe('corrupt');
   });
 });

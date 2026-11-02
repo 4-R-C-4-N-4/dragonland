@@ -1,0 +1,7 @@
+# FX spec for `tempest-dive` (art/fx/tempest-dive.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Tempest Dive
+kind: strike # overlay | wave | strike | aura
+frames: 6
+heroes: ['eagle']
+description: >-
+  A sharp talon-shaped gust of wind slashing diagonally with trailing feather wisps and a crackle of pale storm-blue lightning at the point of impact; swift aerial energy.

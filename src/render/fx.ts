@@ -1,0 +1,151 @@
+// Special-attack FX: sheet discovery + pure placement helpers (MVP2 B3).
+// Mirrors spriteSheets.ts: `assets/fx/<fx>.png` + `<fx>.json` are discovered with import.meta.glob
+// and the renderer falls back to the existing placeholder graphics when a sheet is missing.
+// Placement helpers are pure (no Pixi) so they're unit-testable without rendering.
+
+export interface FxFrameRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  durationMs: number;
+}
+
+export interface ParsedFx {
+  fxId: string;
+  imageUrl: string;
+  frameW: number;
+  frameH: number;
+  frames: FxFrameRect[]; // the 'play' tag, in order
+}
+
+interface AseFrame {
+  frame: { x: number; y: number; w: number; h: number };
+  duration?: number;
+}
+interface AseJson {
+  frames: Record<string, AseFrame> | AseFrame[];
+  meta?: { frameTags?: { name: string; from: number; to: number; direction?: string }[] };
+}
+
+function isAseJson(v: unknown): v is AseJson {
+  if (typeof v !== 'object' || v === null) return false;
+  const f = (v as { frames?: unknown }).frames;
+  return typeof f === 'object' && f !== null;
+}
+
+/** Parse an fx sprite-strip JSON (same shape family as unit sheets, but a single 'play' tag). */
+export function parseFxSheet(fxId: string, imageUrl: string, json: unknown): ParsedFx {
+  if (!isAseJson(json)) throw new Error(`fx sheet ${fxId}: not Aseprite-style JSON (missing frames)`);
+  const list: AseFrame[] = Array.isArray(json.frames) ? json.frames : Object.values(json.frames);
+  if (list.length === 0) throw new Error(`fx sheet ${fxId}: no frames`);
+  const rects = list.map((f, i) => {
+    const r = f.frame;
+    if (!r || ![r.x, r.y, r.w, r.h].every((n) => typeof n === 'number')) throw new Error(`fx sheet ${fxId}: bad frame ${i}`);
+    return { x: r.x, y: r.y, w: r.w, h: r.h, durationMs: f.duration ?? 80 };
+  });
+  const play = json.meta?.frameTags?.find((t) => t.name.toLowerCase() === 'play');
+  const from = play ? Math.max(0, play.from) : 0;
+  const to = play ? Math.min(rects.length - 1, play.to) : rects.length - 1;
+  const frames = to >= from ? rects.slice(from, to + 1) : rects;
+  const first = frames[0]!;
+  return { fxId, imageUrl, frameW: first.w, frameH: first.h, frames };
+}
+
+/** Pair `<fx>.json` modules with `<fx>.png` urls from glob maps. Exported for tests. */
+export function collectFx(jsonModules: Record<string, unknown>, pngUrls: Record<string, string>, onError: (msg: string) => void = () => {}): Map<string, ParsedFx> {
+  const byBase = (p: string) => p.replace(/^.*\//, '').replace(/\.(json|png)$/, '');
+  const pngs = new Map(Object.entries(pngUrls).map(([p, url]) => [byBase(p), url] as const));
+  const out = new Map<string, ParsedFx>();
+  for (const [path, mod] of Object.entries(jsonModules).sort(([a], [b]) => a.localeCompare(b))) {
+    const fxId = byBase(path);
+    const url = pngs.get(fxId);
+    if (!url) {
+      onError(`fx sheet ${fxId}: json without matching png`);
+      continue;
+    }
+    const json = (mod as { default?: unknown }).default ?? mod;
+    try {
+      out.set(fxId, parseFxSheet(fxId, url, json));
+    } catch (e) {
+      onError(String(e instanceof Error ? e.message : e));
+    }
+  }
+  return out;
+}
+
+/** Discover all fx sheets under /assets/fx at build time (Vite). Tolerant of none existing. */
+export function discoverFx(onError?: (msg: string) => void): Map<string, ParsedFx> {
+  const jsons = import.meta.glob('../../assets/fx/*.json', { eager: true });
+  const pngs = import.meta.glob('../../assets/fx/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+  return collectFx(jsons, pngs, onError);
+}
+
+// ---------- pure placement helpers (render-side randomness; sim stays deterministic) ----------
+
+/** Tiny xorshift32 PRNG so placement is reproducible from a numeric seed (tests, replay). */
+export function seededRandom(seed: number): () => number {
+  let s = (seed >>> 0) || 1;
+  return () => {
+    s ^= s << 13;
+    s >>>= 0;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    s >>>= 0;
+    return s / 4294967296;
+  };
+}
+
+/** How many overlay instances to scatter across a field of this size (sparse but readable). */
+export function overlayScatterCount(fieldW: number, fieldH: number, density = 1 / 3500): number {
+  return Math.max(6, Math.min(40, Math.round(fieldW * fieldH * density)));
+}
+
+/** Scattered points covering the whole field, seeded for determinism (overlay-kind specials). */
+export function overlayPoints(fieldW: number, fieldH: number, seed: number, count = overlayScatterCount(fieldW, fieldH)): [number, number][] {
+  const rnd = seededRandom(seed);
+  const pts: [number, number][] = [];
+  for (let i = 0; i < count; i++) pts.push([rnd() * fieldW, rnd() * fieldH]);
+  return pts;
+}
+
+/**
+ * Points along a travelling wave: evenly spaced along (dirX,dirY) through the caster, spanning
+ * well past both field edges, each jittered within the half-width band (wave-kind specials).
+ */
+export function wavePoints(x: number, y: number, dirX: number, dirY: number, width: number, fieldW: number, fieldH: number, seed: number, count = 14): [number, number][] {
+  const len = Math.hypot(fieldW, fieldH) * 1.2;
+  const dLen = Math.hypot(dirX, dirY) || 1;
+  const ux = dirX / dLen;
+  const uy = dirY / dLen;
+  const px = -uy;
+  const py = ux;
+  const rnd = seededRandom(seed);
+  const pts: [number, number][] = [];
+  for (let i = 0; i < count; i++) {
+    const t = (i / Math.max(1, count - 1) - 0.5) * len;
+    const off = (rnd() * 2 - 1) * width;
+    pts.push([x + ux * t + px * off, y + uy * t + py * off]);
+  }
+  return pts;
+}
+
+/** Strike/aura placement: one instance per affected entity, resolved by the caller's position lookup. */
+export function perEntityPoints(affected: readonly number[], posOf: (entity: number) => [number, number] | null): [number, number][] {
+  const pts: [number, number][] = [];
+  for (const e of affected) {
+    const p = posOf(e);
+    if (p) pts.push(p);
+  }
+  return pts;
+}
+
+export type FxKind = 'overlay' | 'wave' | 'strike' | 'aura';
+
+/** The playback kind implied by one SpecialArea tag (areas carry their own semantics already). */
+export function kindForArea(area: string): FxKind {
+  if (area === 'field') return 'overlay';
+  if (area === 'wave') return 'wave';
+  if (area === 'heal' || area === 'buff' || area === 'debuff') return 'aura';
+  return 'strike'; // random | general
+}

@@ -2,7 +2,7 @@
 // deploys the auto plan (all A/M/Z by line, highest stage first), takes the largest affordable
 // recruit offer whose classes fare best against nothing in particular (first fitting), and spends
 // milestones on vitality. Usage: npm run runsim -- [--runs 30] [--seed 1] [--set key=value ...]
-import { getGameData, type ClassId } from '../src/data';
+import { getGameData } from '../src/data';
 import { createBattle, step } from '../src/sim';
 import { createAiController } from '../src/ai/policy';
 import {
@@ -46,8 +46,8 @@ const depths: number[] = [];
 let wins = 0;
 const lossDetail: string[] = [];
 for (let r = 0; r < runs; r++) {
-  const startClass = cfg.startingClasses[r % 5] as ClassId;
-  let s = newRun(data, { seed: seed0 + r, generalId: r % 2 ? 'dragon' : 'paladin', startClass }, cfg);
+  const generalId = data.generals[r % data.generals.length]!.id;
+  let s = newRun(data, { seed: seed0 + r, generalId }, cfg);
   while (s.phase === 'select') {
     const best = [...s.offers].sort((a, b) => edgeScore(s, b) - edgeScore(s, a))[0]!;
     s = chooseEncounter(s, best.id);
@@ -85,7 +85,7 @@ for (let r = 0; r < runs; r++) {
   }
   depths.push(s.depth);
   if (s.phase === 'won') wins++;
-  else lossDetail.push(`${startClass}@${s.depth}(roster ${s.roster.length})`);
+  else lossDetail.push(`${generalId}@${s.depth}(roster ${s.roster.length})`);
 }
 const hist = new Map<number, number>();
 for (const d of depths) hist.set(d, (hist.get(d) ?? 0) + 1);

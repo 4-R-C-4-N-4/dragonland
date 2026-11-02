@@ -1,0 +1,7 @@
+# FX spec for `overclock` (art/fx/overclock.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Overclock
+kind: aura # overlay | wave | strike | aura
+frames: 6
+heroes: ['anima']
+description: >-
+  A crackling lattice of bright cyan-white energy circuitry sparking around the figure with small electric arcs and a pulsing core glow; mechanical surge of power.

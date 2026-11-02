@@ -14,7 +14,6 @@ import type { BattleSummary, Encounter, RecruitOffer, RunState } from './schema'
 export interface NewRunOptions {
   seed: number;
   generalId: GeneralId;
-  startClass: ClassId;
   color?: string;
 }
 
@@ -47,6 +46,15 @@ function stage1Of(data: GameData, classId?: ClassId): UnitDef[] {
   return data.units.filter((u) => u.stage === 1 && (!classId || u.classId === classId));
 }
 
+/** The class a general leads with: general's unit -> that unit's class (D24). */
+function heroClassOf(data: GameData, generalId: GeneralId): ClassId {
+  const g = data.generalById.get(generalId);
+  if (!g) throw new Error(`unknown general ${generalId}`);
+  const unit = data.unitById.get(g.unitId);
+  if (!unit) throw new Error(`general ${generalId} has unknown unit ${g.unitId}`);
+  return unit.classId;
+}
+
 function evolveTo(data: GameData, unit: UnitDef, stage: number): UnitDef {
   let u = unit;
   while (u.stage < stage) {
@@ -65,31 +73,36 @@ function requirePhase(state: RunState, ...phases: RunState['phase'][]): void {
 
 export function newRun(data: GameData, opts: NewRunOptions, cfg: RunConfig = getRunConfig()): RunState {
   if (!data.generalById.has(opts.generalId)) throw new Error(`unknown general ${opts.generalId}`);
-  if (!cfg.startingClasses.includes(opts.startClass)) throw new Error(`class ${opts.startClass} is not a starting class`);
+  const heroClass = heroClassOf(data, opts.generalId);
+  const partnerClass = cfg.startingPartners[heroClass];
+  if (!partnerClass) throw new Error(`class ${heroClass} has no configured starting partner`);
   const seed = opts.seed >>> 0;
   const rng = createRng(mixSeed(seed, SALT.roster));
   const taken = new Set<string>();
   const roster: ProgressTroop[] = [];
-  const lines = stage1Of(data, opts.startClass).sort((a, b) => a.line.localeCompare(b.line));
-  if (lines.length !== 3) throw new Error(`class ${opts.startClass} needs three stage-1 lines, has ${lines.length}`);
-  for (const unit of lines) {
-    for (let i = 0; i < cfg.startingTroopsPerLine; i++) {
-      roster.push({ id: `t${roster.length}-${seed.toString(36)}`, name: uniqueName(rng, data.names, taken), unitId: unit.id, xp: 0, level: 1 });
+  for (const classId of [heroClass, partnerClass]) {
+    const lines = stage1Of(data, classId).sort((a, b) => a.line.localeCompare(b.line));
+    if (lines.length !== 3) throw new Error(`class ${classId} needs three stage-1 lines, has ${lines.length}`);
+    for (const unit of lines) {
+      for (let i = 0; i < cfg.startingTroopsPerLine; i++) {
+        roster.push({ id: `t${roster.length}-${seed.toString(36)}`, name: uniqueName(rng, data.names, taken), unitId: unit.id, xp: 0, level: 1 });
+      }
     }
   }
   const hero: HeroProgress = { generalId: opts.generalId, xp: 0, level: 1, upgrades: { vitality: 0, might: 0, mastery: 0 }, claimedMilestones: [] };
+  const unlockedClasses: ClassId[] = [heroClass, partnerClass];
   return {
-    version: 1,
+    version: 2,
     id: `run-${seed.toString(36)}`,
     seed,
     phase: 'select',
     depth: 0,
-    startClass: opts.startClass,
+    unlockedClasses,
     color: opts.color ?? cfg.defaultTeamColor,
     hero,
     pendingMilestones: [],
     roster,
-    offers: encounterOffers(data, seed, 0, cfg),
+    offers: encounterOffers(data, seed, 0, cfg, unlockedClasses),
     encounter: null,
     battle: null,
     recruitOffers: [],
@@ -101,9 +114,9 @@ export function newRun(data: GameData, opts: NewRunOptions, cfg: RunConfig = get
 
 // ---------------------------------------------------------------- encounters
 
-function encounterOffers(data: GameData, seed: number, depth: number, cfg: RunConfig): Encounter[] {
+function encounterOffers(data: GameData, seed: number, depth: number, cfg: RunConfig, unlockedClasses: ClassId[]): Encounter[] {
   const boss = depth === cfg.battles - 1;
-  return Array.from({ length: cfg.encounterOfferCount }, (_, i) => generateEncounter(data, seed, depth, i, boss, cfg));
+  return Array.from({ length: cfg.encounterOfferCount }, (_, i) => generateEncounter(data, seed, depth, i, boss, cfg, unlockedClasses));
 }
 
 type Doctrine = NonNullable<Encounter['doctrine']>;
@@ -152,7 +165,10 @@ function enemyLevel(stage: number, depth: number, rng: Rng): number {
  * Deterministic enemy for (seed, depth, index). Depends only on run seed and depth, never on the
  * player's army, so committing first stays honest.
  */
-export function generateEncounter(data: GameData, seed: number, depth: number, index: number, boss: boolean, cfg: RunConfig = getRunConfig()): Encounter {
+export function generateEncounter(
+  data: GameData, seed: number, depth: number, index: number, boss: boolean, cfg: RunConfig = getRunConfig(),
+  unlockedClasses?: ClassId[],
+): Encounter {
   const rng = createRng(mixSeed(seed, SALT.encounter, depth, index));
   const total = Math.min(cfg.enemyMaxTroops, cfg.enemyStartingTroops + cfg.enemyTroopsPerDepth * depth);
   const classPool = [...cfg.startingClasses];
@@ -163,7 +179,15 @@ export function generateEncounter(data: GameData, seed: number, depth: number, i
   const n3 = depth >= cfg.enemyStage3Depth ? Math.max(1, Math.round(total * cfg.enemyStage3Share)) : 0;
   const n2 = depth >= cfg.enemyStage2Depth ? Math.round(total * cfg.enemyStage2Share) : 0;
   const squadCount = Math.min(data.constants.MAX_SQUADS, Math.max(2, Math.ceil(total / 25)));
-  const generalId = pick(rng, data.generals).id;
+  // Offer 0 nudges toward a general whose class is still locked, so unlocking stays reachable.
+  const locked = unlockedClasses ? data.generals.filter((g) => !unlockedClasses.includes(data.unitById.get(g.unitId)!.classId)) : [];
+  const generalPool = index === 0 && locked.length > 0 ? locked : data.generals;
+  const generalId = pick(rng, generalPool).id;
+  const generalClass = data.unitById.get(data.generalById.get(generalId)!.unitId)!.classId;
+  if (!classes.includes(generalClass)) {
+    if (classes.length >= nClasses) classes[0] = generalClass;
+    else classes.push(generalClass);
+  }
   const taken = new Set<string>();
   const troops: { unit: UnitDef; level: number }[] = [];
   for (let i = 0; i < total; i++) {
@@ -293,29 +317,34 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
   const hero = awardHeroXp(state.hero, prog.hero.xpPerVictory);
   const depth = state.depth + 1;
   const finished = depth >= cfg.battles;
+  const enemyGeneralClass = data.unitById.get(data.generalById.get(state.encounter!.side.generalId)!.unitId)!.classId;
+  const unlockedClass = state.unlockedClasses.includes(enemyGeneralClass) ? undefined : enemyGeneralClass;
+  const unlockedClasses = unlockedClass ? [...state.unlockedClasses, unlockedClass] : state.unlockedClasses;
   const summary: BattleSummary = {
     battleId, won: true, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered,
     xpAwarded: xp, levelUps, evolutions, heroLevelFrom: state.hero.level, heroLevelTo: hero.level,
+    ...(unlockedClass ? { unlockedClass } : {}),
   };
   return {
     ...state,
     ...common,
     phase: finished ? 'won' : 'rewards',
     depth,
+    unlockedClasses,
     hero,
     pendingMilestones: pendingMilestones(hero),
     roster,
     lastSummary: summary,
-    recruitOffers: finished ? [] : recruitOffers(data, state.seed, depth, roster, cfg),
+    recruitOffers: finished ? [] : recruitOffers(data, state.seed, depth, roster, cfg, unlockedClasses),
   };
 }
 
 // ---------------------------------------------------------------- rewards
 
-function recruitOffers(data: GameData, seed: number, depth: number, roster: ProgressTroop[], cfg: RunConfig): RecruitOffer[] {
+function recruitOffers(data: GameData, seed: number, depth: number, roster: ProgressTroop[], cfg: RunConfig, unlockedClasses: ClassId[]): RecruitOffer[] {
   const rng = createRng(mixSeed(seed, SALT.recruit, depth));
   const taken = new Set(roster.map((t) => t.name));
-  const pool = stage1Of(data);
+  const pool = stage1Of(data).filter((u) => unlockedClasses.includes(u.classId));
   const seen = new Set<string>();
   return Array.from({ length: cfg.recruitOfferCount }, (_, o) => {
     let types: UnitDef[] = [];
@@ -357,5 +386,5 @@ export function chooseRecruitOffer(data: GameData, state: RunState, offerId: str
     }
     roster = [...roster, ...offer.troops];
   }
-  return { ...state, phase: 'select', roster, recruitOffers: [], offers: encounterOffers(data, state.seed, state.depth, cfg) };
+  return { ...state, phase: 'select', roster, recruitOffers: [], offers: encounterOffers(data, state.seed, state.depth, cfg, state.unlockedClasses) };
 }
