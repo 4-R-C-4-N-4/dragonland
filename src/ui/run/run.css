@@ -19,3 +19,9 @@
 .dl-run .dl-vets { columns: 2; font-size: 12px; margin: 4px 0; }
 .dl-run .dl-evo { color: var(--dl-accent); }
 .dl-run .dl-mode-link { float: right; font-size: 12px; }
+.dl-run .dl-hero-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.dl-run .dl-hero-group h3 { grid-column: 1 / -1; margin: 6px 0 0; }
+.dl-run .dl-hero-card { display: block; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); padding: 8px; cursor: pointer; font-size: 13px; }
+.dl-run .dl-hero-card:has(input:checked) { border-color: var(--dl-accent); background: rgba(255, 200, 80, 0.08); }
+.dl-run .dl-hero-card input { margin-right: 4px; }
+.dl-run .dl-hero-portrait { float: right; width: 72px; height: 72px; image-rendering: pixelated; background: #2a462a; border-radius: 4px; margin-left: 6px; }

@@ -12,6 +12,7 @@ import {
 } from '../../run';
 import { autoPlan, classEdge, classRelation, planIssues, planToArmy, speciesGroups, type ArmyPlan } from './logic';
 import { runHeadlessBattle } from '../flow/headlessBattle';
+import { discoverSheets } from '../../render/spriteSheets';
 
 export interface MountRunOptions {
   data: GameData;
@@ -26,6 +27,7 @@ const DISPOSITIONS: Disposition[] = ['fierce', 'mixed', 'guard'];
 export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy(): void } {
   const { data, storage } = opts;
   const cfg = getRunConfig();
+  const sheets = discoverSheets();
   let state: RunState | null = null;
   let corrupt: string | null = null;
   let plan: ArmyPlan | null = null;
@@ -97,6 +99,23 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
     });
   }
 
+  /** Idle frame 0 of each hero's sprite sheet, pixel-scaled into its card canvas. */
+  function drawPortraits(): void {
+    screen.querySelectorAll<HTMLCanvasElement>('canvas[data-portrait]').forEach((cv) => {
+      const sheet = sheets.get(cv.dataset.portrait!);
+      const f = sheet?.animations.idle.frames[0];
+      if (!sheet || !f) return void (cv.style.display = 'none');
+      const img = new Image();
+      img.onload = () => {
+        const g = cv.getContext('2d')!;
+        g.imageSmoothingEnabled = false;
+        const s = Math.min(cv.width / f.w, cv.height / f.h);
+        g.drawImage(img, f.x, f.y, f.w, f.h, (cv.width - f.w * s) / 2, cv.height - f.h * s, f.w * s, f.h * s);
+      };
+      img.src = sheet.imageUrl;
+    });
+  }
+
   // ------------------------------------------------------------ title / new run
   function renderTitle(): void {
     const cfgPartners = cfg.startingPartners;
@@ -111,6 +130,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
       const partner = cfgPartners[c];
       return `<label class="dl-hero-card">
         <input type="radio" name="dl-gen" value="${g.id}" ${i === 0 ? 'checked' : ''}>
+        <canvas class="dl-hero-portrait" data-portrait="${g.unitId}" width="96" height="96"></canvas>
         <strong>${esc(g.name)}</strong> <span class="dl-stage">${esc(className(c))} ${u.line}</span>
         <div class="dl-dim">${esc(g.special.name)}: ${esc(g.special.description)}</div>
         <div class="dl-dim">Starts with ${esc(className(c))} + ${esc(className(partner!))}</div>
@@ -130,6 +150,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
         <button class="dl-primary" id="dl-new">Begin</button>
       </div>`;
     wireHeader();
+    drawPortraits();
     screen.querySelector('#dl-new')!.addEventListener('click', () => {
       const generalId = (screen.querySelector<HTMLInputElement>('input[name=dl-gen]:checked')!.value) as GeneralId;
       const color = screen.querySelector<HTMLInputElement>('#dl-color')!.value;

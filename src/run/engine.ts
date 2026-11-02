@@ -116,7 +116,16 @@ export function newRun(data: GameData, opts: NewRunOptions, cfg: RunConfig = get
 
 function encounterOffers(data: GameData, seed: number, depth: number, cfg: RunConfig, unlockedClasses: ClassId[]): Encounter[] {
   const boss = depth === cfg.battles - 1;
-  return Array.from({ length: cfg.encounterOfferCount }, (_, i) => generateEncounter(data, seed, depth, i, boss, cfg, unlockedClasses));
+  const offers: Encounter[] = [];
+  for (let i = 0; i < cfg.encounterOfferCount; i++) {
+    // Offers should be real alternatives: re-roll (deterministically) a general already on offer.
+    let e = generateEncounter(data, seed, depth, i, boss, cfg, unlockedClasses);
+    for (let k = 1; k < 10 && offers.some((o) => o.side.generalId === e.side.generalId); k++) {
+      e = { ...generateEncounter(data, seed, depth, i + 100 * k, boss, cfg, unlockedClasses), id: `enc-${depth}-${i}` };
+    }
+    offers.push(e);
+  }
+  return offers;
 }
 
 type Doctrine = NonNullable<Encounter['doctrine']>;

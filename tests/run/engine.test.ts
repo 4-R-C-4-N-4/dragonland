@@ -120,6 +120,14 @@ describe('encounters', () => {
 });
 
 describe('enemy dispositions', () => {
+  it('offers encounters led by different generals', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = newRun(data, { seed: seed * 7919, generalId: 'archmage' });
+      expect(new Set(s.offers.map((o) => o.side.generalId)).size).toBe(s.offers.length);
+      expect(new Set(s.offers.map((o) => o.id)).size).toBe(s.offers.length);
+    }
+  });
+
   it('follow a seeded doctrine: Fierce goes to the fastest squad, Guard to the most durable', () => {
     const doctrines = new Set<string>();
     let leadsFierce = 0;
