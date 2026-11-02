@@ -1,0 +1,196 @@
+{
+  "scope": "parent-verified corrected perspective candidate, integration/re-review still pending",
+  "candidateGate": {
+    "tests": 344,
+    "build": "pass"
+  },
+  "baseline": {
+    "commit": "5016c406a9bf1b492f032bcc094e80cf4d2abdf3",
+    "simDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "candidate": {
+    "commit": "0d8c4cf225a3090c608a5330ce06ef01d03c576d",
+    "simDiffSha256": "063d3bf7340b158a1568dfec096d3206726d44154b90f48748ac24043875e961"
+  },
+  "simulationParity": {
+    "seed": 701,
+    "heroes": 15,
+    "compared": "exact complete stored rows: hashes,ticks,result,generals,targets,cooldowns,activeEffects,commandLog",
+    "equal": true,
+    "rows": [
+      {
+        "hero": "paladin",
+        "hash": "bd62305132b4f5d3",
+        "tick": 869,
+        "winner": 0,
+        "durationS": 40.39999999999984
+      },
+      {
+        "hero": "deadeye",
+        "hash": "3543091080db0d1e",
+        "tick": 807,
+        "winner": 0,
+        "durationS": 37.30000000000002
+      },
+      {
+        "hero": "assassin",
+        "hash": "29237eb3a4363d1f",
+        "tick": 749,
+        "winner": 0,
+        "durationS": 34.40000000000018
+      },
+      {
+        "hero": "dragon",
+        "hash": "648766fd26ffef45",
+        "tick": 912,
+        "winner": 0,
+        "durationS": 42.54999999999972
+      },
+      {
+        "hero": "eagle",
+        "hash": "71871fd5e74bc8ff",
+        "tick": 906,
+        "winner": 0,
+        "durationS": 42.24999999999974
+      },
+      {
+        "hero": "warg",
+        "hash": "ebb526ef1b567c81",
+        "tick": 874,
+        "winner": 0,
+        "durationS": 40.64999999999983
+      },
+      {
+        "hero": "archmage",
+        "hash": "c43ad1789c6140ec",
+        "tick": 1025,
+        "winner": 0,
+        "durationS": 48.1999999999994
+      },
+      {
+        "hero": "diabolist",
+        "hash": "ed10be2031050ae0",
+        "tick": 964,
+        "winner": 0,
+        "durationS": 45.14999999999957
+      },
+      {
+        "hero": "hierophant",
+        "hash": "2c3ad4b505c49c79",
+        "tick": 1083,
+        "winner": 0,
+        "durationS": 51.099999999999234
+      },
+      {
+        "hero": "devil",
+        "hash": "1e1b5f0224dfcc4e",
+        "tick": 717,
+        "winner": 0,
+        "durationS": 32.800000000000274
+      },
+      {
+        "hero": "shepherd",
+        "hash": "016cc5086fdd0836",
+        "tick": 864,
+        "winner": 0,
+        "durationS": 40.14999999999986
+      },
+      {
+        "hero": "archangel",
+        "hash": "ba05847a3ecea8c0",
+        "tick": 691,
+        "winner": 0,
+        "durationS": 31.500000000000313
+      },
+      {
+        "hero": "servitor",
+        "hash": "b1f3a82cbd37cb82",
+        "tick": 1111,
+        "winner": 0,
+        "durationS": 52.499999999999154
+      },
+      {
+        "hero": "kyilkhor",
+        "hash": "25416eee6f85b524",
+        "tick": 1196,
+        "winner": 0,
+        "durationS": 56.74999999999891
+      },
+      {
+        "hero": "anima",
+        "hash": "1b745e8979abfe1b",
+        "tick": 1012,
+        "winner": 0,
+        "durationS": 47.549999999999436
+      }
+    ]
+  },
+  "lifecycle": {
+    "fixture": "actual startBattleView, accelerated readiness and Dragon enemy for real queued wave; observations through exact HMR dependency imported by view",
+    "iterations": [
+      {
+        "iteration": 0,
+        "during": {
+          "listeners": 9,
+          "frameCallbacks": 1,
+          "casts": [
+            "dragon-breath",
+            "holy-rally"
+          ]
+        },
+        "remainingGlobalHandlers": [],
+        "remainingGameFrameCallbacks": 0,
+        "canvasDetached": true,
+        "newSpawnsAfterDestroy": 0,
+        "finishedCallbacks": 0,
+        "errors": []
+      },
+      {
+        "iteration": 1,
+        "during": {
+          "listeners": 9,
+          "frameCallbacks": 1,
+          "casts": [
+            "dragon-breath",
+            "holy-rally"
+          ]
+        },
+        "remainingGlobalHandlers": [],
+        "remainingGameFrameCallbacks": 0,
+        "canvasDetached": true,
+        "newSpawnsAfterDestroy": 0,
+        "finishedCallbacks": 0,
+        "errors": []
+      },
+      {
+        "iteration": 2,
+        "during": {
+          "listeners": 9,
+          "frameCallbacks": 1,
+          "casts": [
+            "dragon-breath",
+            "holy-rally"
+          ]
+        },
+        "remainingGlobalHandlers": [],
+        "remainingGameFrameCallbacks": 0,
+        "canvasDetached": true,
+        "newSpawnsAfterDestroy": 0,
+        "finishedCallbacks": 0,
+        "errors": []
+      }
+    ],
+    "scope": "tracked newly attached global input/resize handlers and game-loop frames, DOM canvas and FX continuations; not GPU-memory/FPS certification"
+  },
+  "browserEvidenceDirectory": "/home/ivy/.hermes/cache/scratch/polish-browser",
+  "viewportScreenshots": [
+    "perspective-corrected-route-800.png",
+    "perspective-corrected-near-1280.png",
+    "perspective-corrected-mouse-1024.png"
+  ],
+  "limitations": [
+    "Final combined production rerun and current-headCI remain separate.",
+    "Source art remains provisional; dense special peaks can briefly obscure units.",
+    "Real-GPU performance not measured."
+  ]
+}
