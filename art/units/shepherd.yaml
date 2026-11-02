@@ -1,0 +1,30 @@
+# MVP2 stage 3; provisional design direction.
+name: Shepherd
+size: general
+evolvesFrom: spirit
+description: >-
+  An evolved Spirit: tall luminous ivory guide retaining swept silver hair, four amber wings and a
+  mist skirt. A high crescent mantle and oval halo surround a calm visible face. Near-side right
+  hand grips a short silver crook at midshaft, thumb toward its hooked head; hook points UP and
+  RIGHT. Far left palm is open. Face RIGHT in every frame. Natural body, hair, feathers, stone and
+  metal use the stated non-green palette; saturated green is reserved exclusively for team cloth.
+  Team cloth: a broad front stole in readable pure flat green #00FF00; keep a broad unobstructed
+  panel visible.
+animationNotes: >-
+  Idle: halo breathes softly and mist curls. Walk: follow the body-specific walkNotes. Attack:
+  tilt crook back LEFT while left palm gathers light; extend left palm RIGHT; hold a compact amber
+  pulse ahead of palm; retract while crook stays upright. Hit: lean back keeping crook in right
+  fist. Death: halo lowers, wings fold and mist body settles into a still ivory pool; final frame
+  remains still. All five animations: idle, walk, attack, hit, death. Use four distinct sequential
+  attack poses: anticipation, extension, follow-through, recovery. Keep full body, weapons, wings,
+  tail, cloth and effects inside each cell with generous uninterrupted magenta gutters on all four
+  sides, including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement
+  or neighbouring-cell overlap.
+walkNotes: >-
+  Regal hovering with slow four-wing lift, press, low point and recovery; mist undulates instead
+  of footsteps. Crook remains upright and inside the cell. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

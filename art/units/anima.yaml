@@ -1,0 +1,30 @@
+# MVP2 stage 3; provisional design direction.
+name: Anima
+size: general
+evolvesFrom: machine
+description: >-
+  An evolved Machine: tall articulated brass automaton retaining round riveted head, barrel core,
+  pincer hands, flywheel and broad hinged feet. Layered petal-shaped shoulder shells, a cream
+  faceplate and an amber glass heart create a ceremonial mechanical silhouette. Dark steel joints
+  remain exposed. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the
+  stated non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a
+  broad chest cloth panel below the heart in readable pure flat green #00FF00; keep a broad
+  unobstructed panel visible.
+animationNotes: >-
+  Idle: amber heart pulses and head tilts on its pivot. Walk: follow the body-specific walkNotes.
+  Attack: wind near shoulder back and compress forearm; extend near pincer RIGHT in a precise
+  strike; halt at full extension; retract and uncock shoulder. Hit: chest rocks back on waist
+  hinge and pincers fold inward. Death: heart dims, flywheel halts and articulated chassis folds
+  sideways; final frame remains still. All five animations: idle, walk, attack, hit, death. Use
+  four distinct sequential attack poses: anticipation, extension, follow-through, recovery. Keep
+  full body, weapons, wings, tail, cloth and effects inside each cell with generous uninterrupted
+  magenta gutters on all four sides, including death; shrink pose reach if needed. Fixed scale and
+  anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Precise linked mechanical steps: near foot swings low on hinged knee then locks flat, far foot
+  passes and locks, repeat with opposing leg. Minimal torso bob, visible joint rotation and
+  restrained shoulder motion. Four-frame full sheets use contact/passing/opposite contact/passing
+  or the four flight phases above; six-frame movement strips add intermediate weight-transfer or
+  wing-transition poses. Every adjacent frame advances the cycle. Stay in place facing RIGHT; near
+  limbs lighter and far limbs darker, without swapping identities. Preserve grip and limb count;
+  leave magenta clearance around the entire moving silhouette.

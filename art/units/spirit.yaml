@@ -1,0 +1,27 @@
+# MVP2 stage 2; provisional design direction.
+name: Spirit
+size: stage2
+evolvesFrom: sprite
+description: >-
+  An evolved Sprite: luminous ivory spirit with the same swept silver hair and four amber
+  translucent wings, elongated torso and a tapering mist skirt in place of feet. A detached amber
+  oval halo frames the head; two slim arms end in empty open hands. Face RIGHT in every frame.
+  Natural body, hair, feathers, stone and metal use the stated non-green palette; saturated green
+  is reserved exclusively for team cloth. Team cloth: a broad chest stole ending above the mist in
+  readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: halo pulse and mist hem curl. Walk: follow the body-specific walkNotes. Attack: coil hands
+  around a small amber light; extend near palm RIGHT; light contracts back toward chest; return
+  palms inward. Hit: body bends back and mist compresses. Death: halo sinks, light dims and mist
+  pools into a still small shape; final frame remains still. All five animations: idle, walk,
+  attack, hit, death. Use four distinct sequential attack poses: anticipation, extension,
+  follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects inside each
+  cell with generous uninterrupted magenta gutters on all four sides, including death; shrink pose
+  reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Levitate without leg motion: four wings rise, press down, fold low, recover; mist hem trails
+  LEFT and curls with restrained body bob. Four-frame full sheets use contact/passing/opposite
+  contact/passing or the four flight phases above; six-frame movement strips add intermediate
+  weight-transfer or wing-transition poses. Every adjacent frame advances the cycle. Stay in place
+  facing RIGHT; near limbs lighter and far limbs darker, without swapping identities. Preserve
+  grip and limb count; leave magenta clearance around the entire moving silhouette.

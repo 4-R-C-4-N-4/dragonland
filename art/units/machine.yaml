@@ -1,0 +1,30 @@
+# MVP2 stage 2; provisional design direction.
+name: Machine
+size: stage2
+evolvesFrom: automata
+description: >-
+  An evolved Automata: articulated brass machine retaining round riveted head, barrel chest,
+  pincer hands and broad hinged feet. Larger segmented shoulder housings, an exposed flywheel
+  behind torso and telescoping forearms add a heavy industrial silhouette. Dark steel joints,
+  cream enamel plates. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal
+  use the stated non-green palette; saturated green is reserved exclusively for team cloth. Team
+  cloth: a broad chest cloth panel in readable pure flat green #00FF00; keep a broad unobstructed
+  panel visible.
+animationNotes: >-
+  Idle: flywheel ticks through a small arc and head adjusts. Walk: follow the body-specific
+  walkNotes. Attack: compress near telescoping forearm and draw pincer back; extend arm RIGHT with
+  pincer closed into a striking head; brake at full extension; retract. Hit: waist hinge rocks
+  backward and elbows lock inward. Death: flywheel stops, knee hinges fold and chassis rests
+  sideways; final frame remains still. All five animations: idle, walk, attack, hit, death. Use
+  four distinct sequential attack poses: anticipation, extension, follow-through, recovery. Keep
+  full body, weapons, wings, tail, cloth and effects inside each cell with generous uninterrupted
+  magenta gutters on all four sides, including death; shrink pose reach if needed. Fixed scale and
+  anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Heavy piston gait with alternating broad flat foot contacts and low hinged passing feet.
+  Shoulder housings counter-rotate slightly; keep flywheel within silhouette and no human arm
+  swing. Four-frame full sheets use contact/passing/opposite contact/passing or the four flight
+  phases above; six-frame movement strips add intermediate weight-transfer or wing-transition
+  poses. Every adjacent frame advances the cycle. Stay in place facing RIGHT; near limbs lighter
+  and far limbs darker, without swapping identities. Preserve grip and limb count; leave magenta
+  clearance around the entire moving silhouette.

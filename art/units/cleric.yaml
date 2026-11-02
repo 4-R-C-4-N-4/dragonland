@@ -1,0 +1,30 @@
+# MVP2 stage 2; provisional design direction.
+name: Cleric
+size: stage2
+evolvesFrom: monk
+description: >-
+  An evolved Monk: brown-skinned guardian retaining shaved head, beads, cream robes and broad
+  guarded forearms, now a white-gold shoulder mantle and long split vestments. Near right hand
+  holds a gold mace below its round head in forward grip, head UP and RIGHT; far left forearm
+  carries a small ivory round shield. Face RIGHT in every frame. Natural body, hair, feathers,
+  stone and metal use the stated non-green palette; saturated green is reserved exclusively for
+  team cloth. Team cloth: a broad front stole in readable pure flat green #00FF00; keep a broad
+  unobstructed panel visible.
+animationNotes: >-
+  Idle: steady breathing and bead movement. Walk: follow the body-specific walkNotes. Attack: draw
+  mace close above right shoulder; extend a compact diagonal strike RIGHT; stop head clear of left
+  shield; recover upright guard. Hit: left shield braces while shoulders recoil. Death: knees give
+  way, mace lowers close and figure settles sideways; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Firm low measured steps beneath split robes with alternating foot contacts and weight shifts.
+  Shield stays close to chest and mace above the knees. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

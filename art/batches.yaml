@@ -3,3 +3,7 @@ batch1: [soldier, archer, dog]
 batch2: [spy, raven, wyrm]
 batch3: [knight, ranger, rogue, wolf, hawk, drake]
 batch4: [paladin, dragon]
+# MVP2 additions: pick each preceding stage before generating its evolution.
+mvp2base: [imp, sprite, cherub, witch, adept, monk, zombie, golem, automata]
+mvp2mid: [demon, spirit, angel, necromancer, wizard, cleric, skeleton, elemental, machine]
+mvp2final: [devil, shepherd, archangel, diabolist, archmage, hierophant, servitor, kyilkhor, anima, eagle, warg, deadeye, assassin]

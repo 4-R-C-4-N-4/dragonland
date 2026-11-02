@@ -1,0 +1,29 @@
+# MVP2 stage 3; provisional design direction.
+name: Servitor
+size: general
+evolvesFrom: skeleton
+description: >-
+  An evolved Skeleton: ivory undead skeletal servant retaining exposed ribs, hunched spine, slack
+  jaw and ragged brown remnants. Iron braces reinforce long bones, a riveted collar frames skull
+  and a compact coffin-shaped backplate broadens the silhouette. Empty hooked hands remain
+  visible. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the stated
+  non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a broad
+  belted waist panel in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: ribcage rocks against fixed backplate. Walk: follow the body-specific walkNotes. Attack:
+  coil reinforced near arm beside ribs; extend hooked fingers RIGHT; clench then bend elbow;
+  return to hunched guard. Hit: iron collar and torso jerk backward. Death: knees collapse and
+  reinforced bones fold into a compact sideways heap; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Heavy undead drag with alternating scraping feet, slack knees and delayed shoulder sway. Braces
+  articulate at joints; no rigid sliding statue or ordinary soldier march. Four-frame full sheets
+  use contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

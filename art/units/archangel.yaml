@@ -1,0 +1,30 @@
+# MVP2 stage 3; provisional design direction.
+name: Archangel
+size: general
+evolvesFrom: angel
+description: >-
+  An evolved Angel: tall ivory celestial warrior retaining gold curls, halo, feather wings,
+  right-hand sword and left-arm round shield. Broad layered ivory pinions, a sunburst halo and
+  white-gold plate create a cathedral silhouette; wing tips curl within the cell. Right fist
+  encloses sword handle below guard, blade UP and RIGHT. Face RIGHT in every frame. Natural body,
+  hair, feathers, stone and metal use the stated non-green palette; saturated green is reserved
+  exclusively for team cloth. Team cloth: a wide long front tabard in readable pure flat green
+  #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: slow wing flex and subtle tabard motion. Walk: follow the body-specific walkNotes. Attack:
+  draw sword back above right shoulder; extend in a decisive RIGHTward diagonal cut; arrest the
+  blade clear of the left shield; recover raised guard. Hit: shield braces and wings draw inward.
+  Death: knees fold, wings close and body rests on its side; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Slow powerful wingflap hovering: high, descending, low, ascending; small body lift on
+  downstroke, legs trailing without marching. Shield stays on far left arm. Four-frame full sheets
+  use contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

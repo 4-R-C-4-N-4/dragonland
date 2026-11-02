@@ -1,0 +1,28 @@
+# MVP2 stage 1; provisional design direction.
+name: Sprite
+size: stage1
+description: >-
+  A tiny luminous peach-gold sprite with a round head, swept silver hair, four translucent amber
+  insect wings and a tapered tunic over slender limbs. Warm ivory skin and amber light, never
+  green glow. Open empty hands. Face RIGHT in every frame. Natural body, hair, feathers, stone and
+  metal use the stated non-green palette; saturated green is reserved exclusively for team cloth.
+  Team cloth: a broad short tunic chest panel in readable pure flat green #00FF00; keep a broad
+  unobstructed panel visible.
+animationNotes: >-
+  Idle: gentle hovering and antenna-like hair movement. Walk: follow the body-specific walkNotes.
+  Attack: draw both open hands inward; extend palms RIGHT with a compact amber spark; let spark
+  contract; draw hands back. Hit: tilt back with wings tucked briefly. Death: glow dims as wings
+  close and body settles curled on the floor; final frame remains still. All five animations:
+  idle, walk, attack, hit, death. Use four distinct sequential attack poses: anticipation,
+  extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects
+  inside each cell with generous uninterrupted magenta gutters on all four sides, including death;
+  shrink pose reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell
+  overlap.
+walkNotes: >-
+  Hover in place with four insect wings alternating raised and lowered silhouettes; feet hang
+  relaxed, body makes a shallow figure-eight bob, no stepping. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

@@ -1,0 +1,29 @@
+# MVP2 stage 2; provisional design direction.
+name: Angel
+size: stage2
+evolvesFrom: cherub
+description: >-
+  An evolved Cherub: slender ivory angel with the same gold curls, halo and ivory feather wings,
+  now longer pinions, cream scale cuirass and a knee-length tunic. Near right fist holds a short
+  silver sword in forward grip, blade diagonally UP and RIGHT; far left arm carries a small round
+  gold shield. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the
+  stated non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a
+  broad chest tabard in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: wings softly flex and chest rises. Walk: follow the body-specific walkNotes. Attack: bend
+  sword elbow to prepare with blade above shoulder; extend sword RIGHT in a controlled cut; stop
+  blade diagonally RIGHT clear of shield; recover guard. Hit: shield closes toward chest and torso
+  recoils. Death: wings fold inward as knees lower and body settles sideways; final frame remains
+  still. All five animations: idle, walk, attack, hit, death. Use four distinct sequential attack
+  poses: anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail,
+  cloth and effects inside each cell with generous uninterrupted magenta gutters on all four
+  sides, including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement
+  or neighbouring-cell overlap.
+walkNotes: >-
+  Airborne feather-wing cycle with raised, descending, low and ascending pinions. Feet trail below
+  the tunic; right sword and left shield keep their identities. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

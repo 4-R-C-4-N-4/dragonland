@@ -1,0 +1,25 @@
+# MVP2 stage 1; provisional design direction.
+name: Imp
+size: stage1
+description: >-
+  A small crimson imp with oversized pointed ears, two stubby swept horns, bat wings, thin clawed
+  arms, bent legs and a spade tail curled LEFT. Bare hands with three readable claws; no weapon.
+  Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the stated
+  non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a broad
+  waist sash in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: ear twitch and shallow wing flex. Walk: follow the body-specific walkNotes. Attack: crouch
+  and draw the near claw back; extend that claw RIGHT in a short rake; curl the fingers and
+  retract; settle into guard. Hit: fold wings and recoil at the shoulders. Death: wings crumple,
+  knees fold and body settles on its side; final frame remains still. All five animations: idle,
+  walk, attack, hit, death. Use four distinct sequential attack poses: anticipation, extension,
+  follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects inside each
+  cell with generous uninterrupted magenta gutters on all four sides, including death; shrink pose
+  reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Airborne bat-wing flutter: wings high, downstroke, low, upstroke; bent feet trail below, tail
+  curls LEFT. Small body bob, no walking legs. Four-frame full sheets use contact/passing/opposite
+  contact/passing or the four flight phases above; six-frame movement strips add intermediate
+  weight-transfer or wing-transition poses. Every adjacent frame advances the cycle. Stay in place
+  facing RIGHT; near limbs lighter and far limbs darker, without swapping identities. Preserve
+  grip and limb count; leave magenta clearance around the entire moving silhouette.

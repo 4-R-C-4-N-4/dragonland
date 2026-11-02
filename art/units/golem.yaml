@@ -1,0 +1,28 @@
+# MVP2 stage 1; provisional design direction.
+name: Golem
+size: stage1
+description: >-
+  A squat stone golem built from warm grey boulders, with a small inset head, two amber slit eyes,
+  massive block fists, short separated legs and deep dark joint gaps. Bare stone surface with no
+  moss or green crystals. Unarmed. Face RIGHT in every frame. Natural body, hair, feathers, stone
+  and metal use the stated non-green palette; saturated green is reserved exclusively for team
+  cloth. Team cloth: a broad waist cloth strapped between hip stones in readable pure flat green
+  #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: stone chest shifts slightly at joint seams. Walk: follow the body-specific walkNotes.
+  Attack: rock torso back with near fist tucked; extend near block fist RIGHT; hold bent-elbow
+  follow-through; retract fist. Hit: torso tilts back on braced feet. Death: knee blocks separate
+  slightly as body sinks into a still rubble-like crouch; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Heavy rocking stone gait: near slab foot lifts low and plants, weight tips over it, far foot
+  lifts and plants, weight returns. Keep fists near torso and joints readable. Four-frame full
+  sheets use contact/passing/opposite contact/passing or the four flight phases above; six-frame
+  movement strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame
+  advances the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without
+  swapping identities. Preserve grip and limb count; leave magenta clearance around the entire
+  moving silhouette.

@@ -1,0 +1,27 @@
+# MVP2 stage 1; provisional design direction.
+name: Adept
+size: stage1
+description: >-
+  A young brown-skinned scholar in a square blue cap, short indigo robe, rolled sleeves and ankle
+  boots. A satchel and rectangular book make a compact studious silhouette. Far left hand supports
+  an open ochre book from below; near right hand holds a short ivory wand at its base, tip UP and
+  RIGHT. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the stated
+  non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a broad
+  chest stole in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: book tilts slightly with breathing. Walk: follow the body-specific walkNotes. Attack: bend
+  right elbow and bring wand beside book; extend wand RIGHT; show a small blue-white spark at tip;
+  draw it back above book. Hit: right elbow tucks and book closes toward chest. Death: knees fold
+  and body settles sideways, book remaining nearby inside cell; final frame remains still. All
+  five animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Light purposeful scholar steps with alternating low boot contacts and passing legs, book steady
+  in left hand and wand kept clear of knees. Four-frame full sheets use contact/passing/opposite
+  contact/passing or the four flight phases above; six-frame movement strips add intermediate
+  weight-transfer or wing-transition poses. Every adjacent frame advances the cycle. Stay in place
+  facing RIGHT; near limbs lighter and far limbs darker, without swapping identities. Preserve
+  grip and limb count; leave magenta clearance around the entire moving silhouette.
