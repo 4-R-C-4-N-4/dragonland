@@ -1,12 +1,5 @@
-// Battlefield renderer: ground plane, per-entity sprites (placeholder + sheet swap-in),
-// camera transform, depth sort, cosmetic FX (hit flash, projectiles, specials, damage numbers),
-// per-squad banners + per-troop squad markers (implementation.md §7.3).
-//
-// Colour identity (designer feedback: "wouldn't know at a glance whose squad is whose"):
-// every troop gets a squad-coloured ground disc + squad-coloured outline/halo, plus a thin
-// team-coloured rim; generals get a big team-coloured banner + team-coloured ground ring; squad
-// banners use squad colour with a team-coloured border, and player vs enemy banners use different
-// SHAPES so sides stay distinguishable even with close colour picks.
+// Battlefield renderer: sprites, team cloth/outline, selection rings and cosmetic FX.
+// MVP2: HUD handles squad commands; floating field flags and decorative centroid icons are removed.
 import {
   AnimatedSprite,
   Assets,
@@ -20,8 +13,7 @@ import {
   type Renderer,
 } from 'pixi.js';
 import type { GameData } from '../data';
-import type { Command, Disposition } from '../data/schemas';
-import type { World, SquadState, Side } from '../sim';
+import type { World, Side } from '../sim';
 import type { Camera } from '../battle/camera';
 import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
 import { worldToScreen } from '../battle/camera';
@@ -57,7 +49,7 @@ function outlineSourceFor(base: Texture): Texture['source'] | null {
   t.source.scaleMode = 'nearest';
   return t.source;
 }
-import { squadColorNumberFor, teamColorNumber, contrastMono, type SideColors } from './colorUi';
+import { squadColorNumberFor, teamColorNumber, type SideColors } from './colorUi';
 
 export const Y_SQUASH = 0.65;
 
@@ -87,18 +79,6 @@ interface EntitySprite {
   side: Side;
 }
 
-interface SquadBanner {
-  root: Container;
-  border: Sprite;
-  flag: Sprite;
-  number: Text;
-  glyph: Sprite;
-  dispo: Sprite;
-  cmd: Sprite;
-  lastDispo: Disposition | null;
-  lastCommand: Command | null;
-}
-
 export type SelectedSlots = number[] | 'all';
 
 export class Battlefield {
@@ -107,24 +87,15 @@ export class Battlefield {
   readonly ents: Container = new Container();
   readonly fx: Container = new Container();
   readonly debugLayer: Container = new Container();
-  readonly squadLayer: Container = new Container();
 
   private placeholders: Map<string, UnitPlaceholder>;
   private sheets: Map<string, ParsedSheet>;
   private sheetTextures = new Map<string, SheetLayers>();
   private sprites: (EntitySprite | undefined)[] = [];
   private damageNumbers: { text: Text; t: number; vy: number }[] = [];
-  private squadBanners = new Map<string, SquadBanner>();
 
   private genericDisc: Texture; // generic ellipse, used for the ground rim/disc under every troop
-  private dispoTex: Record<Disposition, Texture>;
-  private cmdTex: Record<Command, Texture>;
-  private squareFlagTex: Texture; // player squad-banner shape
-  private pennantFlagTex: Texture; // enemy squad-banner shape
-  private generalBannerTex: Texture;
   private generalRingTex: Texture;
-
-  private onSquadClick?: (slot: number, additive: boolean) => void;
 
   constructor(
     private renderer: Renderer,
@@ -136,19 +107,10 @@ export class Battlefield {
     this.placeholders = buildPlaceholderTextures(renderer, data);
     this.sheets = discoverSheets((msg) => console.warn(msg));
     this.genericDisc = this.bakeEllipseTexture(1, 1);
-    this.dispoTex = this.bakeDispoTextures();
-    this.cmdTex = this.bakeCmdTextures();
-    this.squareFlagTex = this.bakeSquareFlagTexture();
-    this.pennantFlagTex = this.bakePennantFlagTexture();
-    this.generalBannerTex = this.bakeGeneralBannerTexture();
     this.generalRingTex = this.bakeEllipseRingTexture(26, 10, 3);
-    this.world2screen.addChild(this.ground, this.ents, this.fx, this.squadLayer, this.debugLayer);
+    this.world2screen.addChild(this.ground, this.ents, this.fx, this.debugLayer);
     this.ents.sortableChildren = true;
     this.drawGround();
-  }
-
-  setSquadClickHandler(fn: (slot: number, additive: boolean) => void): void {
-    this.onSquadClick = fn;
   }
 
   private teamColor(side: Side): number {
@@ -172,77 +134,6 @@ export class Battlefield {
   private bakeEllipseRingTexture(rx: number, ry: number, width: number): Texture {
     const g = new Graphics();
     g.ellipse(0, 0, rx, ry).stroke({ color: 0xffffff, width });
-    const tex = this.renderer.generateTexture(g);
-    g.destroy();
-    return tex;
-  }
-
-  private bakeDispoTextures(): Record<Disposition, Texture> {
-    const mk = (draw: (g: Graphics) => void): Texture => {
-      const g = new Graphics();
-      draw(g);
-      const tex = this.renderer.generateTexture(g);
-      g.destroy();
-      return tex;
-    };
-    return {
-      fierce: mk((g) => {
-        g.poly([0, -6, 5, 5, -5, 5]).fill({ color: 0xffffff });
-      }),
-      guard: mk((g) => {
-        g.poly([0, -6, 5, -3, 5, 3, 0, 6, -5, 3, -5, -3]).fill({ color: 0xffffff });
-      }),
-      mixed: mk((g) => {
-        g.poly([0, -6, 5, 0, 0, 6, -5, 0]).fill({ color: 0xffffff });
-      }),
-    };
-  }
-
-  private bakeCmdTextures(): Record<Command, Texture> {
-    const mk = (draw: (g: Graphics) => void): Texture => {
-      const g = new Graphics();
-      draw(g);
-      const tex = this.renderer.generateTexture(g);
-      g.destroy();
-      return tex;
-    };
-    return {
-      advance: mk((g) => {
-        g.poly([-4, -5, 4, 0, -4, 5]).fill({ color: 0xffffff });
-      }),
-      hold: mk((g) => {
-        g.rect(-4, -4, 8, 8).fill({ color: 0xffffff });
-      }),
-      fallBack: mk((g) => {
-        g.poly([4, -5, -4, 0, 4, 5]).fill({ color: 0xffffff });
-      }),
-    };
-  }
-
-  /** Player squad banner: a square flag (distinguishes it by shape from the enemy's pennant). */
-  private bakeSquareFlagTexture(): Texture {
-    const g = new Graphics();
-    g.rect(-1, -18, 2, 22).fill({ color: 0xffffff });
-    g.rect(1, -18, 15, 14).fill({ color: 0xffffff, alpha: 0.95 });
-    const tex = this.renderer.generateTexture(g);
-    g.destroy();
-    return tex;
-  }
-
-  /** Enemy squad banner: a swallowtail pennant. */
-  private bakePennantFlagTexture(): Texture {
-    const g = new Graphics();
-    g.rect(-1, -18, 2, 22).fill({ color: 0xffffff });
-    g.poly([1, -18, 1, -4, 8, -8, 15, -4, 15, -18]).fill({ color: 0xffffff, alpha: 0.95 });
-    const tex = this.renderer.generateTexture(g);
-    g.destroy();
-    return tex;
-  }
-
-  private bakeGeneralBannerTexture(): Texture {
-    const g = new Graphics();
-    g.rect(-2, -34, 4, 36).fill({ color: 0xffffff });
-    g.poly([2, -34, 2, -10, 26, -22]).fill({ color: 0xffffff, alpha: 0.95 });
     const tex = this.renderer.generateTexture(g);
     g.destroy();
     return tex;
@@ -454,7 +345,7 @@ export class Battlefield {
       if (sprite.halo) sprite.halo.tint = squadTint;
       if (sprite.cloth) sprite.cloth.tint = squadTint;
       if (ents.isGeneral[i] === 1) {
-        // Generals: a large team-colour banner + a team-colour ground ring (not a squad disc).
+        // Generals retain a team-colour ground ring, without a field flag.
         sprite.disc.tint = teamTint;
         sprite.disc.width = 40 * 2;
         sprite.disc.height = 40 * 2 * 0.42;
@@ -465,11 +356,7 @@ export class Battlefield {
         sprite.ground.anchor.set(0.5);
         sprite.ground.alpha = 0.9;
         sprite.ground.tint = teamTint;
-        const banner = new Sprite(this.generalBannerTex);
-        banner.anchor.set(0.5, 1);
-        banner.tint = teamTint;
-        banner.y = -(sprite.halo ? 20 : 24) - 2;
-        sprite.container.addChild(banner);
+
       }
       this.sprites[i] = sprite;
       this.ents.addChild(sprite.container);
@@ -600,95 +487,8 @@ export class Battlefield {
       }
     }
 
-    this.renderSquadBanners(world, selected);
-
     if (getDebugState().overlay) this.renderDebug(world, alpha);
     else this.debugLayer.removeChildren();
-  }
-
-  private renderSquadBanners(world: World, selected: SelectedSlots): void {
-    const seen = new Set<string>();
-    for (const sq of world.squads) {
-      seen.add(sq.id);
-      let b = this.squadBanners.get(sq.id);
-      if (!b) {
-        b = this.makeSquadBanner(sq);
-        this.squadBanners.set(sq.id, b);
-        this.squadLayer.addChild(b.root);
-      }
-      if (sq.alive <= 0) {
-        b.root.visible = false;
-        continue;
-      }
-      b.root.visible = true;
-      // Position above the tallest troop near the centroid.
-      b.root.position.set(sq.centroidX, sq.centroidY * Y_SQUASH - 34);
-      if (b.lastDispo !== sq.disposition) {
-        b.dispo.texture = this.dispoTex[sq.disposition];
-        b.lastDispo = sq.disposition;
-      }
-      if (b.lastCommand !== sq.command) {
-        b.cmd.texture = this.cmdTex[sq.command];
-        b.lastCommand = sq.command;
-      }
-      const isSel = sq.side === 0 && (selected === 'all' || selected.includes(sq.slot));
-      b.flag.alpha = isSel ? 1 : 0.85;
-      b.flag.scale.set(isSel ? 1.15 : 1);
-      b.border.scale.set(b.flag.scale.x);
-    }
-    for (const [id, b] of this.squadBanners) {
-      if (!seen.has(id)) {
-        b.root.destroy({ children: true });
-        this.squadBanners.delete(id);
-      }
-    }
-  }
-
-  private makeSquadBanner(sq: SquadState): SquadBanner {
-    const root = new Container();
-    const squadTint = this.squadColor(sq.side, sq.slot);
-    const teamTint = this.teamColor(sq.side);
-    const textColor = contrastMono(this.sideColors[sq.side].squads[sq.slot] ?? this.sideColors[sq.side].team);
-    // Player = square flag; enemy = swallowtail pennant — distinguishable by shape, not just colour.
-    const shapeTex = sq.side === 0 ? this.squareFlagTex : this.pennantFlagTex;
-    const border = new Sprite(shapeTex);
-    border.anchor.set(0.5, 1);
-    border.tint = teamTint;
-    border.scale.set(1.18);
-    const flag = new Sprite(shapeTex);
-    flag.anchor.set(0.5, 1);
-    flag.tint = squadTint;
-    const number = new Text({
-      text: String(sq.slot + 1),
-      style: { fill: textColor, fontSize: 11, fontWeight: 'bold', fontFamily: 'system-ui, Arial, sans-serif' },
-    });
-    number.anchor.set(0.5);
-    number.position.set(8, -11);
-    const glyph = new Sprite(this.dispoTex[sq.disposition]); // small per-side glyph echo (reuse dispo shape)
-    glyph.anchor.set(0.5);
-    glyph.tint = textColor;
-    glyph.visible = false; // reserved; dispo/cmd icons below already communicate state
-    const dispo = new Sprite(this.dispoTex[sq.disposition]);
-    dispo.anchor.set(0.5);
-    dispo.tint = 0x1a1a1a;
-    dispo.position.set(-6, -16);
-    dispo.scale.set(0.8);
-    const cmd = new Sprite(this.cmdTex[sq.command]);
-    cmd.anchor.set(0.5);
-    cmd.tint = 0x1a1a1a;
-    cmd.position.set(5, -25);
-    cmd.scale.set(0.8);
-    root.addChild(border, flag, number, glyph, dispo, cmd);
-    if (sq.side === 0) {
-      root.eventMode = 'static';
-      root.cursor = 'pointer';
-      root.hitArea = { contains: (x: number, y: number) => x >= -14 && x <= 18 && y >= -30 && y <= 2 };
-      root.on('pointertap', (e: { nativeEvent?: { shiftKey?: boolean; ctrlKey?: boolean } }) => {
-        const additive = !!(e.nativeEvent?.shiftKey || e.nativeEvent?.ctrlKey);
-        this.onSquadClick?.(sq.slot, additive);
-      });
-    }
-    return { root, border, flag, number, glyph, dispo, cmd, lastDispo: null, lastCommand: null };
   }
 
   /** Apply one tick's sim events for cosmetic effects: flashes, projectiles, special FX, damage numbers. */
@@ -819,8 +619,6 @@ export class Battlefield {
 
   destroy(): void {
     for (const sp of this.sprites) sp?.container.destroy();
-    for (const b of this.squadBanners.values()) b.root.destroy({ children: true });
-    this.squadBanners.clear();
     this.world2screen.destroy({ children: true });
   }
 }

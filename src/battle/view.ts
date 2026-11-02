@@ -70,8 +70,6 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   });
   app.stage.addChild(hud.root);
 
-  battlefield.setSquadClickHandler((slot, additive) => (additive ? selection.toggle(slot) : selection.selectOnly(slot)));
-
   // HUD reserves fixed top/bottom bands; the field fills the remaining width/height so
   // troops read at a legible on-screen size (implementation.md §7.2).
   const TOP_BAND = 68;
