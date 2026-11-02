@@ -19,7 +19,7 @@ import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
 import { worldToScreen } from '../battle/camera';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
-import { discoverFx, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, wavePoints, type ParsedFx } from './fx';
+import { discoverFx, FxTimeline, fxSize, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, timedWavePoints, type ParsedFx } from './fx';
 import { getDebugState } from '../debug/state';
 import type { FrameObject } from 'pixi.js';
 
@@ -94,7 +94,9 @@ export class Battlefield {
   private sheetTextures = new Map<string, SheetLayers>();
   private fxSheets: Map<string, ParsedFx>;
   private fxTextures = new Map<string, Texture[]>();
-  private fxLoading = new Set<string>();
+  private fxLoading = new Map<string, Promise<Texture[] | null>>();
+  private fxTimeline = new FxTimeline();
+  private destroyed = false;
   private screenShakeT = 0;
   private screenShakeMag = 0;
   private fxSeed = 1;
@@ -219,9 +221,12 @@ export class Battlefield {
 
   /** Load every discovered sheet image; sheets whose image fails to load are dropped (placeholder kept). */
   async preloadSheetImages(): Promise<void> {
+    await Promise.all([...this.fxSheets.keys()].map((fxId) => this.loadFxFrames(fxId)));
+    if (this.destroyed) return;
     for (const [unitId, sheet] of [...this.sheets]) {
       try {
         await Assets.load<Texture>(sheet.imageUrl);
+        if (this.destroyed) return;
         if (sheet.maskUrl) await Assets.load<Texture>(sheet.maskUrl).catch(() => console.warn(`sprite sheet ${unitId}: mask failed to load`));
       } catch (e) {
         console.warn(`sprite sheet ${unitId}: image failed to load, keeping placeholder`, e);
@@ -404,10 +409,12 @@ export class Battlefield {
 
   /** Per-frame render update: interpolated positions, FX timers, depth sort, banners. */
   render(world: World, cam: Camera, alpha: number, viewportW: number, viewportH: number, dt: number, selected: SelectedSlots): void {
+    if (this.destroyed) return;
+    this.fxTimeline?.update(world.paused ? 0 : dt);
     this.world2screen.position.set(viewportW / 2, viewportH / 2);
     this.world2screen.scale.set(cam.zoom);
     this.world2screen.pivot.set(cam.x, cam.y * Y_SQUASH);
-    if (this.screenShakeT > 0) {
+    if (this.screenShakeT > 0 && !world.paused) {
       this.screenShakeT = Math.max(0, this.screenShakeT - dt);
       const mag = this.screenShakeMag * (this.screenShakeT / 0.3);
       this.world2screen.position.x += (Math.random() * 2 - 1) * mag;
@@ -497,8 +504,8 @@ export class Battlefield {
     // Damage numbers.
     for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
       const d = this.damageNumbers[i]!;
-      d.t += dt;
-      d.text.y -= d.vy * dt;
+      d.t += world.paused ? 0 : dt;
+      d.text.y -= d.vy * (world.paused ? 0 : dt);
       d.text.alpha = Math.max(0, 1 - d.t / 1.0);
       if (d.t > 1.0) {
         d.text.destroy();
@@ -512,6 +519,7 @@ export class Battlefield {
 
   /** Apply one tick's sim events for cosmetic effects: flashes, projectiles, special FX, damage numbers. */
   applyEvents(world: World): void {
+    if (this.destroyed) return;
     this.lastWorld = world;
     for (const ev of world.events) {
       if (ev.type === 'hit') {
@@ -550,51 +558,68 @@ export class Battlefield {
     g.rotation = ang;
     g.position.set(fromX, fromY);
     this.fx.addChild(g);
-    let t = 0;
-    const dur = 0.15;
-    const startX = g.x;
-    const startY = g.y;
-    const tick = (): void => {
-      t += 1 / 60;
-      const a = Math.min(1, t / dur);
-      g.position.set(lerp(startX, targetX, a), lerp(startY, targetY, a));
-      if (a >= 1) {
-        g.destroy();
-      } else {
-        requestAnimationFrame(tick);
-      }
-    };
-    requestAnimationFrame(tick);
+    this.fxTimeline.add(0.15, (t) => {
+      const a = t / 0.15;
+      g.position.set(lerp(fromX, targetX, a), lerp(fromY, targetY, a));
+      if (a >= 1) g.destroy();
+    });
   }
 
-  /** Lazily loads & slices an fx sheet's texture frames; returns null until loaded (placeholder meanwhile). */
-  private getFxFrames(fxId: string): Texture[] | null {
+  /** Preload alongside unit sheets; shared promise also protects early callers. */
+  private loadFxFrames(fxId: string): Promise<Texture[] | null> {
+    if (this.destroyed) return Promise.resolve(null);
     const cached = this.fxTextures.get(fxId);
-    if (cached) return cached;
+    if (cached) return Promise.resolve(cached);
+    const pending = this.fxLoading.get(fxId);
+    if (pending) return pending;
     const sheet = this.fxSheets.get(fxId);
-    if (!sheet || this.fxLoading.has(fxId)) return null;
-    this.fxLoading.add(fxId);
-    Assets.load<Texture>(sheet.imageUrl)
+    if (!sheet) return Promise.resolve(null);
+    const loading = Assets.load<Texture>(sheet.imageUrl)
       .then((base) => {
+        if (this.destroyed) return null;
         base.source.scaleMode = 'nearest';
-        this.fxTextures.set(fxId, sheet.frames.map((f) => new Texture({ source: base.source, frame: new Rectangle(f.x, f.y, f.w, f.h) })));
+        const frames = sheet.frames.map((f) => new Texture({ source: base.source, frame: new Rectangle(f.x, f.y, f.w, f.h) }));
+        this.fxTextures.set(fxId, frames);
+        return frames;
       })
-      .catch((e) => console.warn(`fx sheet ${fxId}: image failed to load, keeping placeholder`, e));
-    return null;
+      .catch((e) => {
+        if (!this.destroyed) {
+          console.warn(`fx sheet ${fxId}: image failed to load, keeping placeholder`, e);
+        }
+        return null;
+      })
+      .finally(() => { this.fxLoading.delete(fxId); });
+    this.fxLoading.set(fxId, loading);
+    return loading;
   }
 
-  /** One fx instance at (x,y): the sliced sheet animation if loaded, else a cosmetic placeholder shape. */
-  private spawnFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number): void {
-    const frames = fxId ? this.getFxFrames(fxId) : null;
+  /** Wait for existing art instead of substituting a first-use placeholder. */
+  private spawnFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number, waitForAsset = true): void {
+    if (this.destroyed) return;
+    const frames = fxId ? this.fxTextures.get(fxId) : null;
+    if (waitForAsset && fxId && !frames && this.fxSheets.has(fxId)) {
+      void this.loadFxFrames(fxId).then(() => {
+        if (!this.destroyed) this.spawnFxInstance(x, y, fxId, kind, color, false);
+      });
+      return;
+    }
     if (frames) {
       const sheet = this.fxSheets.get(fxId!)!;
-      const sp = new AnimatedSprite(frames.map((texture, idx) => ({ texture, time: sheet.frames[idx]!.durationMs })));
+      // Manual frame selection keeps playback on the same paused lifecycle as other FX.
+      const sp = new Sprite(frames[0]!);
       sp.anchor.set(0.5, kind === 'overlay' || kind === 'wave' ? 0.8 : 0.5);
-      sp.loop = false;
+      const size = fxSize(kind, sheet.frameW, sheet.frameH);
+      sp.width = size.width;
+      sp.height = size.height;
       sp.position.set(x, y);
-      sp.play();
-      sp.onComplete = () => sp.destroy();
       this.fx.addChild(sp);
+      const durationMs = sheet.frames.reduce((sum, f) => sum + f.durationMs, 0);
+      this.fxTimeline.add(durationMs / 1000, (elapsed) => {
+        if (elapsed * 1000 >= durationMs) { sp.destroy(); return; }
+        let time = elapsed * 1000, index = 0;
+        while (index < frames.length - 1 && time >= sheet.frames[index]!.durationMs) time -= sheet.frames[index++]!.durationMs;
+        sp.texture = frames[index]!;
+      });
       return;
     }
     const g = new Graphics();
@@ -602,37 +627,30 @@ export class Battlefield {
     g.circle(0, 0, r).fill({ color, alpha: 0.5 });
     g.position.set(x, y);
     this.fx.addChild(g);
-    let t = 0;
-    const tick = (): void => {
-      t += 1 / 60;
+    this.fxTimeline.add(0.6, (t) => {
       g.alpha = Math.max(0, 0.6 - t * 0.9);
-      if (t > 0.6) g.destroy();
-      else requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+      if (t >= 0.6) g.destroy();
+    });
   }
 
-  /** Brief field-covering colour flash + camera-independent screen shake for big field/wave specials. */
+  /** Brief field-covering colour flash and screen shake for field/wave specials. */
   private triggerBigFx(color: number): void {
     this.screenShakeT = 0.3;
     this.screenShakeMag = 6;
     const g = new Graphics().rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color, alpha: 0.3 });
     this.fx.addChild(g);
-    let t = 0;
-    const tick = (): void => {
-      t += 1 / 60;
+    this.fxTimeline.add(0.5, (t) => {
       g.alpha = Math.max(0, 0.3 - t * 0.6);
-      if (t > 0.5) g.destroy();
-      else requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+      if (t >= 0.5) g.destroy();
+    });
   }
 
   /** Plays each special's effect areas: overlay (field), wave, strike (random/general) or aura (heal/buff/debuff). */
   private spawnSpecialFx(ev: Extract<World['events'][number], { type: 'special' }>): void {
+    if (this.destroyed) return;
     const ents = this.lastWorld?.ents;
     this.fxSeed = (this.fxSeed * 48271) % 2147483647;
-    for (const area of ev.areas) {
+    for (const [index, area] of ev.areas.entries()) {
       const kind = kindForArea(area);
       if (kind === 'overlay') {
         this.triggerBigFx(0xff7040);
@@ -640,13 +658,33 @@ export class Battlefield {
           this.spawnFxInstance(x, y, ev.fx, 'overlay', 0xff7040);
         }
       } else if (kind === 'wave') {
-        this.triggerBigFx(0xffa040);
-        for (const [x, y] of wavePoints(ev.x, ev.y * Y_SQUASH, ev.dirX, ev.dirY * Y_SQUASH, ev.width * Y_SQUASH, this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed)) {
-          this.spawnFxInstance(x, y, ev.fx, 'wave', 0xffa040);
-        }
+        const points = timedWavePoints(ev.x, ev.y * Y_SQUASH, ev.dirX, ev.dirY * Y_SQUASH, ev.width * Y_SQUASH, this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed);
+        const start = (): void => {
+          if (this.destroyed) return;
+          this.triggerBigFx(0xffa040);
+          for (const { x, y, delayS } of points) {
+            this.fxTimeline.schedule(delayS, () => this.spawnFxInstance(x, y, ev.fx, 'wave', 0xffa040, false));
+          }
+        };
+        if (ev.fx && this.fxSheets.has(ev.fx) && !this.fxTextures.has(ev.fx)) {
+          void this.loadFxFrames(ev.fx).then(() => {
+            // Start the entire crossing on the next active render, including after a paused load.
+            if (!this.destroyed) this.fxTimeline.schedule(Number.EPSILON, start);
+          });
+        } else start();
       } else if (ents) {
         const color = kind === 'aura' ? (area === 'heal' || area === 'buff' ? 0x66ff99 : 0xb070ff) : 0xff6666;
-        for (const [x, y] of perEntityPoints(ev.affected, (e) => (ents.alive[e] ? [ents.x[e]!, ents.y[e]! * Y_SQUASH] : null))) {
+        const snapshot = ev.areaTargets?.[index];
+        const targetSide = area === 'heal' || area === 'buff' ? ev.side : 1 - ev.side;
+        // Legacy events have only the union. Filter it by area side; timed modifiers
+        // use living side recipients because the legacy union excludes them.
+        const legacy = area === 'buff' || area === 'debuff'
+          ? Array.from({ length: ents.count }, (_, i) => i).filter((i) => ents.alive[i] && ents.side[i] === targetSide)
+          : ev.affected.filter((i) => ents.side[i] === targetSide);
+        const points: [number, number][] = snapshot
+          ? snapshot.targets.map((t) => [t.x, t.y * Y_SQUASH])
+          : perEntityPoints(legacy, (e) => e >= 0 && e < ents.count ? [ents.x[e]!, ents.y[e]! * Y_SQUASH] : null);
+        for (const [x, y] of points) {
           this.spawnFxInstance(x, y, ev.fx, kind, color);
         }
       }
@@ -700,6 +738,14 @@ export class Battlefield {
   }
 
   destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.fxTimeline.destroy();
+    this.fxLoading.clear();
+    for (const frames of this.fxTextures.values()) for (const texture of frames) texture.destroy();
+    this.fxTextures.clear();
+    this.damageNumbers = [];
+    this.lastWorld = null;
     for (const sp of this.sprites) sp?.container.destroy();
     this.world2screen.destroy({ children: true });
   }

@@ -97,6 +97,9 @@ export type SimEvent =
       /** Wave half-width when areas includes 'wave', else 0. */
       width: number;
       affected: number[];
+      /** Optional for legacy consumers/events. One entry per area, in effect order;
+       * snapshots include lethal targets and visual recipients of timed modifiers. */
+      areaTargets?: { area: SpecialArea; targets: { entity: number; x: number; y: number }[] }[];
     }
   | { type: 'phase'; phase: Phase }
   | { type: 'duelBlow'; attacker: Side; amount: number };

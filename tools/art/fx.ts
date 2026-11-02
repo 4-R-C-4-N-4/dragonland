@@ -78,7 +78,22 @@ export function sliceFxStrip(img: Rgba, frames: number): FxSliceResult {
       }
     }
   }
-  return { frameW, frameH, frames, body: { width, height: H, data: out } };
+  // Trim a single union rectangle across the sequence, never each pose separately:
+  // motion/expansion remains visible against a shared anchor.
+  let minX = frameW, minY = frameH, maxX = -1, maxY = -1;
+  for (let k = 0; k < frames; k++) for (let y = 0; y < frameH; y++) for (let x = 0; x < frameW; x++) {
+    if (!out[(y * width + k * frameW + x) * 4 + 3]) continue;
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+  }
+  if (maxX < 0) return { frameW: 1, frameH: 1, frames, body: { width: frames, height: 1, data: new Uint8Array(frames * 4) } };
+  const trimmedW = maxX - minX + 1, trimmedH = maxY - minY + 1;
+  const trimmed = new Uint8Array(trimmedW * frames * trimmedH * 4);
+  for (let k = 0; k < frames; k++) for (let y = 0; y < trimmedH; y++) {
+    const start = ((y + minY) * width + k * frameW + minX) * 4;
+    trimmed.set(out.subarray(start, start + trimmedW * 4), (y * trimmedW * frames + k * trimmedW) * 4);
+  }
+  return { frameW: trimmedW, frameH: trimmedH, frames, body: { width: trimmedW * frames, height: trimmedH, data: trimmed } };
 }
 
 /** Aseprite-style JSON for an fx strip, consumed by src/render/fx.ts: a single 'play' tag. */

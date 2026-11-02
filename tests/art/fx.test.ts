@@ -22,19 +22,19 @@ describe('fx strip slicing', () => {
   it('slices N equal cells, dropping the magenta background to transparency', () => {
     const res = sliceFxStrip(synthStrip(6), 6);
     expect(res.frames).toBe(6);
-    expect(res.frameW).toBe(40);
-    expect(res.frameH).toBe(40);
-    // Each frame has some opaque pixels (the blob) and the corners stay transparent.
+    expect(res.frameW).toBe(20);
+    expect(res.frameH).toBe(20);
+    // Each trimmed frame retains its full blob and its relative horizontal offset.
     for (let k = 0; k < 6; k++) {
       let opaque = 0;
-      for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) {
-        const o = (y * res.body.width + k * 40 + x) * 4;
+      for (let y = 0; y < res.frameH; y++) for (let x = 0; x < res.frameW; x++) {
+        const o = (y * res.body.width + k * res.frameW + x) * 4;
         if (res.body.data[o + 3]) opaque++;
       }
-      expect(opaque).toBeGreaterThan(0);
+      expect(opaque).toBe(300);
     }
-    // Top-left corner of frame 0 is background -> transparent.
-    expect(res.body.data[3]).toBe(0);
+    // The last pose remains shifted right against the shared anchor.
+    expect(res.body.data[(5 * res.frameW) * 4 + 3]).toBe(0);
   });
 
   it('accepts a valid strip whose canvas width is not divisible by the frame count', () => {
@@ -76,12 +76,28 @@ describe('fx strip slicing', () => {
   });
 
   it('builds Aseprite-style JSON with a single play tag spanning all frames', () => {
-    const res: FxSliceResult = sliceFxStrip(synthStrip(8, 20), 8);
+    const res: FxSliceResult = sliceFxStrip(synthStrip(8, 40), 8);
     const json = fxAsepriteJson('meteor-fall', 'meteor-fall.png', res, 90);
     expect(Object.keys(json.frames)).toHaveLength(8);
     expect(json.meta.frameTags).toEqual([{ name: 'play', from: 0, to: 7, direction: 'forward' }]);
-    expect(json.frames['meteor-fall 0']!.frame).toEqual({ x: 0, y: 0, w: 20, h: 20 });
-    expect(json.frames['meteor-fall 7']!.frame).toEqual({ x: 140, y: 0, w: 20, h: 20 });
+    expect(json.frames['meteor-fall 0']!.frame).toEqual({ x: 0, y: 0, w: 22, h: 20 });
+    expect(json.frames['meteor-fall 7']!.frame).toEqual({ x: 154, y: 0, w: 22, h: 20 });
     expect(json.frames['meteor-fall 0']!.duration).toBe(90);
   });
+});
+
+it('trims only shared padding, preserving a shared anchor and distinct poses without mutating input', () => {
+  const input = synthStrip(3);
+  const before = input.data.slice();
+  const res = sliceFxStrip(input, 3);
+  expect(res.frameW).toBe(17); // union x=10..26 across all three cells
+  expect(res.frameH).toBe(20); // common y=10..29
+  expect(input.data).toEqual(before);
+  const occupied = (k: number) => {
+    const xs: number[] = [];
+    for (let x = 0; x < res.frameW; x++) if (res.body.data[(k * res.frameW + x) * 4 + 3]) xs.push(x);
+    return xs;
+  };
+  expect(occupied(0)).toEqual(Array.from({ length: 15 }, (_, i) => i));
+  expect(occupied(2)).toEqual(Array.from({ length: 15 }, (_, i) => i + 2));
 });
