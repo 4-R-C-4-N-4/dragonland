@@ -26,6 +26,8 @@ export const ConstantsSchema = z.object({
   SPECIAL_CHARGE_PER_HIT: z.number().nonnegative(),
   SPECIAL_METER_MAX: z.number().positive(),
   STAGE2_STAT_MULT: z.number().positive(),
+  /** Stage-3 species fielded as ordinary troops (MVP2). Generals use their own GeneralDef. */
+  STAGE3_STAT_MULT: z.number().positive(),
   MAX_COMPANY: z.number().int().positive(),
   MAX_SQUADS: z.number().int().positive(),
   MIN_SQUAD: z.number().int().positive(),

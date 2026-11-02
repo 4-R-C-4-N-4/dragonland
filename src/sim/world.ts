@@ -20,7 +20,7 @@ export interface ResolvedUnit {
 }
 
 export function resolveUnitProfile(data: GameData, unit: UnitDef): ResolvedUnit {
-  const statMult = unit.stage === 2 ? data.constants.STAGE2_STAT_MULT : 1;
+  const statMult = unit.stage === 3 ? data.constants.STAGE3_STAT_MULT : unit.stage === 2 ? data.constants.STAGE2_STAT_MULT : 1;
   const maxHp = data.constants.TROOP_HP * statMult;
   return {
     classId: unit.classId,
@@ -114,8 +114,9 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     const sideSetup = setup.sides[side]!;
     const formation = data.formationById.get(sideSetup.formationId);
     if (!formation) throw new Error(`unknown formation ${sideSetup.formationId}`);
-    const generalDef = data.generalById.get(sideSetup.generalId);
+    const generalDef = sideSetup.general ?? data.generalById.get(sideSetup.generalId);
     if (!generalDef) throw new Error(`unknown general ${sideSetup.generalId}`);
+    if (generalDef.id !== sideSetup.generalId) throw new Error(`general override ${generalDef.id} does not match ${sideSetup.generalId}`);
     const generalUnitDef = data.unitById.get(generalDef.unitId);
     if (!generalUnitDef) throw new Error(`general ${generalDef.id} has unknown unit ${generalDef.unitId}`);
 
@@ -148,8 +149,9 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
       maxHp: generalDef.hp,
       statMult: generalDef.attack,
     };
+    // Generals read generalProfile (behavior.profileFor); unitOf stays the species troop profile so a
+    // same-species ordinary troop (e.g. a stage-3 Paladin veteran) is not given general stats.
     generalProfile[side] = gProfile;
-    unitOf[gUnitIndex] = gProfile; // generals use their own stat profile, not troop stage scaling
 
     generals[side] = {
       side,
@@ -180,6 +182,10 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
         if (!unitDef) throw new Error(`unknown unit ${troop.unitId}`);
         const uIndex = unitIndexById.get(troop.unitId)!;
         const profile = unitOf[uIndex]!;
+        if (troop.statMult !== undefined && !(troop.statMult > 0 && Number.isFinite(troop.statMult))) {
+          throw new Error(`troop ${troop.troopId}: statMult must be a positive finite number`);
+        }
+        const mult = troop.statMult ?? profile.statMult;
         const pos = positions[i]!;
         formOffX[e] = pos.x - slotPos.x;
         formOffY[e] = pos.y - slotPos.y;
@@ -192,14 +198,15 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
         ents.y[e] = jy;
         ents.prevX[e] = jx;
         ents.prevY[e] = jy;
-        ents.hp[e] = profile.maxHp;
-        ents.maxHp[e] = profile.maxHp;
+        const maxHp = data.constants.TROOP_HP * mult;
+        ents.hp[e] = maxHp;
+        ents.maxHp[e] = maxHp;
         ents.side[e] = side;
         ents.squad[e] = squadIndex;
         ents.unit[e] = uIndex;
         ents.alive[e] = 1;
         ents.isGeneral[e] = 0;
-        ents.statMult[e] = profile.statMult;
+        ents.statMult[e] = mult;
         ents.troopId[e] = troop.troopId;
         ents.name[e] = troop.name;
         members.push(e);

@@ -10,6 +10,11 @@ export interface TroopSetup {
   troopId: string; // roster id (player) or generated id (enemy)
   name: string;
   unitId: string;
+  /**
+   * Optional individual HP/damage multiplier (run progression: stage x level). Replaces the
+   * species stage default when present. Must be > 0.
+   */
+  statMult?: number;
 }
 
 export interface SquadSetup {
@@ -25,6 +30,8 @@ export interface SideSetup {
   generalId: GeneralId;
   formationId: string;
   squads: SquadSetup[];
+  /** Optional derived general definition (hero progression). Its id must equal generalId. */
+  general?: GeneralDef;
   /** Presentation only (sim ignores it): team colour '#rrggbb'. */
   color?: string;
 }
@@ -111,7 +118,7 @@ export interface Entities {
   alive: Uint8Array;
   isGeneral: Uint8Array;
   target: Int32Array; // entity index or -1
-  statMult: Float64Array; // 1 or STAGE2_STAT_MULT (generals: def.attack)
+  statMult: Float64Array; // stage default or per-troop override (generals: def.attack)
   troopId: string[];
   name: string[];
 }
