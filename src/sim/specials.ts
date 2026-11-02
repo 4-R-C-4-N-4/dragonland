@@ -52,6 +52,7 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
   const caster = internal.generalProfile[side];
   const affected = new Set<number>();
   const areas: SpecialArea[] = [];
+  const areaTargets: NonNullable<Extract<World['events'][number], { type: 'special' }>['areaTargets']> = [];
   let waveWidth = 0;
 
   const enemiesAlive = (withGeneral: boolean) => {
@@ -74,6 +75,7 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
   };
 
   for (const fx of sp.effects) {
+    const visualTargets: number[] = [];
     if (fx.type === 'damage') {
       areas.push(fx.area);
       let targets: number[] = [];
@@ -93,6 +95,7 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
           if (along >= 0 && perp <= waveWidth) targets.push(i);
         }
       }
+      visualTargets.push(...targets);
       for (const i of targets) hit(i, fx.amount);
     } else if (fx.type === 'heal') {
       areas.push('heal');
@@ -100,14 +103,20 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
         if (ents.alive[i] === 0 || ents.side[i] !== side) continue;
         ents.hp[i] = Math.min(ents.maxHp[i]!, ents.hp[i]! + ents.maxHp[i]! * fx.fraction * sp.power);
         affected.add(i);
+        visualTargets.push(i);
       }
     } else {
       areas.push(fx.type);
-      world.activeEffects.push(activeFrom(fx, fx.type === 'buff' ? side : enemy, sp.id, sp.power));
+      const targetSide = fx.type === 'buff' ? side : enemy;
+      world.activeEffects.push(activeFrom(fx, targetSide, sp.id, sp.power));
+      for (let i = 0; i < ents.count; i++) {
+        if (ents.alive[i] && ents.side[i] === targetSide) visualTargets.push(i);
+      }
     }
+    areaTargets.push({ area: areas[areas.length - 1]!, targets: visualTargets.map((entity) => ({ entity, x: ents.x[entity]!, y: ents.y[entity]! })) });
   }
 
-  world.events.push({ type: 'special', side, specialId: sp.id, fx: sp.fx, areas, x: gx, y: gy, dirX, dirY, width: waveWidth, affected: [...affected] });
+  world.events.push({ type: 'special', side, specialId: sp.id, fx: sp.fx, areas, x: gx, y: gy, dirX, dirY, width: waveWidth, affected: [...affected], areaTargets });
   g.mp -= sp.mpCost;
   g.meter = 0;
   g.specialCooldown = sp.cooldownS;

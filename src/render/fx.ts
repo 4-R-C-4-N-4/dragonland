@@ -149,3 +149,74 @@ export function kindForArea(area: string): FxKind {
   if (area === 'heal' || area === 'buff' || area === 'debuff') return 'aura';
   return 'strike'; // random | general
 }
+
+/** Explicit maximum extent in battlefield units, independent of source resolution. */
+export function fxSize(kind: FxKind, frameW: number, frameH: number): { width: number; height: number } {
+  const extent = { overlay: 96, wave: 110, strike: 64, aura: 60 }[kind];
+  const scale = extent / Math.max(1, frameW, frameH);
+  return { width: frameW * scale, height: frameH * scale };
+}
+
+/** Forward crossing, with starts spread over 0.7 seconds rather than simultaneous stamps. */
+export function timedWavePoints(x: number, y: number, dirX: number, dirY: number, width: number, fieldW: number, fieldH: number, seed: number, count = 14): { x: number; y: number; delayS: number }[] {
+  const dLen = Math.hypot(dirX, dirY);
+  const ux = dLen ? dirX / dLen : 1, uy = dLen ? dirY / dLen : 0;
+  const px = -uy, py = ux;
+  // First intersection of the forward ray with the actual rectangular field.
+  const edgeX = ux > 0 ? (fieldW - x) / ux : ux < 0 ? -x / ux : Infinity;
+  const edgeY = uy > 0 ? (fieldH - y) / uy : uy < 0 ? -y / uy : Infinity;
+  const distance = Math.max(0, Math.min(edgeX, edgeY));
+  const rnd = seededRandom(seed);
+  return Array.from({ length: count }, (_, i) => {
+    const progress = i / Math.max(1, count - 1);
+    const cx = x + ux * progress * distance, cy = y + uy * progress * distance;
+    // Restrict the perpendicular band itself; clipping coordinates independently
+    // would change forward progress and could move centers backwards.
+    let low = -Math.abs(width), high = Math.abs(width);
+    for (const [center, perpendicular, limit] of [[cx, px, fieldW], [cy, py, fieldH]] as const) {
+      if (perpendicular === 0) continue;
+      const a = -center / perpendicular, b = (limit - center) / perpendicular;
+      low = Math.max(low, Math.min(a, b));
+      high = Math.min(high, Math.max(a, b));
+    }
+    const jitter = rnd();
+    const off = i === count - 1 ? 0 : low + jitter * (high - low);
+    // Clamp only floating-point roundoff at the boundary.
+    return { x: Math.max(0, Math.min(fieldW, cx + px * off)), y: Math.max(0, Math.min(fieldH, cy + py * off)), delayS: progress * 0.7 };
+  });
+}
+
+/** Owned by the renderer: no ticker, rAF, timer or asynchronous completion chain. */
+export class FxTimeline {
+  private jobs: { age: number; duration: number; frame: (elapsed: number) => void }[] = [];
+  private destroyed = false;
+
+  add(duration: number, frame: (elapsed: number) => void): void {
+    if (this.destroyed) return;
+    frame(0);
+    if (duration > 0 && !this.destroyed) this.jobs.push({ age: 0, duration, frame });
+  }
+
+  schedule(delay: number, callback: () => void): void {
+    if (this.destroyed) return;
+    if (delay <= 0) { callback(); return; }
+    this.jobs.push({ age: 0, duration: delay, frame: (elapsed) => { if (elapsed >= delay) callback(); } });
+  }
+
+  update(dt: number): void {
+    if (this.destroyed || dt <= 0) return;
+    const jobs = this.jobs;
+    this.jobs = [];
+    for (const job of jobs) {
+      if (this.destroyed) break;
+      job.age = Math.min(job.duration, job.age + dt);
+      job.frame(job.age);
+      if (job.age < job.duration && !this.destroyed) this.jobs.push(job);
+    }
+  }
+
+  destroy(): void {
+    this.destroyed = true;
+    this.jobs = [];
+  }
+}

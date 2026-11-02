@@ -104,3 +104,32 @@ describe('field-wide specials (D24)', () => {
     if (ev?.type === 'special') expect(ev.affected.length).toBeGreaterThan(0);
   });
 });
+
+it('snapshots separate targets for mixed areas, including lethal strikes and timed modifiers', () => {
+  const w = arena('paladin', { effects: [
+    { type: 'damage', area: 'random', amount: 100000, targets: 1 },
+    { type: 'heal', fraction: 0.1 },
+    { type: 'buff', durationS: 2, damageMult: 1.5 },
+    { type: 'debuff', durationS: 2, speedMult: 0.5 },
+  ] });
+  doFireSpecial(w, data, 0);
+  const ev = w.events.find((e) => e.type === 'special');
+  if (ev?.type !== 'special') throw new Error('missing special');
+  expect(ev.areas).toEqual(['random', 'heal', 'buff', 'debuff']);
+  const targets = ev.areaTargets;
+  expect(targets).toHaveLength(4);
+  const strike = targets![0]!.targets;
+  expect(strike).toHaveLength(1);
+  expect(w.ents.alive[strike[0]!.entity]).toBe(0);
+  expect(strike[0]).toEqual({ entity: strike[0]!.entity, x: w.ents.x[strike[0]!.entity], y: w.ents.y[strike[0]!.entity] });
+  for (const index of [1, 2, 3]) {
+    const side = index === 3 ? 1 : 0;
+    expect(targets![index]!.targets.length).toBeGreaterThan(0);
+    expect(targets![index]!.targets.every((t) => w.ents.side[t.entity] === side && w.ents.alive[t.entity])).toBe(true);
+  }
+  // Preserve the legacy union of immediate damage/heal recipients.
+  expect(new Set(ev.affected)).toEqual(new Set([...strike, ...targets![1]!.targets].map((t) => t.entity)));
+  const x = strike[0]!.x;
+  w.ents.x[strike[0]!.entity] = x + 99;
+  expect(strike[0]!.x).toBe(x);
+});
