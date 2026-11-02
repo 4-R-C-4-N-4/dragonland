@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "pack-howl 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "pack-howl 1": {
+   "frame": {
+    "x": 428,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "pack-howl 2": {
+   "frame": {
+    "x": 856,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "pack-howl 3": {
+   "frame": {
+    "x": 1284,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "pack-howl 4": {
+   "frame": {
+    "x": 1712,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "pack-howl 5": {
+   "frame": {
+    "x": 2140,
+    "y": 0,
+    "w": 428,
+    "h": 724
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "pack-howl.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2568,
+   "h": 724
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

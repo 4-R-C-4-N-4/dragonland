@@ -1,0 +1,94 @@
+{
+ "frames": {
+  "inferno 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 1": {
+   "frame": {
+    "x": 272,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 2": {
+   "frame": {
+    "x": 544,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 3": {
+   "frame": {
+    "x": 816,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 4": {
+   "frame": {
+    "x": 1088,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 5": {
+   "frame": {
+    "x": 1360,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 6": {
+   "frame": {
+    "x": 1632,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "inferno 7": {
+   "frame": {
+    "x": 1904,
+    "y": 0,
+    "w": 272,
+    "h": 724
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "inferno.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2176,
+   "h": 724
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

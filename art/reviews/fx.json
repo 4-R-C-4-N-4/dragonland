@@ -1,0 +1,132 @@
+{
+  "status": "provisional-not-mainline-approved",
+  "notes": [
+    "All 15 picked sheets process into nonempty animation frames.",
+    "Sources and exact selections are preserved in art/raw/fx and art/picks.yaml.",
+    "Slicer now tolerates non-divisible canvases and uses low-ink gutters for uneven pose spacing.",
+    "Post-fix extraction and in-game size/placement/playback require visual signoff.",
+    "Independent FX review was blocked by provider rate limits."
+  ],
+  "effects": [
+    {
+      "id": "arrow-storm",
+      "frames": 6,
+      "minimumVisiblePixels": 6965,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "dragon-breath",
+      "frames": 8,
+      "minimumVisiblePixels": 5162,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "earthquake",
+      "frames": 6,
+      "minimumVisiblePixels": 4809,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "guiding-light",
+      "frames": 6,
+      "minimumVisiblePixels": 10561,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "hellfire-wave",
+      "frames": 8,
+      "minimumVisiblePixels": 9347,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "holy-rally",
+      "frames": 6,
+      "minimumVisiblePixels": 5762,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "inferno",
+      "frames": 8,
+      "minimumVisiblePixels": 6525,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "judgement",
+      "frames": 8,
+      "minimumVisiblePixels": 3785,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "meteor-fall",
+      "frames": 8,
+      "minimumVisiblePixels": 3060,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "overclock",
+      "frames": 6,
+      "minimumVisiblePixels": 7395,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "pack-howl",
+      "frames": 6,
+      "minimumVisiblePixels": 9475,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "plague-cloud",
+      "frames": 6,
+      "minimumVisiblePixels": 8142,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "sanctuary",
+      "frames": 6,
+      "minimumVisiblePixels": 42101,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "shadow-mark",
+      "frames": 6,
+      "minimumVisiblePixels": 1469,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    },
+    {
+      "id": "tempest-dive",
+      "frames": 6,
+      "minimumVisiblePixels": 3160,
+      "technical": "pass",
+      "visual": "pending",
+      "independentReview": "pending"
+    }
+  ]
+}

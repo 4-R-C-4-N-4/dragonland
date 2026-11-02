@@ -1,0 +1,94 @@
+{
+ "frames": {
+  "dragon-breath 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 1": {
+   "frame": {
+    "x": 305,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 2": {
+   "frame": {
+    "x": 610,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 3": {
+   "frame": {
+    "x": 915,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 4": {
+   "frame": {
+    "x": 1220,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 5": {
+   "frame": {
+    "x": 1525,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 6": {
+   "frame": {
+    "x": 1830,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  },
+  "dragon-breath 7": {
+   "frame": {
+    "x": 2135,
+    "y": 0,
+    "w": 305,
+    "h": 724
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "dragon-breath.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2440,
+   "h": 724
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

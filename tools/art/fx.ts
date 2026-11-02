@@ -38,24 +38,47 @@ export interface FxSliceResult {
  * transparent sprite strip. No outline, no team mask (fx sheets never carry team cloth).
  */
 export function sliceFxStrip(img: Rgba, frames: number): FxSliceResult {
-  if (frames < 1) throw new Error('frames must be >= 1');
+  if (!Number.isInteger(frames) || frames < 1) throw new Error('frames must be a positive integer');
   const { width: W, height: H, data } = img;
-  if (W % frames !== 0) throw new Error(`strip width ${W} is not divisible by ${frames} frames`);
-  const frameW = W / frames;
+  // Locate low-ink gutters near the requested grid boundaries. Generators often
+  // space expanding effects unevenly; exact equal-width cuts split those poses.
+  const ink = new Uint32Array(W);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const p = (y * W + x) * 4;
+    if (data[p + 3] && classify(data[p]!, data[p + 1]!, data[p + 2]!) !== Px.Bg) ink[x]!++;
+  }
+  const cuts = [0];
+  for (let k = 1; k < frames; k++) {
+    const ideal = k * W / frames;
+    const radius = W / frames * 0.4;
+    let best = Math.round(ideal), score = Infinity;
+    for (let x = Math.max(cuts[k - 1]! + 1, Math.ceil(ideal - radius)); x <= Math.min(W - 1, Math.floor(ideal + radius)); x++) {
+      const candidate = Math.min(ink[x - 1]!, ink[x]!) * W + Math.abs(x - ideal);
+      if (candidate < score) { best = x; score = candidate; }
+    }
+    cuts.push(best);
+  }
+  cuts.push(W);
+  const frameW = Math.max(...cuts.slice(1).map((right, i) => right - cuts[i]!));
   const frameH = H;
-  const out = new Uint8Array(W * H * 4);
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const p = (y * W + x) * 4;
-      const cls = classify(data[p]!, data[p + 1]!, data[p + 2]!);
-      if (cls === Px.Bg) continue;
-      out[p] = data[p]!;
-      out[p + 1] = data[p + 1]!;
-      out[p + 2] = data[p + 2]!;
-      out[p + 3] = 255;
+  const width = frameW * frames;
+  const out = new Uint8Array(width * H * 4);
+  for (let k = 0; k < frames; k++) {
+    const left = cuts[k]!;
+    const right = cuts[k + 1]!;
+    for (let y = 0; y < H; y++) {
+      for (let x = left; x < right; x++) {
+        const p = (y * W + x) * 4;
+        if (classify(data[p]!, data[p + 1]!, data[p + 2]!) === Px.Bg) continue;
+        const q = (y * width + k * frameW + x - left) * 4;
+        out[q] = data[p]!;
+        out[q + 1] = data[p + 1]!;
+        out[q + 2] = data[p + 2]!;
+        out[q + 3] = data[p + 3]!;
+      }
     }
   }
-  return { frameW, frameH, frames, body: { width: W, height: H, data: out } };
+  return { frameW, frameH, frames, body: { width, height: H, data: out } };
 }
 
 /** Aseprite-style JSON for an fx strip, consumed by src/render/fx.ts: a single 'play' tag. */
