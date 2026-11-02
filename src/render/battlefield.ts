@@ -92,6 +92,7 @@ export class Battlefield {
   private sheets: Map<string, ParsedSheet>;
   private sheetTextures = new Map<string, SheetLayers>();
   private sprites: (EntitySprite | undefined)[] = [];
+  private lastWorld: World | null = null;
   private damageNumbers: { text: Text; t: number; vy: number }[] = [];
 
   private genericDisc: Texture; // generic ellipse, used for the ground rim/disc under every troop
@@ -493,6 +494,7 @@ export class Battlefield {
 
   /** Apply one tick's sim events for cosmetic effects: flashes, projectiles, special FX, damage numbers. */
   applyEvents(world: World): void {
+    this.lastWorld = world;
     for (const ev of world.events) {
       if (ev.type === 'hit') {
         const targetSp = this.sprites[ev.target];
@@ -509,7 +511,7 @@ export class Battlefield {
         if (ev.ranged) this.spawnProjectile(world, ev.attacker, ev.target);
         this.spawnDamageNumber(world, ev.target, ev.amount);
       } else if (ev.type === 'special') {
-        this.spawnSpecialFx(ev.x, ev.y, ev.radius, ev.kind, ev.dirX, ev.dirY);
+        this.spawnSpecialFx(ev);
       } else if (ev.type === 'duelBlow') {
         const side = ev.attacker;
         const g = world.generals[side === 0 ? 1 : 0];
@@ -547,19 +549,24 @@ export class Battlefield {
     requestAnimationFrame(tick);
   }
 
-  private spawnSpecialFx(x: number, y: number, radius: number, kind: string, dirX: number, dirY: number): void {
+  /** Placeholder special visuals until per-special fx sheets exist (assets/fx/<fx>). */
+  private spawnSpecialFx(ev: Extract<World['events'][number], { type: 'special' }>): void {
     const g = new Graphics();
-    if (kind === 'cone') {
-      const angle = Math.atan2(dirY, dirX);
-      const half = (35 * Math.PI) / 180;
-      g.moveTo(0, 0);
-      g.arc(0, 0, radius, angle - half, angle + half);
-      g.lineTo(0, 0);
-      g.fill({ color: 0xffa500, alpha: 0.35 });
-    } else {
-      g.circle(0, 0, radius).fill({ color: kind === 'radiusHeal' ? 0x66ff99 : 0xff6666, alpha: 0.3 });
+    const ents = this.lastWorld?.ents;
+    for (const area of ev.areas) {
+      if (area === 'field') g.rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color: 0xff7040, alpha: 0.18 });
+      else if (area === 'wave') {
+        const len = Math.hypot(this.fieldW, this.fieldH) * 1.2;
+        const ang = Math.atan2(ev.dirY * Y_SQUASH, ev.dirX);
+        const band = new Graphics().rect(0, -ev.width * Y_SQUASH, len, ev.width * 2 * Y_SQUASH).fill({ color: 0xffa040, alpha: 0.35 });
+        band.rotation = ang;
+        band.position.set(ev.x, ev.y * Y_SQUASH);
+        g.addChild(band);
+      } else if (ents) {
+        const color = area === 'heal' || area === 'buff' ? 0x66ff99 : area === 'debuff' ? 0xb070ff : 0xff6666;
+        for (const i of ev.affected) g.circle(ents.x[i]!, ents.y[i]! * Y_SQUASH, 8).fill({ color, alpha: 0.5 });
+      }
     }
-    g.position.set(x, y * Y_SQUASH);
     this.fx.addChild(g);
     let t = 0;
     const tick = (): void => {

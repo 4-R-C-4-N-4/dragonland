@@ -76,9 +76,39 @@ export interface GeneralState {
 export type SimEvent =
   | { type: 'hit'; attacker: number; target: number; amount: number; ranged: boolean }
   | { type: 'death'; entity: number }
-  | { type: 'special'; side: Side; kind: SpecialDef['kind']; x: number; y: number; dirX: number; dirY: number; radius: number; affected: number[] }
+  | {
+      type: 'special';
+      side: Side;
+      specialId: string;
+      /** Effect art id (assets/fx/<fx>). */
+      fx: string;
+      /** What happened, in effect order: damage areas, 'heal', 'buff', 'debuff'. */
+      areas: SpecialArea[];
+      /** Caster position and unit direction toward the enemy general. */
+      x: number;
+      y: number;
+      dirX: number;
+      dirY: number;
+      /** Wave half-width when areas includes 'wave', else 0. */
+      width: number;
+      affected: number[];
+    }
   | { type: 'phase'; phase: Phase }
   | { type: 'duelBlow'; attacker: Side; amount: number };
+
+export type SpecialArea = 'field' | 'wave' | 'random' | 'general' | 'heal' | 'buff' | 'debuff';
+
+/** A timed side-wide modifier from a buff (own side) or debuff (enemy side) special. */
+export interface ActiveEffect {
+  side: Side;
+  specialId: string;
+  kind: 'buff' | 'debuff';
+  remainingS: number;
+  damageMult: number;
+  speedMult: number;
+  defenseMult: number;
+  dotPerS: number;
+}
 
 export interface RecordedCommand {
   tick: number;
@@ -136,6 +166,8 @@ export interface World {
   ents: Entities;
   squads: SquadState[];
   generals: [GeneralState, GeneralState];
+  /** Active buffs/debuffs from specials (D24). */
+  activeEffects: ActiveEffect[];
   /** Events emitted during the most recent step() only. */
   events: SimEvent[];
   commandLog: RecordedCommand[];

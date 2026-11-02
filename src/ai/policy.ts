@@ -54,19 +54,19 @@ export function createAiController(data: GameData, side: Side): AiController {
       }
 
       if (canFireSpecial(world, side)) {
-        const gx = ents.x[general.entity]!;
-        const gy = ents.y[general.entity]!;
-        const isHeal = general.special.kind === 'radiusHeal';
-        const targetSide = isHeal ? side : enemySide(side);
-        let count = 0;
+        // Field-wide specials (D24): fire once enough enemies are on the field, or, for heal-only
+        // specials, once enough allies are wounded.
+        const healOnly = general.special.effects.every((e) => e.type === 'heal' || e.type === 'buff');
+        let enemies = 0;
+        let wounded = 0;
         for (let i = 0; i < ents.count; i++) {
-          if (ents.alive[i] === 0 || ents.side[i] !== targetSide) continue;
-          if (dist(gx, gy, ents.x[i]!, ents.y[i]!) > general.special.radius) continue;
-          if (isHeal && ents.hp[i]! >= ents.maxHp[i]!) continue; // only count wounded allies
-          count++;
+          if (ents.alive[i] === 0 || ents.isGeneral[i] === 1) continue;
+          if (ents.side[i] === side) {
+            if (ents.hp[i]! < ents.maxHp[i]!) wounded++;
+          } else enemies++;
         }
-        const threshold = isHeal ? policy.specialMinWoundedAllies : policy.specialMinEnemiesInArea;
-        if (count >= threshold) fireSpecial(world, side);
+        const ready = healOnly ? wounded >= policy.specialMinWoundedAllies : enemies >= policy.specialMinEnemiesInArea;
+        if (ready) fireSpecial(world, side);
       }
     },
   };

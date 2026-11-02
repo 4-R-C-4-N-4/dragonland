@@ -132,5 +132,5 @@ export function deriveHeroDef(base: GeneralDef, hero: HeroProgress): GeneralDef 
   if (base.id !== hero.generalId) throw new Error('Hero/general identity mismatch');
   const growth = 1 + config.hero.growthPerLevel * (hero.level - 1);
   const rank = (kind: HeroUpgradeKind) => (1 + config.hero.upgradePerRank) ** hero.upgrades[kind];
-  return { ...base, level: hero.level, hp: base.hp * growth * rank('vitality'), attack: base.attack * growth * rank('might'), special: { ...base.special, amount: base.special.amount * rank('mastery') } };
+  return { ...base, level: hero.level, hp: base.hp * growth * rank('vitality'), attack: base.attack * growth * rank('might'), special: { ...base.special, power: base.special.power * rank('mastery') } };
 }

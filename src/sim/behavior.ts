@@ -4,6 +4,7 @@ import { computeDamage } from './combat';
 import { dist, normalizeTo, separationForce } from './steering';
 import type { Entities, GeneralState, Side, SquadState, World } from './types';
 import { internalOf, type ResolvedUnit, type WorldInternal } from './world';
+import { sideMods } from './specials';
 
 function enemySide(side: Side): Side {
   return side === 0 ? 1 : 0;
@@ -52,6 +53,7 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
     { classId: aProfile.classId, line: aProfile.line, statMult: ents.statMult[attacker]! },
     { classId: tProfile.classId, line: tProfile.line },
   );
+  dmg *= sideMods(world, ents.side[attacker] as Side).damageMult * sideMods(world, ents.side[target] as Side).defenseMult;
   if (ents.isGeneral[target] === 1 && ents.isGeneral[attacker] === 0 && world.squads[ents.squad[attacker]!]!.disposition === 'fierce') {
     dmg *= data.behaviors.fierce.generalDamageMult;
   }
@@ -150,12 +152,12 @@ function moveTroop(
   const profile = profileFor(internal, e, ents);
   const target = ents.target[e]!;
   const ranged = profile.attackRange > data.constants.RANGED_THRESHOLD;
-  const speed =
+  const speed = sideMods(world, side).speedMult * (
     squad.disposition === 'mixed' && data.behaviors.mixed.slowestSpeed
       ? internal.squadMinSpeed[squad.index]!
       : squad.disposition === 'fierce'
         ? profile.moveSpeed * data.behaviors.fierce.speedMult
-        : profile.moveSpeed;
+        : profile.moveSpeed);
 
   let vx = 0;
   let vy = 0;

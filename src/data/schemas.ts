@@ -6,7 +6,11 @@ export const ClassIdSchema = z.enum(['beast', 'mage', 'ethereal', 'construct', '
 export const LineSchema = z.enum(['A', 'M', 'Z']);
 export const DispositionSchema = z.enum(['fierce', 'mixed', 'guard']);
 export const CommandSchema = z.enum(['advance', 'hold', 'fallBack']);
-export const GeneralIdSchema = z.enum(['paladin', 'dragon']);
+/** Every stage-3 species can lead as a general (MVP2, D24). Ids equal their unit ids. */
+export const GeneralIdSchema = z.enum([
+  'paladin', 'deadeye', 'assassin', 'dragon', 'eagle', 'warg', 'archmage', 'diabolist', 'hierophant',
+  'devil', 'shepherd', 'archangel', 'servitor', 'kyilkhor', 'anima',
+]);
 
 export type ClassId = z.infer<typeof ClassIdSchema>;
 export type Line = z.infer<typeof LineSchema>;
@@ -77,16 +81,52 @@ export const UnitDefSchema = z.object({
 });
 export type UnitDef = z.infer<typeof UnitDefSchema>;
 
+const SpecialDamageEffectSchema = z.object({
+  type: z.literal('damage'),
+  /** field: every enemy troop; wave: band along caster -> enemy general across the whole field;
+   *  random: `targets` distinct enemy troops; general: the enemy general only. */
+  area: z.enum(['field', 'wave', 'random', 'general']),
+  /** Damage before class/line modifiers (same scale as BASE_DAMAGE). */
+  amount: z.number().positive(),
+  includeGeneral: z.boolean().default(false),
+  targets: z.number().int().positive().optional(),
+  /** Wave half-width (sim units). */
+  width: z.number().positive().optional(),
+});
+const SpecialHealEffectSchema = z.object({ type: z.literal('heal'), /** of max HP, own troops + general */ fraction: z.number().positive().max(1) });
+const SpecialBuffEffectSchema = z.object({
+  type: z.literal('buff'),
+  durationS: z.number().positive(),
+  damageMult: z.number().positive().default(1),
+  speedMult: z.number().positive().default(1),
+  /** < 1 = takes less damage */
+  defenseMult: z.number().positive().default(1),
+});
+const SpecialDebuffEffectSchema = z.object({
+  type: z.literal('debuff'),
+  durationS: z.number().positive(),
+  damageMult: z.number().positive().default(1),
+  speedMult: z.number().positive().default(1),
+  /** damage per second to every enemy troop while active */
+  dotPerS: z.number().nonnegative().default(0),
+});
+export const SpecialEffectSchema = z.discriminatedUnion('type', [SpecialDamageEffectSchema, SpecialHealEffectSchema, SpecialBuffEffectSchema, SpecialDebuffEffectSchema]);
+export type SpecialEffect = z.infer<typeof SpecialEffectSchema>;
+export type SpecialEffectInput = z.input<typeof SpecialEffectSchema>;
+
+/** Dragon Force-style specials: field-wide, not local (D24). */
 export const SpecialDefSchema = z.object({
   id: z.string(),
   name: z.string(),
+  description: z.string(),
+  /** Effect art id: assets/fx/<fx>.{png,json}. */
+  fx: z.string().regex(/^[a-z-]+$/),
   mpCost: z.number().nonnegative(),
   /** MP spent on a special is restored in full once this cooldown elapses (DECISIONS D2). */
   cooldownS: z.number().nonnegative(),
-  kind: z.enum(['cone', 'radiusHeal', 'radiusDamage']),
-  radius: z.number().positive(),
-  amount: z.number().nonnegative(),
-  coneHalfAngleDeg: z.number().positive().optional(),
+  /** Scales damage, heal and buff/debuff strength (general mastery upgrades). */
+  power: z.number().positive().default(1),
+  effects: z.array(SpecialEffectSchema).min(1),
 });
 export type SpecialDef = z.infer<typeof SpecialDefSchema>;
 

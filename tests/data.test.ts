@@ -6,7 +6,7 @@ describe('game data', () => {
     const d = getGameData();
     expect(d.units).toHaveLength(45);
     expect(d.units.filter((u) => u.stage !== 3)).toHaveLength(30);
-    expect(d.generals.map((g) => g.id).sort()).toEqual(['dragon', 'paladin']);
+    expect(d.generals.map((g) => g.id).sort()).toEqual(d.units.filter((u) => u.stage === 3).map((u) => u.id).sort());
     expect(d.formations.map((f) => f.id).sort()).toEqual(['guard', 'line', 'wedge']);
   });
 });

@@ -75,6 +75,16 @@ Each code step uses RED test -> minimal implementation -> GREEN test. Run npm ru
 | Q8 | Art generation for 31 missing species, art/reviews/mvp2.json | Independent visual reviews; 45 runtime PNG/mask/JSON sets, all 225 animation tags | pending |
 | Q9 | Integration/headless/browsers; PROGRESS.md | Full gates; verify XP/evolution, restricted recruiting, reload safety, loss lockout, five-class encounters | pending |
 
+## Phase B queue (D24: heroes, field specials, class unlocks)
+
+| ID | Task | Acceptance | State |
+|---|---|---|---|
+| B1 | Field-wide special effect system + 15 generals with specials | data-driven effects, tests per area, AI fires sensibly | done (parent) |
+| B2 | Run: 15 selectable heroes; starting troops = hero class + partner (H+M, M+C, C+B, B+E, E+H); recruits/offers only from unlocked classes; defeating an enemy general unlocks its class; encounter cards show general class + unlock | tests + browser | worker |
+| B3 | FX pipeline: art/fx specs, strip generation + processing to assets/fx, renderer plays fx per special kind (field overlay, travelling wave, per-target strikes, army glow) | tests + browser | worker |
+| B4 | Generate + independently review 15 special fx sheets | reviews recorded | after B3 |
+| B5 | Balance: specials vs disposition/run numbers via dispo.ts/runsim.ts | numbers in DECISIONS | parent |
+
 ## Deferred
 
 Overworld/towns, mentorship, general recruitment/promotion, bonds, injury economy, captures, branching evolution, equipment, permanent metaprogression, additional hero archetypes, final animation polish. Do not expand these while the finite run is unverified.

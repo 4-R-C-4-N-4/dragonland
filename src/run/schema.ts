@@ -1,6 +1,6 @@
 // Persisted run state (MVP2). One versioned snapshot, validated with zod on load.
 import { z } from 'zod';
-import { ClassIdSchema, DispositionSchema, GeneralIdSchema } from '../data/schemas';
+import { ClassIdSchema, DispositionSchema, GeneralDefSchema, GeneralIdSchema } from '../data/schemas';
 
 const Hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -21,15 +21,8 @@ export const HeroProgressSchema = z.object({
 });
 
 // Battle setups are sim inputs; validated loosely here and re-validated by createBattle.
-const SpecialSchema = z.object({
-  id: z.string(), name: z.string(), mpCost: z.number(), cooldownS: z.number(),
-  kind: z.enum(['cone', 'radiusHeal', 'radiusDamage']), radius: z.number(), amount: z.number(),
-  coneHalfAngleDeg: z.number().optional(),
-});
-const GeneralSchema = z.object({
-  id: GeneralIdSchema, unitId: z.string(), name: z.string(), hp: z.number().positive(), mp: z.number().nonnegative(),
-  level: z.number().int().positive(), attack: z.number().positive(), special: SpecialSchema,
-});
+// Frozen general definitions use the content schema itself, so specials can't drift.
+const GeneralSchema = GeneralDefSchema;
 const TroopSetupSchema = z.object({ troopId: z.string(), name: z.string(), unitId: z.string(), statMult: z.number().positive().optional() });
 const SquadSetupSchema = z.object({ id: z.string(), name: z.string(), disposition: DispositionSchema, troops: z.array(TroopSetupSchema), color: Hex.optional() });
 export const SideSetupSchema = z.object({

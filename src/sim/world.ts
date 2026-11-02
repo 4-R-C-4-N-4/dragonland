@@ -256,6 +256,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     ents,
     squads,
     generals,
+    activeEffects: [],
     events: [],
     commandLog: [],
     result: null,
