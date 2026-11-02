@@ -79,15 +79,17 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   });
   app.stage.addChild(hud.root);
 
-  // HUD reserves fixed top/bottom bands; the field fills the remaining width/height so
-  // troops read at a legible on-screen size (implementation.md §7.2).
+  // Reserve the actual responsive HUD, not a stale fixed-height input/camera band.
   const TOP_BAND = 68;
-  const BOTTOM_BAND = 172;
+  function bottomBandHeight(): number {
+    hud.layout(app.renderer.width, app.renderer.height);
+    return hud.getBottomBandHeight();
+  }
 
   function camOpts() {
     const vw = app.renderer.width;
     const vh = app.renderer.height;
-    const usableH = Math.max(100, vh - TOP_BAND - BOTTOM_BAND);
+    const usableH = Math.max(100, vh - TOP_BAND - bottomBandHeight());
     return {
       fieldW: data.constants.FIELD_W,
       fieldH: data.constants.FIELD_H * 0.65,
@@ -102,11 +104,15 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   // field sits centered in the usable strip (not hidden behind the top bar).
   let cam: Camera = fitCamera(camOpts());
   let camYOffset = 0;
+  let cameraViewportW = 0;
+  let cameraViewportH = 0;
 
   function recomputeCamera(): void {
     const opts = camOpts();
     cam = fitCamera(opts);
-    camYOffset = TOP_BAND / 2 - BOTTOM_BAND / 2;
+    camYOffset = (TOP_BAND - bottomBandHeight()) / 2;
+    cameraViewportW = app.renderer.width;
+    cameraViewportH = app.renderer.height;
   }
   recomputeCamera();
   const onResize = (): void => recomputeCamera();
@@ -117,7 +123,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   const canvas = app.canvas;
 
   function isOverHud(x: number, y: number): boolean {
-    return y < TOP_BAND || y > canvas.height - BOTTOM_BAND;
+    return y < TOP_BAND || y > app.renderer.height - bottomBandHeight();
   }
 
   const detachDrag = bindDragEvents(canvas, window, {
@@ -137,6 +143,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   canvas.addEventListener(
     'wheel',
     (e) => {
+      if (isOverHud(e.offsetX, e.offsetY)) return;
       e.preventDefault();
       const zoom = clampZoom(cam.zoom * (e.deltaY < 0 ? 1.1 : 0.9), camOpts());
       cam = clampCamera({ ...cam, zoom }, camOpts());
@@ -165,6 +172,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
     onFrame: (w, alpha, elapsedS) => {
       const vw = app.renderer.width;
       const vh = app.renderer.height;
+      if (vw !== cameraViewportW || vh !== cameraViewportH) recomputeCamera();
       redrawVignette(vw, vh);
       battlefield.render(w, cam, alpha, vw, vh, elapsedS, selection.selectedSlots());
       battlefield.world2screen.position.y += camYOffset;
