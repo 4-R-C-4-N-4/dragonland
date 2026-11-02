@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp2`. Current gate: `npm run check` (tsc + vitest, 247 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 254 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## MVP2 implementation (branch `mvp2`)
 
@@ -38,6 +38,16 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
 - Browser audit: hero selection, encounters and preparation at 1280×800; battle HUD at 800×600. Confirmed fixed-width HUD overlap/clipping, small metadata and primary actions below the fold.
 - `docs/mainline-readiness.md` ranks the focused UX pass, FX correctness/signoff, perspective work and release gates. No merge to `main` is authorized by this integration step.
 - FX review status is explicit in `art/reviews/fx.json`; generation/technical validity is not visual approval.
+
+## Active mainline UI/UX execution
+
+Checklist: `docs/plans/mainline-ux.md` (all findings from the readiness audit are in scope; no automatic main merge).
+
+- Active isolated implementation streams: `polish-hud` (responsive battle HUD/planning cues), `polish-campaign` (campaign readability/actions/help/results), `polish-fx` (first-cast/per-area targets/sizing/waves/FX lifetime). Workers do not push or commit; parent reviews and integrates.
+- Parent foundation implemented: battle drag handlers now detach on teardown, including cancel/lost-capture; destroy is idempotent. Three lifecycle regressions pass. Full repeated-battle browser verification is still pending.
+- Parent foundation implemented: pure shared perspective/inverse/depth-scale/bounds module with four geometry tests. It is **not wired into battlefield/camera yet**; integrate only after the FX stream to avoid conflicting edits.
+- Added Node22 GitHub CI and README. Local parent gate: **254 tests pass, production build passes**. Remote CI execution and clean-install verification are pending.
+- Independent spec/quality reviews, integrated browser evidence, per-FX visual verdicts, current balance diagnostics and release PR remain pending; a green foundation gate does not close those items.
 
 ## Art handoff
 

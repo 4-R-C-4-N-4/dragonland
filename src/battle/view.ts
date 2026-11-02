@@ -7,6 +7,7 @@ import { startLoop } from './loop';
 import { Battlefield } from '../render/battlefield';
 import { Hud } from '../render/hud';
 import { Selection } from './selection';
+import { bindDragEvents } from './pointerInput';
 import { attachInput } from './input';
 import { fitCamera, clampCamera, clampZoom, screenToWorld } from './camera';
 import type { Camera } from './camera';
@@ -119,18 +120,20 @@ export const startBattleView: StartBattleView = async (root, opts) => {
     return y < TOP_BAND || y > canvas.height - BOTTOM_BAND;
   }
 
-  canvas.addEventListener('pointerdown', (e) => {
-    if (isOverHud(e.offsetX, e.offsetY)) return;
-    dragging = true;
-    dragStart = { x: e.clientX, y: e.clientY, camX: cam.x, camY: cam.y };
+  const detachDrag = bindDragEvents(canvas, window, {
+    down: (e) => {
+      if (isOverHud(e.offsetX, e.offsetY)) return;
+      dragging = true;
+      dragStart = { x: e.clientX, y: e.clientY, camX: cam.x, camY: cam.y };
+    },
+    move: (e) => {
+      if (!dragging) return;
+      const dx = (e.clientX - dragStart.x) / cam.zoom;
+      const dy = (e.clientY - dragStart.y) / cam.zoom;
+      cam = clampCamera({ x: dragStart.camX - dx, y: dragStart.camY - dy, zoom: cam.zoom }, camOpts());
+    },
+    end: () => { dragging = false; },
   });
-  window.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const dx = (e.clientX - dragStart.x) / cam.zoom;
-    const dy = (e.clientY - dragStart.y) / cam.zoom;
-    cam = clampCamera({ x: dragStart.camX - dx, y: dragStart.camY - dy, zoom: cam.zoom }, camOpts());
-  });
-  window.addEventListener('pointerup', () => (dragging = false));
   canvas.addEventListener(
     'wheel',
     (e) => {
@@ -186,10 +189,14 @@ export const startBattleView: StartBattleView = async (root, opts) => {
     },
   });
 
+  let destroyed = false;
   return {
     destroy(): void {
+      if (destroyed) return;
+      destroyed = true;
       loopHandle.stop();
       detachInput();
+      detachDrag();
       window.removeEventListener('resize', onResize);
       battlefield.destroy();
       app.destroy(true, { children: true });
