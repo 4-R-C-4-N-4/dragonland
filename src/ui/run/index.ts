@@ -139,7 +139,8 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
       return `<span class="dl-${v}">${esc(className(c))}: ${v}</span>`;
     }).join(' · ');
     const g = e.side.general!;
-    return `<strong>${e.boss ? '👑 ' : ''}${esc(e.name)}</strong>
+    const doctrine = e.doctrine ? ` <span class="dl-stage">(${e.doctrine} doctrine)</span>` : '';
+    return `<strong>${e.boss ? '👑 ' : ''}${esc(e.name)}</strong>${doctrine}
       ${esc(g.name)} Lv ${g.level} · HP ${Math.round(g.hp)} · ${troops.length} troops (${byStage.map((n, i) => (n ? `${n} stage ${i + 1}` : '')).filter(Boolean).join(', ')})<br>
       ${[...byClass].map(([c, n]) => `${esc(className(c))} ×${n}`).join(', ')}<br>
       <span class="dl-dim">Your classes vs them: ${edges}</span>`;

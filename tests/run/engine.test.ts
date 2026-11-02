@@ -90,6 +90,30 @@ describe('encounters', () => {
   });
 });
 
+describe('enemy dispositions', () => {
+  it('follow a seeded doctrine: Fierce goes to the fastest squad, Guard to the most durable', () => {
+    const doctrines = new Set<string>();
+    let leadsFierce = 0;
+    let checked = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const e = generateEncounter(data, seed, 4, 0, false);
+      expect(generateEncounter(data, seed, 4, 0, false)).toEqual(e);
+      doctrines.add(e.doctrine!);
+      if (e.side.squads[0]!.disposition === 'fierce') leadsFierce++;
+      const speed = (q: (typeof e.side.squads)[number]) => q.troops.reduce((n, t) => n + data.unitById.get(t.unitId)!.moveSpeed, 0) / q.troops.length;
+      const fierce = e.side.squads.filter((q) => q.disposition === 'fierce');
+      const others = e.side.squads.filter((q) => q.disposition !== 'fierce');
+      if (fierce.length && others.length) {
+        checked++;
+        expect(Math.min(...fierce.map(speed))).toBeGreaterThanOrEqual(Math.max(...others.map(speed)) - 1e-9);
+      }
+    }
+    expect(doctrines.size).toBeGreaterThanOrEqual(3);
+    expect(leadsFierce).toBeLessThan(40);
+    expect(checked).toBeGreaterThan(0);
+  });
+});
+
 describe('battle resolution', () => {
   const start = () => newRun(data, { seed: 21, generalId: 'paladin', startClass: 'human' });
 

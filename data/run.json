@@ -8,7 +8,7 @@
   "rosterCap": 160,
   "woundedRecoveryOnWin": 0.5,
   "enemyStartingTroops": 40,
-  "enemyTroopsPerDepth": 8,
+  "enemyTroopsPerDepth": 6,
   "enemyMaxTroops": 100,
   "enemyStage2Depth": 3,
   "enemyStage3Depth": 6,

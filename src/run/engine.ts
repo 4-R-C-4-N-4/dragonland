@@ -106,7 +106,40 @@ function encounterOffers(data: GameData, seed: number, depth: number, cfg: RunCo
   return Array.from({ length: cfg.encounterOfferCount }, (_, i) => generateEncounter(data, seed, depth, i, boss, cfg));
 }
 
-const DISPOSITIONS: Disposition[] = ['fierce', 'mixed', 'guard'];
+type Doctrine = NonNullable<Encounter['doctrine']>;
+const DOCTRINES: Doctrine[] = ['balanced', 'assault', 'defensive', 'skirmish'];
+const SQUAD_NAMES: Record<Disposition, string> = { fierce: 'Raiders', mixed: 'Host', guard: 'Wardens' };
+
+/**
+ * How many Fierce / Guard squads a doctrine fields out of k (D23). The rest are Mixed.
+ * balanced: one Guard, plus one Fierce with 4 squads; assault: Fierce-heavy with one Mixed anchor;
+ * defensive: half Guard; skirmish: all Mixed.
+ */
+function doctrineCounts(doctrine: Doctrine, k: number): { fierce: number; guard: number } {
+  switch (doctrine) {
+    case 'balanced': return { fierce: k >= 4 ? 1 : 0, guard: 1 };
+    case 'assault': return { fierce: Math.max(1, k - 1), guard: 0 };
+    case 'defensive': return { fierce: 0, guard: Math.ceil(k / 2) };
+    case 'skirmish': return { fierce: 0, guard: 0 };
+  }
+}
+
+/** Assign dispositions by squad content: Fierce to the fastest squads (they flank), Guard to the toughest. */
+function assignDispositions(data: GameData, squads: SquadSetup[], doctrine: Doctrine): void {
+  const { fierce, guard } = doctrineCounts(doctrine, squads.length);
+  const mean = (q: SquadSetup, f: (u: UnitDef) => number) => q.troops.reduce((n, t) => n + f(data.unitById.get(t.unitId)!), 0) / q.troops.length;
+  const speed = (q: SquadSetup) => mean(q, (u) => u.moveSpeed);
+  const toughness = (q: SquadSetup) => mean(q, (u) => (u.line === 'Z' ? 2 : u.line === 'M' ? 1 : 0) + u.stage * 0.1);
+  const order = squads.map((_, i) => i);
+  const byFast = [...order].sort((a, b) => speed(squads[b]!) - speed(squads[a]!) || a - b);
+  const fierceIdx = new Set(byFast.slice(0, fierce));
+  const byTough = order.filter((i) => !fierceIdx.has(i)).sort((a, b) => toughness(squads[b]!) - toughness(squads[a]!) || a - b);
+  const guardIdx = new Set(byTough.slice(0, guard));
+  squads.forEach((q, i) => {
+    q.disposition = fierceIdx.has(i) ? 'fierce' : guardIdx.has(i) ? 'guard' : 'mixed';
+    q.name = `${SQUAD_NAMES[q.disposition]} ${i + 1}`;
+  });
+}
 
 function enemyLevel(stage: number, depth: number, rng: Rng): number {
   const bump = Math.min(2, Math.floor(depth / 3)) + (nextFloat(rng) < 0.5 ? 0 : 1);
@@ -151,8 +184,10 @@ export function generateEncounter(data: GameData, seed: number, depth: number, i
       unitId: t.unit.id,
       statMult: deriveTroopStats(t.unit, t.level).damageMultiplier,
     }));
-    squads.push({ id: `enemy-${depth}-${index}-sq${s}`, name: `Company ${s + 1}`, disposition: s === 0 ? 'fierce' : pick(rng, DISPOSITIONS), troops: members });
+    squads.push({ id: `enemy-${depth}-${index}-sq${s}`, name: `Company ${s + 1}`, disposition: 'mixed', troops: members });
   }
+  const doctrine = pick(rng, DOCTRINES);
+  assignDispositions(data, squads, doctrine);
   const baseGeneral = data.generalById.get(generalId)!;
   const growth = (1 + cfg.enemyGeneralGrowthPerDepth * depth) * (boss ? cfg.bossGeneralMultiplier : 1);
   const general = { ...baseGeneral, level: 1 + depth, hp: baseGeneral.hp * growth, attack: baseGeneral.attack * growth };
@@ -162,6 +197,7 @@ export function generateEncounter(data: GameData, seed: number, depth: number, i
     depth,
     boss,
     name: `${boss ? 'Warlord ' : ''}${baseGeneral.name}'s ${classNames} host`,
+    doctrine,
     side: { generalId, formationId: pick(rng, data.formations).id, squads, general },
   };
 }

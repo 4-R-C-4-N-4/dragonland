@@ -4,6 +4,7 @@
 // milestones on vitality. Usage: npm run runsim -- [--runs 30] [--seed 1] [--set key=value ...]
 import { getGameData, type ClassId } from '../src/data';
 import { createBattle, step } from '../src/sim';
+import { createAiController } from '../src/ai/policy';
 import {
   applyBattleResult, chooseEncounter, chooseHeroUpgrade, chooseRecruitOffer, getRunConfig, newRun, RunConfigSchema, startBattle,
   type RunConfig, type RunState,
@@ -50,7 +51,15 @@ for (let r = 0; r < runs; r++) {
   while (s.phase === 'select') {
     const best = [...s.offers].sort((a, b) => edgeScore(s, b) - edgeScore(s, a))[0]!;
     s = chooseEncounter(s, best.id);
-    const plan = autoPlan(data, s.roster); if (process.env.DISP) plan.squads.forEach((q, i) => (q.disposition = process.env.DISP!.split(',')[i] as never)); const army = planToArmy(data, s.roster, plan);
+    const plan = autoPlan(data, s.roster);
+    // DISP=a,b,c,d fixes dispositions; DISP=read counters the enemy's visible doctrine.
+    const counter: Record<string, string> = {
+      assault: 'guard,mixed,guard,mixed', defensive: 'mixed,mixed,mixed,mixed',
+      skirmish: 'fierce,mixed,guard,mixed', balanced: 'mixed,mixed,guard,mixed',
+    };
+    const disp = process.env.DISP === 'read' ? counter[s.encounter!.doctrine ?? 'balanced'] : process.env.DISP;
+    if (disp) plan.squads.forEach((q, i) => (q.disposition = disp.split(',')[i] as never));
+    const army = planToArmy(data, s.roster, plan);
     if (army.squads.length === 0) break;
     try {
       s = startBattle(data, s, army);
@@ -58,7 +67,11 @@ for (let r = 0; r < runs; r++) {
       break;
     }
     const w = createBattle(data, s.battle!.setup);
-    for (let t = 0; t < 20 * 60 * 8 && !w.result; t++) step(w);
+    const enemyAi = createAiController(data, 1); // same in-battle policy the browser uses for the enemy
+    for (let t = 0; t < 20 * 60 * 8 && !w.result; t++) {
+      if (!process.env.NOAI) enemyAi.update(w);
+      step(w);
+    }
     s = applyBattleResult(data, s, s.battle!.id, w.result!, cfg);
     while (s.pendingMilestones.length && (s.phase === 'rewards' || s.phase === 'won')) s = chooseHeroUpgrade(s, 'vitality');
     if (s.phase === 'rewards') {

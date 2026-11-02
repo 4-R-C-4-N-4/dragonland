@@ -42,6 +42,8 @@ export const EncounterSchema = z.object({
   depth: z.number().int().nonnegative(),
   boss: z.boolean(),
   name: z.string(),
+  /** Enemy disposition doctrine (D23); optional for saves made before it existed. */
+  doctrine: z.enum(['balanced', 'assault', 'defensive', 'skirmish']).optional(),
   side: SideSetupSchema,
 });
 
