@@ -2,6 +2,29 @@
 
 Branch: `mvp`. Gate: `npm run check` (tsc + vitest, 135 tests) and `npm run build`. Node 22.
 
+## MVP2 implementation (branch `mvp2`)
+
+Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
+
+- Written and committed the run/progression contract and validated finite-run tuning JSON.
+- Implemented a serialized resumable art generator with dependency ordering and pending-review records.
+- Removed floating battlefield flags and centroid decorations; HUD squad selection, tint and selection rings remain.
+- Parent gate: 141 tests pass and production build passes. New flags regression tests observed red before removal.
+- Initial three Hermes workers failed before writing code due to Anthropic HTTP 429; no implementation was lost.
+  Recovery used authenticated Codex CLI in the same isolated worktrees (content, art specs, pure progression).
+- Q1/Q2/Q3 merged into `mvp2` (gates green: 172 tests at merge); independent spec/quality reviews dispatched, results pending.
+- Q4 sim: per-troop `statMult`, hero `general` override, stage-3 troops keep troop stats (no longer overwritten by
+  the same-species general profile), `STAGE3_STAT_MULT` 1.6.
+- Q5 run engine `src/run/*`: seeded encounters/recruits, frozen battles, idempotent results, versioned storage with
+  semantic validation; real-sim integration test.
+- Q6 campaign UI `src/ui/run/*` is the default mode (sandbox via link). Browser-verified: new run -> encounter ->
+  deploy -> battle -> reload mid-battle resumes the same frozen battle -> victory -> rewards -> recruit -> next select.
+  Fixed: duplicate recruit offers.
+- Q8 art: `tools/art/production.ts` running serially (Codex); contact sheets via `tools/art/contact.py`; isolated
+  vision reviewers judge each batch. Picks are provisional until reviewed.
+- Balance (tools/runsim.ts, naive bot): runs currently end at 0-2 victories; attrition far too punishing. Open.
+- Gate now: 194 tests, build passes.
+
 ## Art handoff
 
 - All 14 MVP unit/general IDs have raw candidates; picks and processed sprites are provisional.
