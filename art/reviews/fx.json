@@ -1,11 +1,12 @@
 {
   "status": "provisional-not-mainline-approved",
   "notes": [
-    "All 15 picked sheets process into nonempty animation frames.",
-    "Sources and exact selections are preserved in art/raw/fx and art/picks.yaml.",
-    "Slicer now tolerates non-divisible canvases and uses low-ink gutters for uneven pose spacing.",
-    "Post-fix extraction and in-game size/placement/playback require visual signoff.",
-    "Independent FX review was blocked by provider rate limits."
+    "All15 picked sheets processed with shared common trim in a3127cb; all intended frames nonempty, exact sources below.",
+    "Raw sources and exact picks remain unchanged. Technical alpha counts are not in-game approval.",
+    "Independent source/extraction visual review accepted all15 provisionally: distinct identities, coherent sequences, no obvious chopping, neighbor contamination or magenta leakage.",
+    "Source contact review was performed on the processed strips at preview scale. Game-scale readability, projection, target placement, first-cast readiness and lifetime remain pending actual scene review.",
+    "FX implementation passed independent spec and quality re-reviews before merge c16345e. These code reviews do not substitute for playback signoff.",
+    "Isolated browser runtime fixture verified all15 first casts with15 real effect assets ready, actual per-area side recipients, visible sprite frames at0.2s and zero remaining FX nodes after1.8s. Holy Rally, Sanctuary and Guiding Light currently double-render identical heal+buff auras on the same61 recipients (122 nodes); reducing duplicate overdraw is a pending presentation correction before final scene signoff."
   ],
   "effects": [
     {
@@ -14,7 +15,31 @@
       "minimumVisiblePixels": 6965,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/arrow-storm/adce4427-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Distinct diagonal arrow rain builds into a bright ground impact, then thins to scattered arrows and debris. No obvious chopped silhouettes or neighboring content.",
+        "limitations": "Fine arrow shafts may lose readability at the smallest intended scale."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "deadeye",
+        "realAssetsReady": 15,
+        "spritesAt02S": 30,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "random",
+            "count": 30,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "dragon-breath",
@@ -22,7 +47,31 @@
       "minimumVisiblePixels": 5162,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/dragon-breath/1e620f9f-2.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Low orange flame develops into a broad rolling wave, peaks centrally, and recedes into embers and smoke across eight frames.",
+        "limitations": "Travel direction and coverage relative to targets require playback verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "dragon",
+        "realAssetsReady": 15,
+        "spritesAt02S": 4,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 33,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "earthquake",
@@ -30,7 +79,39 @@
       "minimumVisiblePixels": 4809,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/earthquake/267772b5-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Ground cracks lead into rising rock fragments and a clear debris peak, followed by settling dust. Rock silhouettes appear intact.",
+        "limitations": "Ground alignment and apparent debris size require scene verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "kyilkhor",
+        "realAssetsReady": 15,
+        "spritesAt02S": 81,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 40,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "guiding-light",
@@ -38,7 +119,39 @@
       "minimumVisiblePixels": 10561,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/guiding-light/3701b112-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A narrow golden light grows into a twisting luminous column, then contracts with diminishing sparkles. Its slender silhouette remains distinct.",
+        "limitations": "Small sparkles and the narrow initial frame may be faint at 32px."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "shepherd",
+        "realAssetsReady": 15,
+        "spritesAt02S": 122,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "hellfire-wave",
@@ -46,7 +159,31 @@
       "minimumVisiblePixels": 9347,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/hellfire-wave/57340553-2.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Crimson flame and dark violet smoke form a curling crest, reach a strong peak, then collapse into wisps. Magenta coloration follows flame shapes rather than appearing as background leakage.",
+        "limitations": "Dark smoke contrast and separation from dragon-breath require scene verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "diabolist",
+        "realAssetsReady": 15,
+        "spritesAt02S": 4,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 40,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "holy-rally",
@@ -54,7 +191,39 @@
       "minimumVisiblePixels": 5762,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/holy-rally/552bb66c-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Descending golden light establishes a ground ring, expands into a radiant pillar, and resolves into ring remnants and sparkles.",
+        "limitations": "The initial suspended light needs playback to confirm its intended entrance and anchoring."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "paladin",
+        "realAssetsReady": 15,
+        "spritesAt02S": 122,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "inferno",
@@ -62,7 +231,39 @@
       "minimumVisiblePixels": 6525,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/inferno/0841235b-2.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A small ignition grows into a tall orange fire column, then diminishes through curling smoke and residual flame. The eight-frame progression is coherent.",
+        "limitations": "Tall proportions and smoke visibility require verification against characters and backgrounds."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "devil",
+        "realAssetsReady": 15,
+        "spritesAt02S": 81,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "judgement",
@@ -70,7 +271,31 @@
       "minimumVisiblePixels": 3785,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/judgement/3c6a2882-2.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "White-gold energy builds into a broad sweeping crest with starbursts, then narrows into scattered luminous streaks. The bright mass appears contained within its cells.",
+        "limitations": "Peak brightness may obscure targets; timing and overlap require playback verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "archangel",
+        "realAssetsReady": 15,
+        "spritesAt02S": 4,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "wave",
+            "count": 28,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "meteor-fall",
@@ -78,7 +303,31 @@
       "minimumVisiblePixels": 3060,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/meteor-fall/ef153fd8-2.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A recognizable fiery meteor descends diagonally, reaches the ground, bursts into an impact, and fades through debris and embers.",
+        "limitations": "Impact placement and continuity of the falling trajectory require playback verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "archmage",
+        "realAssetsReady": 15,
+        "spritesAt02S": 40,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "field",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "overclock",
@@ -86,7 +335,31 @@
       "minimumVisiblePixels": 7395,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/overclock/0de0b044-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A blue spark expands into an electrical cylinder with upper and lower rings, intensifies, then fragments into fading arcs.",
+        "limitations": "Thin electrical lines may become fragile at the smallest intended scale."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "anima",
+        "realAssetsReady": 15,
+        "spritesAt02S": 61,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "pack-howl",
@@ -94,7 +367,31 @@
       "minimumVisiblePixels": 9475,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/pack-howl/2ffdd9a4-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Angular golden energy develops into an expanding ground shock ring with overhead arcs, then dissipates. Its radial silhouette is distinct from the other auras.",
+        "limitations": "The howl association is abstract; character context and ring placement require scene verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "warg",
+        "realAssetsReady": 15,
+        "spritesAt02S": 61,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "plague-cloud",
@@ -102,7 +399,31 @@
       "minimumVisiblePixels": 8142,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/plague-cloud/47f044c8-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "Yellow-green puffs grow into a bubbling cloud with curling fumes, peak clearly, and shrink back to a small residue.",
+        "limitations": "Internal cloud detail may merge at 32px; target coverage remains unverified."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "servitor",
+        "realAssetsReady": 15,
+        "spritesAt02S": 41,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "sanctuary",
@@ -110,7 +431,39 @@
       "minimumVisiblePixels": 42101,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/sanctuary/33ebe0c8-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A consistent cyan geometric ward shows subtle changes in central brightness and surrounding sparkles. Similar silhouettes support an intentional pulsing aura.",
+        "limitations": "Loop smoothness and pulse visibility require playback; an entrance or fade is not established by these frames."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "hierophant",
+        "realAssetsReady": 15,
+        "spritesAt02S": 122,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "heal",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          },
+          {
+            "area": "buff",
+            "count": 61,
+            "sides": [
+              0
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "shadow-mark",
@@ -118,7 +471,39 @@
       "minimumVisiblePixels": 1469,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/shadow-mark/adfc6558-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A faint violet diagonal mark strengthens into a bright-centered slash, then breaks into dark wisps and sparse particles.",
+        "limitations": "Early and late frames have low contrast on the dark contact-sheet background."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "assassin",
+        "realAssetsReady": 15,
+        "spritesAt02S": 13,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "general",
+            "count": 1,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "random",
+            "count": 12,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     },
     {
       "id": "tempest-dive",
@@ -126,7 +511,39 @@
       "minimumVisiblePixels": 3160,
       "technical": "pass",
       "visual": "pending",
-      "independentReview": "pending"
+      "independentReview": "source-accepted-playback-pending",
+      "source": "art/raw/fx/tempest-dive/ba0932b0-1.png",
+      "sourceReview": {
+        "verdict": "accept-provisional",
+        "reason": "A compact blue-white swirl stretches into a diagonal dive, produces a sharp impact burst, then disperses into curling wind fragments.",
+        "limitations": "Motion continuity, impact anchoring, and target alignment require playback verification."
+      },
+      "runtimeAssetCommit": "a3127cb",
+      "runtimeTechnicalPreProjection": {
+        "hero": "eagle",
+        "realAssetsReady": 15,
+        "spritesAt02S": 66,
+        "remainingAfter18S": 0,
+        "areaTargets": [
+          {
+            "area": "random",
+            "count": 25,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          },
+          {
+            "area": "debuff",
+            "count": 41,
+            "sides": [
+              1
+            ],
+            "killed": 0
+          }
+        ],
+        "scope": "actual sim events and renderer/HUD, isolated wounded-army fixture; not final projection/game-scale visual approval"
+      }
     }
   ]
 }
