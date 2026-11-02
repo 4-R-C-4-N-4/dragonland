@@ -25,7 +25,8 @@ export interface LoopOptions {
   data: GameData;
   ai: AiController;
   onTick?: (world: World) => void;
-  onFrame?: (world: World, alpha: number) => void;
+  /** Presentation elapsed seconds, scaled with game speed and zero while paused. */
+  onFrame?: (world: World, alpha: number, elapsedS: number) => void;
   resultShownCb?: (world: World) => void;
 }
 
@@ -75,7 +76,7 @@ export function startLoop(opts: LoopOptions): LoopHandle {
       alpha = 1;
     }
 
-    opts.onFrame?.(world, alpha);
+    opts.onFrame?.(world, alpha, world.paused ? 0 : frameDt * speed);
     rafId = requestAnimationFrame(frame);
   }
 

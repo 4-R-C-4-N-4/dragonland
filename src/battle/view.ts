@@ -162,11 +162,11 @@ export const startBattleView: StartBattleView = async (root, opts) => {
       battlefield.applyEvents(w);
       battlefield.ensureSprites(w);
     },
-    onFrame: (w, alpha) => {
+    onFrame: (w, alpha, elapsedS) => {
       const vw = app.renderer.width;
       const vh = app.renderer.height;
       redrawVignette(vw, vh);
-      battlefield.render(w, cam, alpha, vw, vh, 1 / 60, selection.selectedSlots());
+      battlefield.render(w, cam, alpha, vw, vh, elapsedS, selection.selectedSlots());
       battlefield.world2screen.position.y += camYOffset;
       hud.layout(vw, vh);
       hud.update(w, selection.selectedSlots());
