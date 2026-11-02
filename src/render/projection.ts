@@ -38,6 +38,27 @@ export function depthScale(p: FieldProjection, y: number): number {
   return p.farSpriteScale + (p.nearSpriteScale - p.farSpriteScale) * t;
 }
 
+export interface ApproachPreview {
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  approach: 'direct' | 'farFlank' | 'nearFlank';
+  laneFraction: number;
+  turnDistance: number;
+}
+
+/** Strategic route guide in flat ground coordinates, not individual-unit pathfinding. */
+export function approachPreview(p: FieldProjection, route: ApproachPreview): [number, number][] {
+  const start: [number, number] = [route.x, route.y];
+  const target: [number, number] = [route.targetX, route.targetY];
+  if (route.approach === 'direct') return [start, target];
+  const laneY = p.fieldH * (route.approach === 'farFlank' ? route.laneFraction : 1 - route.laneFraction);
+  const dir = Math.sign(route.targetX - route.x);
+  const turnX = Math.max(0, Math.min(p.fieldW, route.targetX - dir * route.turnDistance));
+  return [start, [route.x, laneY], [turnX, laneY], target];
+}
+
 export function projectedBounds(p: FieldProjection): { x: number; y: number; width: number; height: number } {
   return { x: 0, y: 0, width: p.fieldW, height: p.fieldH * p.verticalScale };
 }
