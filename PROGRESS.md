@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 258 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 294 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## MVP2 implementation (branch `mvp2`)
 

@@ -100,7 +100,7 @@ Acceptance: transformed ground and every attached effect agree spatially; invers
 
 ## Merge-to-main gate
 
-- [ ] HUD controls visible/clickable at supported widths; order/approach/locked-disposition semantics clear.
+- [x] HUD controls visible/clickable at supported widths; order/approach/locked-disposition semantics clear. Integrated `0c10d49` + dynamic view reservations; parent browser checked 1280/1024/800, keyboard and mouse paused edits and mixed selections. Final production smoke remains below.
 - [ ] First-cast, buff-only and travelling-wave FX fixed; all 15 effects visually reviewed at game scale.
 - [ ] View teardown and repeated-battle lifecycle checked.
 - [ ] Current mixed-army campaign/hero diagnostics recorded; no known ranged-survivor stalls.
