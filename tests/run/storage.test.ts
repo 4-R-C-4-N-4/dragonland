@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getGameData } from '../../src/data';
-import { applyBattleResult, chooseEncounter, clearRun, loadRun, newRun, RUN_KEY, saveRun, startBattle, type StorageLike } from '../../src/run';
+import { applyBattleResult, chooseEncounter, clearRun, getRunConfig, loadRun, newRun, RUN_KEY, saveRun, startBattle, type StorageLike } from '../../src/run';
 
 const data = getGameData();
 
@@ -38,7 +38,7 @@ describe('run storage', () => {
     s = chooseEncounter(s, s.offers[0]!.id);
     const ids = s.roster.map((t) => t.id);
     s = startBattle(data, s, { formationId: 'line', squads: [{ name: 'All', disposition: 'fierce', troopIds: ids }] });
-    s = applyBattleResult(data, s, s.battle!.id, { winner: 0, dead: [ids, []], survivors: [[], []] });
+    s = applyBattleResult(data, s, s.battle!.id, { winner: 0, dead: [ids, []], survivors: [[], []] }, { ...getRunConfig(), woundedRecoveryOnWin: 0 });
     expect(s.roster).toHaveLength(0);
     const store = memory();
     saveRun(store, s);

@@ -6,6 +6,7 @@
   "recruitOfferCount": 3,
   "recruitsPerOffer": 12,
   "rosterCap": 160,
+  "woundedRecoveryOnWin": 0.5,
   "enemyStartingTroops": 40,
   "enemyTroopsPerDepth": 8,
   "enemyMaxTroops": 100,

@@ -55,6 +55,8 @@ export const BattleSummarySchema = z.object({
   won: z.boolean(),
   boss: z.boolean(),
   dead: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })),
+  /** Fallen who were only wounded and rejoined after the victory. */
+  recovered: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })).default([]),
   xpAwarded: z.number(),
   levelUps: z.number().int().nonnegative(),
   evolutions: z.array(z.object({ troopId: z.string(), name: z.string(), from: z.string(), to: z.string() })),

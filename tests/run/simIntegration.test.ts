@@ -28,7 +28,8 @@ describe('run with the real simulation', () => {
       const before = s.roster.length;
       s = applyBattleResult(data, s, s.battle!.id, result);
       validateRun(data, s);
-      expect(s.roster.length).toBe(before - result.dead[0].length);
+      expect(s.roster.length).toBe(before - s.lastSummary!.dead.length);
+      expect(s.lastSummary!.dead.length + s.lastSummary!.recovered.length).toBe(result.dead[0].length);
       if (s.phase === 'rewards') s = chooseRecruitOffer(data, s, s.recruitOffers[0]!.id);
     }
     expect(['select', 'lost']).toContain(s.phase);

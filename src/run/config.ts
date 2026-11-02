@@ -10,6 +10,8 @@ export const RunConfigSchema = z.object({
   recruitOfferCount: z.number().int().min(1).max(6),
   recruitsPerOffer: z.number().int().positive(),
   rosterCap: z.number().int().min(100),
+  /** Share of the fallen who were only wounded and rejoin after a VICTORY (none after a defeat). */
+  woundedRecoveryOnWin: z.number().min(0).max(1),
   enemyStartingTroops: z.number().int().min(2),
   enemyTroopsPerDepth: z.number().int().nonnegative(),
   enemyMaxTroops: z.number().int().min(2).max(100),

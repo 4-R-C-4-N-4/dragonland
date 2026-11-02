@@ -266,7 +266,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
     if (!r) return '';
     const evo = r.evolutions.map((e) => `<li class="dl-evo">${esc(e.name)}: ${esc(unitName(e.from))} → ${esc(unitName(e.to))}</li>`).join('');
     return `<div class="dl-panel"><h2>${r.won ? 'Victory' : 'Defeat'}${r.boss ? ' over the warlord' : ''}</h2>
-      <p>${r.dead.length} fallen${r.won ? ` · survivors earned ${r.xpAwarded} XP · ${r.levelUps} level-ups` : ''} · General Lv ${r.heroLevelFrom}${r.heroLevelTo !== r.heroLevelFrom ? ` → ${r.heroLevelTo}` : ''}</p>
+      <p>${r.dead.length} fallen${r.recovered.length ? ` · ${r.recovered.length} wounded rejoined` : ''}${r.won ? ` · survivors earned ${r.xpAwarded} XP · ${r.levelUps} level-ups` : ''} · General Lv ${r.heroLevelFrom}${r.heroLevelTo !== r.heroLevelFrom ? ` → ${r.heroLevelTo}` : ''}</p>
       ${evo ? `<h3>Evolved</h3><ul class="dl-troop-list">${evo}</ul>` : ''}
       ${r.dead.length ? `<details><summary>Fallen (${r.dead.length})</summary><ul class="dl-troop-list dl-fallen">${r.dead.map((d) => `<li>${esc(d.name)} (${esc(unitName(d.unitId))})</li>`).join('')}</ul></details>` : ''}
     </div>`;

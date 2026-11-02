@@ -22,7 +22,7 @@ function armyOf(state: RunState, n = 40): PlayerArmy {
 }
 
 /** Drive a run to its next battle and resolve it with the given casualties. */
-function fight(state: RunState, won: boolean, deadCount = 0): { state: RunState; battleId: string; deployed: string[] } {
+function fight(state: RunState, won: boolean, deadCount = 0, runCfg = cfg): { state: RunState; battleId: string; deployed: string[] } {
   let s = chooseEncounter(state, state.offers[0]!.id);
   const army = armyOf(s);
   const deployed = army.squads.flatMap((q) => q.troopIds);
@@ -33,7 +33,7 @@ function fight(state: RunState, won: boolean, deadCount = 0): { state: RunState;
     winner: won ? 0 : 1,
     dead: [dead, []],
     survivors: [deployed.slice(deadCount), []],
-  });
+  }, runCfg);
   return { state: s, battleId, deployed };
 }
 
@@ -113,7 +113,7 @@ describe('battle resolution', () => {
   });
 
   it('removes the dead, awards XP only to deployed survivors and is idempotent', () => {
-    const { state, battleId, deployed } = fight(start(), true, 5);
+    const { state, battleId, deployed } = fight(start(), true, 5, { ...cfg, woundedRecoveryOnWin: 0 });
     expect(state.phase).toBe('rewards');
     expect(state.depth).toBe(1);
     expect(state.roster).toHaveLength(55);
@@ -127,6 +127,27 @@ describe('battle resolution', () => {
     expect(state.lastSummary!.dead).toHaveLength(5);
     const again = applyBattleResult(data, state, battleId, { winner: 0, dead: [deployed.slice(0, 20), []], survivors: [[], []] });
     expect(again).toBe(state);
+  });
+
+  it('brings back a share of the fallen as wounded after a victory, deterministically', () => {
+    const { state, deployed } = fight(start(), true, 10);
+    const back = Math.round(10 * cfg.woundedRecoveryOnWin);
+    expect(back).toBeGreaterThan(0);
+    expect(state.roster).toHaveLength(60 - 10 + back);
+    expect(state.lastSummary!.recovered).toHaveLength(back);
+    expect(state.lastSummary!.dead).toHaveLength(10 - back);
+    const fallen = new Set(deployed.slice(0, 10));
+    for (const r of state.lastSummary!.recovered) {
+      expect(fallen.has(r.id)).toBe(true);
+      expect(state.roster.find((t) => t.id === r.id)!.xp).toBe(100);
+    }
+    expect(fight(start(), true, 10).state.lastSummary!.recovered).toEqual(state.lastSummary!.recovered);
+  });
+
+  it('recovers nobody when the hero falls', () => {
+    const { state } = fight(start(), false, 10);
+    expect(state.roster).toHaveLength(50);
+    expect(state.lastSummary!.recovered).toEqual([]);
   });
 
   it('evolves veterans across battles, preserving identity', () => {

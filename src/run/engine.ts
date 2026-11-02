@@ -32,7 +32,7 @@ export interface PlayerArmy {
 
 export type RunBattleOutcome = Pick<BattleResult, 'winner' | 'dead' | 'survivors'>;
 
-const SALT = { roster: 0x52a1, encounter: 0xe7c0, recruit: 0x4ec1, battle: 0xba77 } as const;
+const SALT = { roster: 0x52a1, encounter: 0xe7c0, recruit: 0x4ec1, battle: 0xba77, wounded: 0x3d11 } as const;
 
 /** FNV-style mix of integers into a 32-bit seed. */
 export function mixSeed(...parts: number[]): number {
@@ -218,16 +218,26 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
   if (!state.battle || state.battle.id !== battleId) throw new Error(`battle ${battleId} is not the active battle`);
   const prog = getProgressionConfig();
   const deployed = new Set(state.battle.setup.sides[0].squads.flatMap((q) => q.troops.map((t) => t.troopId)));
-  const dead = new Set(outcome.dead[0].filter((id) => deployed.has(id)));
-  const deadTroops = state.roster.filter((t) => dead.has(t.id));
-  const roster0 = state.roster.filter((t) => !dead.has(t.id));
   const won = outcome.winner === 0;
+  const fallen = state.roster.filter((t) => deployed.has(t.id) && outcome.dead[0].includes(t.id));
+  // After a victory a seeded share of the fallen were only wounded: they rejoin as survivors.
+  const recoveredIds = new Set<string>();
+  if (won) {
+    const rng = createRng(mixSeed(state.seed, SALT.wounded, state.battleCounter));
+    const pool = [...fallen];
+    const n = Math.round(fallen.length * cfg.woundedRecoveryOnWin);
+    for (let i = 0; i < n; i++) recoveredIds.add(pool.splice(nextInt(rng, pool.length), 1)[0]!.id);
+  }
+  const dead = new Set(fallen.filter((t) => !recoveredIds.has(t.id)).map((t) => t.id));
+  const deadTroops = state.roster.filter((t) => dead.has(t.id));
+  const recovered = fallen.filter((t) => recoveredIds.has(t.id)).map(({ id, name, unitId }) => ({ id, name, unitId }));
+  const roster0 = state.roster.filter((t) => !dead.has(t.id));
   const boss = state.encounter?.boss ?? false;
   const common = { battle: null, encounter: null, processedBattleIds: [...state.processedBattleIds, battleId] };
 
   if (!won) {
     const summary: BattleSummary = {
-      battleId, won: false, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })),
+      battleId, won: false, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered: [],
       xpAwarded: 0, levelUps: 0, evolutions: [], heroLevelFrom: state.hero.level, heroLevelTo: state.hero.level,
     };
     return { ...state, ...common, phase: 'lost', roster: roster0, lastSummary: summary, recruitOffers: [] };
@@ -248,7 +258,7 @@ export function applyBattleResult(data: GameData, state: RunState, battleId: str
   const depth = state.depth + 1;
   const finished = depth >= cfg.battles;
   const summary: BattleSummary = {
-    battleId, won: true, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })),
+    battleId, won: true, boss, dead: deadTroops.map(({ id, name, unitId }) => ({ id, name, unitId })), recovered,
     xpAwarded: xp, levelUps, evolutions, heroLevelFrom: state.hero.level, heroLevelTo: hero.level,
   };
   return {
