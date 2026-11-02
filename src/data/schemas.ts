@@ -134,19 +134,45 @@ export const AiLoadoutSchema = z.object({
 export type AiLoadout = z.infer<typeof AiLoadoutSchema>;
 
 export const DispositionBehaviorSchema = z.object({
+  /** Fierce: goes for the enemy general (MVP2), fighting through troops that block its path. */
   fierce: z.object({
     holdPursuitDist: z.number().nonnegative(),
     fallBackEngageDist: z.number().nonnegative(),
+    /** true = Advance targets the enemy general; false = nearest enemy anywhere (MVP1 behaviour). */
+    generalFocus: z.boolean(),
+    /** While going for the general, engage enemy troops within this distance of the troop (at least its attack range). */
+    blockRadius: z.number().nonnegative(),
+    /** Charge: move-speed multiplier for Fierce troops. */
+    speedMult: z.number().positive(),
+    /** Damage multiplier for Fierce troops hitting a general. */
+    generalDamageMult: z.number().positive(),
+    /** >0: while farther than this (x) from the enemy general, Fierce routes along a field edge (flank). 0 = straight line. */
+    flankDist: z.number().nonnegative(),
   }),
+  /** Mixed: fights enemy troops as a loose group. */
   mixed: z.object({
-    cohesionRadius: z.number().positive(),
+    /** Per-troop search distance on Advance; 0 = whole field. */
+    engageRadius: z.number().nonnegative(),
+    holdEngageDist: z.number().nonnegative(),
+    fallBackEngageDist: z.number().nonnegative(),
     /** Fraction of move speed used to pull each member back to its formation slot. */
     formationPull: z.number().nonnegative(),
+    /** true = the whole squad moves at its slowest member's speed (MVP1 behaviour). */
+    slowestSpeed: z.boolean(),
+    /** false = never targets the enemy general while enemy troops remain. */
+    targetGenerals: z.boolean(),
   }),
+  /** Guard: protects its own general; commands still apply. */
   guard: z.object({
-    leashRadius: z.number().positive(),
+    /** Enemies within this distance of the general's CURRENT position are threats and take priority. */
+    threatRadius: z.number().positive(),
+    /** With nothing to fight, guards return to within this distance of the general. */
     ringRadius: z.number().positive(),
+    /** true = on Advance, guards with no threat fight enemy troops like Mixed; false = escort only. */
+    advanceFights: z.boolean(),
   }),
+  /** Generals engage enemies within attackRange + this distance (they barely move). */
+  generalEngageRadius: z.number().nonnegative(),
   separationWeight: z.number().nonnegative(),
   separationRadius: z.number().positive(),
   generalLeashSpeedFrac: z.number().positive(),

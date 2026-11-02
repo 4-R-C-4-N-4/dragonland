@@ -22,6 +22,8 @@ Contract/queue: `docs/mvp2.md`. MVP1 sandbox remains available.
   Fixed: duplicate recruit offers.
 - Q8 art: `tools/art/production.ts` running serially (Codex); contact sheets via `tools/art/contact.py`; isolated
   vision reviewers judge each batch. Picks are provisional until reviewed.
+- D21 disposition rework + D22 wounded recovery: see DECISIONS.md. Campaign (30 runs, default Mixed/Mixed/Guard):
+  40% won, 6.5 avg victories of 8. Superseded measurements below (old dispositions):
 - Balance (tools/runsim.ts, 20 runs, auto-deploy, best-edge encounter): disposition dominates outcomes.
   all Mixed 1.50 mean victories / 0% won; all Fierce 5.15 / 20% won; Mixed,Mixed,Fierce,Mixed 1.80 / 0%;
   Guard,Mixed,Fierce,Mixed 0.70 / 0%. Auto-arrange now defaults to all Fierce. Open: Fierce dominance

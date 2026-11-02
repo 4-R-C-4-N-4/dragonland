@@ -47,11 +47,14 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
   const ents = world.ents;
   const aProfile = profileFor(internal, attacker, ents);
   const tProfile = profileFor(internal, target, ents);
-  const dmg = computeDamage(
+  let dmg = computeDamage(
     data,
     { classId: aProfile.classId, line: aProfile.line, statMult: ents.statMult[attacker]! },
     { classId: tProfile.classId, line: tProfile.line },
   );
+  if (ents.isGeneral[target] === 1 && ents.isGeneral[attacker] === 0 && world.squads[ents.squad[attacker]!]!.disposition === 'fierce') {
+    dmg *= data.behaviors.fierce.generalDamageMult;
+  }
   ents.hp[target] = Math.max(0, ents.hp[target]! - dmg);
   emitHit(world, attacker, target, dmg, aProfile.attackRange > data.constants.RANGED_THRESHOLD);
   ents.cooldown[attacker] = aProfile.attackCooldownS;
@@ -65,32 +68,59 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
   }
 }
 
-function retargetTroop(world: World, data: GameData, internal: WorldInternal, e: number): void {
+/**
+ * Disposition x command targeting (MVP2, DECISIONS D21). Disposition = what the squad goes after,
+ * command = how far it will go:
+ *  - Fierce: Advance -> the enemy general, fighting troops that block it (blockRadius).
+ *  - Mixed:  enemy troops (never the general while troops remain), each troop from its own position.
+ *  - Guard:  threats near its general's CURRENT position first; on Advance otherwise fights troops
+ *            like Mixed; on Hold / Fall Back stays with the general.
+ */
+export function chooseTarget(world: World, e: number): number {
+  const internal = internalOf(world);
   const ents = world.ents;
   const side = ents.side[e] as Side;
   const enemy = enemySide(side);
   const squad = world.squads[ents.squad[e]!]!;
-  const beh = data.behaviors;
-  const general = world.generals[side];
+  const beh = internal.data.behaviors;
+  const x = ents.x[e]!;
+  const y = ents.y[e]!;
+  const near = (radius: number, troopsOnly = false) => nearestAliveEntity(ents, x, y, enemy, radius, troopsOnly);
+  /** Nearest enemy troop, or the general once no enemy troops remain. */
+  const troopsFirst = (radius: number) => {
+    const t = near(radius, true);
+    return t >= 0 ? t : near(radius);
+  };
 
-  let target = -1;
-  if (squad.disposition === 'guard') {
-    const radius = squad.command === 'advance' ? beh.guard.leashRadius : beh.guard.ringRadius;
-    target = nearestAliveEntity(ents, general.startX, general.startY, enemy, radius);
-  } else if (squad.disposition === 'fierce') {
-    if (squad.command === 'hold') {
-      target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemy, beh.fierce.holdPursuitDist);
-    } else if (squad.command === 'fallBack') {
-      target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemy, beh.fierce.fallBackEngageDist);
-    } else {
-      target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemy, Infinity);
-    }
-  } else {
-    // mixed: engage what the group contacts, based on squad centroid
-    const range = squad.command === 'fallBack' ? 0 : beh.mixed.cohesionRadius;
-    target = nearestAliveEntity(ents, squad.centroidX, squad.centroidY, enemy, range);
+  if (squad.disposition === 'fierce') {
+    if (squad.command === 'hold') return near(beh.fierce.holdPursuitDist);
+    if (squad.command === 'fallBack') return near(beh.fierce.fallBackEngageDist);
+    if (!beh.fierce.generalFocus) return near(Infinity);
+    // Anything already in reach (ranged troops included) is fought; otherwise press on to the general.
+    const reach = Math.max(beh.fierce.blockRadius, internal.unitOf[ents.unit[e]!]!.attackRange);
+    const blocker = near(reach, true);
+    if (blocker >= 0) return blocker;
+    const eg = world.generals[enemy].entity;
+    return ents.alive[eg] === 1 ? eg : near(Infinity);
   }
-  ents.target[e] = target;
+
+  if (squad.disposition === 'mixed') {
+    const pick = beh.mixed.targetGenerals ? (r: number) => near(r) : troopsFirst;
+    if (squad.command === 'hold') return pick(beh.mixed.holdEngageDist);
+    if (squad.command === 'fallBack') return pick(beh.mixed.fallBackEngageDist);
+    return pick(beh.mixed.engageRadius > 0 ? beh.mixed.engageRadius : Infinity);
+  }
+
+  // guard
+  const g = world.generals[side].entity;
+  const threat = nearestAliveEntity(ents, ents.x[g]!, ents.y[g]!, enemy, beh.guard.threatRadius);
+  if (threat >= 0) return threat;
+  if (squad.command === 'advance' && beh.guard.advanceFights) return troopsFirst(Infinity);
+  return -1;
+}
+
+function retargetTroop(world: World, e: number): void {
+  world.ents.target[e] = chooseTarget(world, e);
 }
 
 function squadAnchor(world: World, squad: SquadState, general: GeneralState): { x: number; y: number } {
@@ -120,7 +150,12 @@ function moveTroop(
   const profile = profileFor(internal, e, ents);
   const target = ents.target[e]!;
   const ranged = profile.attackRange > data.constants.RANGED_THRESHOLD;
-  const speed = squad.disposition === 'mixed' ? internal.squadMinSpeed[squad.index]! : profile.moveSpeed;
+  const speed =
+    squad.disposition === 'mixed' && data.behaviors.mixed.slowestSpeed
+      ? internal.squadMinSpeed[squad.index]!
+      : squad.disposition === 'fierce'
+        ? profile.moveSpeed * data.behaviors.fierce.speedMult
+        : profile.moveSpeed;
 
   let vx = 0;
   let vy = 0;
@@ -134,16 +169,26 @@ function moveTroop(
     if (kite) {
       [vx, vy] = normalizeTo(ents.x[e]! - tx, ents.y[e]! - ty, speed);
     } else if (d > profile.attackRange) {
-      [vx, vy] = normalizeTo(tx - ents.x[e]!, ty - ents.y[e]!, speed);
+      let gx = tx;
+      let gy = ty;
+      const flank = data.behaviors.fierce.flankDist;
+      if (flank > 0 && squad.disposition === 'fierce' && ents.isGeneral[target] === 1 && Math.abs(tx - ents.x[e]!) > flank) {
+        // Flank: run along the top or bottom edge (alternating by squad slot) before turning in.
+        gy = squad.slot % 2 === 0 ? data.constants.FIELD_H * 0.08 : data.constants.FIELD_H * 0.92;
+        gx = tx - Math.sign(tx - ents.x[e]!) * flank * 0.5;
+      }
+      [vx, vy] = normalizeTo(gx - ents.x[e]!, gy - ents.y[e]!, speed);
     } else {
       attacking = ents.cooldown[e]! <= 0;
     }
   } else {
     // No valid target: fall back to disposition default movement.
     if (squad.disposition === 'guard') {
-      const d = dist(ents.x[e]!, ents.y[e]!, general.startX, general.startY);
-      const leash = squad.command === 'advance' ? data.behaviors.guard.leashRadius : data.behaviors.guard.ringRadius;
-      if (d > leash) [vx, vy] = normalizeTo(general.startX - ents.x[e]!, general.startY - ents.y[e]!, speed);
+      // Nothing to fight: return to a ring around the general's current position.
+      const gx = ents.x[general.entity]!;
+      const gy = ents.y[general.entity]!;
+      const d = dist(ents.x[e]!, ents.y[e]!, gx, gy);
+      if (d > data.behaviors.guard.ringRadius) [vx, vy] = normalizeTo(gx - ents.x[e]!, gy - ents.y[e]!, speed);
     } else if (squad.command === 'hold') {
       vx = 0;
       vy = 0;
@@ -186,7 +231,7 @@ function runGeneral(world: World, data: GameData, internal: WorldInternal, side:
   const e = general.entity;
   if (ents.alive[e] === 0) return;
   const profile = internal.generalProfile[side];
-  const target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemySide(side), profile.attackRange + data.behaviors.guard.leashRadius);
+  const target = nearestAliveEntity(ents, ents.x[e]!, ents.y[e]!, enemySide(side), profile.attackRange + data.behaviors.generalEngageRadius);
   ents.target[e] = target;
   if (target >= 0) {
     const d = dist(ents.x[e]!, ents.y[e]!, ents.x[target]!, ents.y[target]!);
@@ -285,7 +330,7 @@ export function retargetAndMoveTroops(world: World, dt: number): void {
   for (let e = start; e !== end; e += stride) {
     if (ents.alive[e] === 0) continue;
     ents.cooldown[e] = Math.max(0, ents.cooldown[e]! - dt);
-    if ((world.tick + e) % retargetTicks === 0) retargetTroop(world, data, internal, e);
+    if ((world.tick + e) % retargetTicks === 0) retargetTroop(world, e);
     moveTroop(world, data, internal, flying, e, dt);
   }
   resolveOverlaps(world, data, internal, flying);

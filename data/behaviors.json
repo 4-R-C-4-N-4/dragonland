@@ -1,18 +1,29 @@
 {
   "fierce": {
     "holdPursuitDist": 140,
-    "fallBackEngageDist": 70
+    "fallBackEngageDist": 70,
+    "generalFocus": true,
+    "blockRadius": 40,
+    "speedMult": 1,
+    "generalDamageMult": 1,
+    "flankDist": 250
   },
   "mixed": {
-    "cohesionRadius": 90,
-    "formationPull": 0.6
+    "engageRadius": 0,
+    "holdEngageDist": 140,
+    "fallBackEngageDist": 70,
+    "formationPull": 0.25,
+    "slowestSpeed": false,
+    "targetGenerals": false
   },
   "guard": {
-    "leashRadius": 180,
-    "ringRadius": 90
+    "threatRadius": 160,
+    "ringRadius": 70,
+    "advanceFights": true
   },
+  "generalEngageRadius": 180,
   "separationWeight": 36,
   "separationRadius": 16,
   "generalLeashSpeedFrac": 0.6,
-  "overlapIterations": 2
+  "overlapIterations": 3
 }
