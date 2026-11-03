@@ -1,5 +1,6 @@
 // Public sim API (implementation.md §5 index.ts). Everything outside src/sim must import from here.
 import type { GameData } from '../data';
+import { chooseTarget } from './behavior';
 import { createBattle as createBattleImpl } from './world';
 import { getSquadIntent, issueApproach, step as stepImpl, setPaused as setPausedImpl, issueCommand as issueCommandImpl, fireSpecial as fireSpecialImpl } from './step';
 import { canFireSpecial as canFireSpecialImpl } from './specials';
@@ -15,6 +16,15 @@ export const issueCommand = issueCommandImpl;
 export { getSquadIntent, issueApproach };
 export const fireSpecial = fireSpecialImpl;
 export const canFireSpecial = canFireSpecialImpl;
+
+/** Acquire the first living member's role target using queued intent, without changing simulation state. */
+export function previewSquadTarget(world: World, squadIndex: number): number {
+  const squad = world.squads[squadIndex];
+  if (!squad) return -1;
+  const member = squad.members.find((e) => world.ents.alive[e] === 1);
+  if (member === undefined) return -1;
+  return chooseTarget(world, member, getSquadIntent(world, squadIndex).command);
+}
 
 /** Stable hash of positions/hp/alive/phase/tick/result for determinism tests. */
 export function hashWorld(world: World): string {

@@ -1,5 +1,6 @@
 // Disposition x command behavior (implementation.md §2.7) and per-tick troop/general AI.
 import type { GameData } from '../data';
+import type { Command } from '../data/schemas';
 import { computeDamage } from './combat';
 import { dist, normalizeTo, separationForce } from './steering';
 import type { Entities, GeneralState, Side, SquadState, World } from './types';
@@ -80,12 +81,13 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
  *  - Guard:  threats near its general's CURRENT position first; on Advance otherwise fights troops
  *            like Mixed; on Hold / Fall Back stays with the general.
  */
-export function chooseTarget(world: World, e: number): number {
+export function chooseTarget(world: World, e: number, effectiveCommand?: Command): number {
   const internal = internalOf(world);
   const ents = world.ents;
   const side = ents.side[e] as Side;
   const enemy = enemySide(side);
   const squad = world.squads[ents.squad[e]!]!;
+  const command = effectiveCommand ?? squad.command;
   const beh = internal.data.behaviors;
   const x = ents.x[e]!;
   const y = ents.y[e]!;
@@ -97,8 +99,8 @@ export function chooseTarget(world: World, e: number): number {
   };
 
   if (squad.disposition === 'fierce') {
-    if (squad.command === 'hold') return near(beh.fierce.holdPursuitDist);
-    if (squad.command === 'fallBack') return near(beh.fierce.fallBackEngageDist);
+    if (command === 'hold') return near(beh.fierce.holdPursuitDist);
+    if (command === 'fallBack') return near(beh.fierce.fallBackEngageDist);
     if (!beh.fierce.generalFocus) return near(Infinity);
     // Anything already in reach (ranged troops included) is fought; otherwise press on to the general.
     const reach = Math.max(beh.fierce.blockRadius, internal.unitOf[ents.unit[e]!]!.attackRange);
@@ -110,8 +112,8 @@ export function chooseTarget(world: World, e: number): number {
 
   if (squad.disposition === 'mixed') {
     const pick = beh.mixed.targetGenerals ? (r: number) => near(r) : troopsFirst;
-    if (squad.command === 'hold') return pick(beh.mixed.holdEngageDist);
-    if (squad.command === 'fallBack') return pick(beh.mixed.fallBackEngageDist);
+    if (command === 'hold') return pick(beh.mixed.holdEngageDist);
+    if (command === 'fallBack') return pick(beh.mixed.fallBackEngageDist);
     return pick(beh.mixed.engageRadius > 0 ? beh.mixed.engageRadius : Infinity);
   }
 
@@ -119,7 +121,7 @@ export function chooseTarget(world: World, e: number): number {
   const g = world.generals[side].entity;
   const threat = nearestAliveEntity(ents, ents.x[g]!, ents.y[g]!, enemy, beh.guard.threatRadius);
   if (threat >= 0) return threat;
-  if (squad.command === 'advance' && beh.guard.advanceFights) return troopsFirst(Infinity);
+  if (command === 'advance' && beh.guard.advanceFights) return troopsFirst(Infinity);
   return -1;
 }
 

@@ -5,11 +5,12 @@ import type { BattleView, BattleViewOptions, StartBattleView } from './types';
 import { createAiController } from '../ai/policy';
 import { startLoop } from './loop';
 import { Battlefield } from '../render/battlefield';
+import { projectGround, projectedBounds } from '../render/projection';
 import { Hud } from '../render/hud';
 import { Selection } from './selection';
 import { bindDragEvents } from './pointerInput';
 import { attachInput } from './input';
-import { fitCamera, clampCamera, clampZoom, screenToWorld } from './camera';
+import { fitCamera, clampCamera, clampZoom } from './camera';
 import type { Camera } from './camera';
 import { resolveBattleColors } from '../render/colorUi';
 import { DEFAULT_PLAYER_COLOR, DEFAULT_ENEMY_COLOR } from '../data/colors';
@@ -91,8 +92,8 @@ export const startBattleView: StartBattleView = async (root, opts) => {
     const vh = app.renderer.height;
     const usableH = Math.max(100, vh - TOP_BAND - bottomBandHeight());
     return {
-      fieldW: data.constants.FIELD_W,
-      fieldH: data.constants.FIELD_H * 0.65,
+      fieldW: projectedBounds(battlefield.projection).width,
+      fieldH: projectedBounds(battlefield.projection).height,
       viewportW: vw,
       viewportH: usableH,
       minZoom: 0.3,
@@ -182,8 +183,10 @@ export const startBattleView: StartBattleView = async (root, opts) => {
       if (w.phase === 'duel') {
         const gL = w.ents.x[w.generals[0].entity]!;
         const gR = w.ents.x[w.generals[1].entity]!;
-        const midX = (gL + gR) / 2;
-        const midY = (w.ents.y[w.generals[0].entity]! + w.ents.y[w.generals[1].entity]!) / 2;
+        const left = projectGround(battlefield.projection, gL, w.ents.y[w.generals[0].entity]!);
+        const right = projectGround(battlefield.projection, gR, w.ents.y[w.generals[1].entity]!);
+        const midX = (left[0] + right[0]) / 2;
+        const midY = (left[1] + right[1]) / 2;
         cam = clampCamera({ x: midX, y: midY, zoom: Math.min(2, camOpts().maxZoom) }, camOpts());
       }
 

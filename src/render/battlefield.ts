@@ -9,14 +9,14 @@ import {
   Sprite,
   Text,
   Texture,
-  TilingSprite,
   type Renderer,
 } from 'pixi.js';
 import type { GameData } from '../data';
-import type { World, Side } from '../sim';
+import { getSquadIntent, previewSquadTarget, type World, type Side } from '../sim';
 import type { Camera } from '../battle/camera';
 import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
-import { worldToScreen } from '../battle/camera';
+import { groundToScreen } from '../battle/camera';
+import { approachPreview, createProjection, depthScale, projectGround, type FieldProjection } from './projection';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
 import { discoverFx, FxTimeline, fxSize, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, timedWavePoints, type ParsedFx } from './fx';
@@ -52,6 +52,7 @@ function outlineSourceFor(base: Texture): Texture['source'] | null {
 }
 import { squadColorNumberFor, teamColorNumber, type SideColors } from './colorUi';
 
+/** @deprecated Legacy FX fixture scale; production uses FieldProjection exclusively. */
 export const Y_SQUASH = 0.65;
 
 interface EntitySprite {
@@ -89,6 +90,12 @@ export class Battlefield {
   readonly fx: Container = new Container();
   readonly debugLayer: Container = new Container();
 
+  readonly projection: FieldProjection;
+  private routeGuide = new Graphics();
+  private routeSignature = '';
+  private routeAge = 0;
+  private routePaths: [number, number][][] = [];
+
   private placeholders: Map<string, UnitPlaceholder>;
   private sheets: Map<string, ParsedSheet>;
   private sheetTextures = new Map<string, SheetLayers>();
@@ -114,12 +121,13 @@ export class Battlefield {
     private fieldH: number,
     private sideColors: [SideColors, SideColors],
   ) {
+    this.projection = createProjection(fieldW, fieldH);
     this.placeholders = buildPlaceholderTextures(renderer, data);
     this.sheets = discoverSheets((msg) => console.warn(msg));
     this.fxSheets = discoverFx((msg) => console.warn(msg));
     this.genericDisc = this.bakeEllipseTexture(1, 1);
     this.generalRingTex = this.bakeEllipseRingTexture(26, 10, 3);
-    this.world2screen.addChild(this.ground, this.ents, this.fx, this.debugLayer);
+    this.world2screen.addChild(this.ground, this.routeGuide, this.ents, this.fx, this.debugLayer);
     this.ents.sortableChildren = true;
     this.drawGround();
   }
@@ -151,49 +159,38 @@ export class Battlefield {
   }
 
   private drawGround(): void {
-    this.ground.removeChildren();
+    for (const child of this.ground.removeChildren()) child.destroy();
     const g = new Graphics();
-    g.rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color: 0x3b5c2e });
-    const base = this.renderer.generateTexture(g);
-    g.destroy();
-    this.ground.addChild(new Sprite(base));
-
-    // Baked grass-tuft/noise tile, tiled across the field for cheap ground detail.
-    const tileSize = 96;
-    const tg = new Graphics();
-    let s = 1234567;
+    const point = (x: number, y: number) => projectGround(this.projection, x, y);
+    const quad = (x: number, y: number, w: number, h: number) => [
+      ...point(x, y), ...point(x + w, y), ...point(x + w, y + h), ...point(x, y + h),
+    ];
+    // Every band, patch and blade is on the same plane as the units' feet.
+    for (let band = 0; band < 12; band++) {
+      const y = this.fieldH * band / 12;
+      g.poly(quad(0, y, this.fieldW, this.fieldH / 12)).fill({ color: band < 4 ? 0x405b36 : band < 8 ? 0x3d5d30 : 0x3b602e });
+    }
+    let seed = 1234567;
     const rnd = (): number => {
-      s = (s * 1103515245 + 12345) & 0x7fffffff;
-      return (s % 10000) / 10000;
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return (seed % 10000) / 10000;
     };
-    for (let i = 0; i < 26; i++) {
-      const x = rnd() * tileSize;
-      const y = rnd() * tileSize;
-      const shade = rnd() > 0.5 ? 0x2f4a24 : 0x4a6c3a;
-      tg.rect(x, y, 2, 2).fill({ color: shade, alpha: 0.5 });
+    const count = Math.ceil(this.fieldW * this.fieldH / 1800);
+    for (let i = 0; i < count; i++) {
+      const x = 5 + rnd() * (this.fieldW - 14), y = 6 + rnd() * (this.fieldH - 14);
+      const shade = rnd() > 0.5 ? 0x2f4a24 : 0x63804a;
+      g.poly(quad(x, y, 2 + rnd() * 4, 2)).fill({ color: shade, alpha: 0.22 });
+      g.moveTo(...point(x, y)).lineTo(...point(x - 1, y - 4));
+      g.moveTo(...point(x + 2, y)).lineTo(...point(x + 1, y - 3));
+      g.stroke({ color: 0x729052, width: 0.7, alpha: 0.22 });
     }
-    for (let i = 0; i < 6; i++) {
-      const x = rnd() * tileSize;
-      const y = rnd() * tileSize;
-      tg.moveTo(x, y).lineTo(x - 1, y - 5);
-      tg.moveTo(x + 2, y).lineTo(x + 1, y - 4);
+    // Restrained strategic flank cues, projected along with the ground detail.
+    const lane = this.data.behaviors.approach.laneFraction;
+    for (const y of [this.fieldH * lane, this.fieldH * (1 - lane)]) {
+      g.moveTo(...point(20, y)).lineTo(...point(this.fieldW - 20, y)).stroke({ color: 0xb2b58a, width: 1, alpha: 0.12 });
     }
-    tg.stroke({ color: 0x5a7a44, width: 1, alpha: 0.35 });
-    const tileTex = this.renderer.generateTexture(tg);
-    tg.destroy();
-    const tiling = new TilingSprite({ texture: tileTex, width: this.fieldW, height: this.fieldH * Y_SQUASH });
-    this.ground.addChild(tiling);
-
-    // Darker edge frame so the field reads as a bounded ground plane.
-    const edge = new Graphics();
-    const w = this.fieldW;
-    const h = this.fieldH * Y_SQUASH;
-    const t = 18;
-    edge.rect(0, 0, w, t).fill({ color: 0x000000, alpha: 0.22 });
-    edge.rect(0, h - t, w, t).fill({ color: 0x000000, alpha: 0.22 });
-    edge.rect(0, 0, t, h).fill({ color: 0x000000, alpha: 0.2 });
-    edge.rect(w - t, 0, t, h).fill({ color: 0x000000, alpha: 0.2 });
-    this.ground.addChild(edge);
+    g.poly(quad(0, 0, this.fieldW, this.fieldH)).stroke({ color: 0x17261a, width: 3, alpha: 0.65 });
+    this.ground.addChild(g);
   }
 
   /** Frame lists (with per-frame durations) for body, team-cloth mask and outline layers. */
@@ -413,7 +410,8 @@ export class Battlefield {
     this.fxTimeline?.update(world.paused ? 0 : dt);
     this.world2screen.position.set(viewportW / 2, viewportH / 2);
     this.world2screen.scale.set(cam.zoom);
-    this.world2screen.pivot.set(cam.x, cam.y * Y_SQUASH);
+    this.world2screen.pivot.set(cam.x, cam.y);
+    this.renderRoutes(world, selected, dt);
     if (this.screenShakeT > 0 && !world.paused) {
       this.screenShakeT = Math.max(0, this.screenShakeT - dt);
       const mag = this.screenShakeMag * (this.screenShakeT / 0.3);
@@ -436,14 +434,15 @@ export class Battlefield {
         sp.deathT += dt;
         const fade = Math.max(0, 1 - sp.deathT / 1.2);
         sp.container.alpha = fade;
-        sp.container.scale.set(fade, fade * 0.6 + 0.4); // small fall/flatten
         sp.selOuter.visible = false;
         sp.selInner.visible = false;
         if (fade <= 0) sp.container.visible = false;
       }
       const x = lerp(ents.prevX[i]!, ents.x[i]!, sp.dying ? 1 : alpha);
       const y = lerp(ents.prevY[i]!, ents.y[i]!, sp.dying ? 1 : alpha);
-      let [sx, sy] = [x, y * Y_SQUASH];
+      let [sx, sy] = projectGround(this.projection, x, y);
+      const scale = depthScale(this.projection, y) * (sp.dying ? Math.max(0, 1 - sp.deathT / 1.2) : 1);
+      sp.container.scale.set(scale);
       if (sp.lungeT > 0) {
         sp.lungeT -= dt;
         const t = Math.max(0, sp.lungeT) / 0.12;
@@ -451,7 +450,7 @@ export class Battlefield {
         sx += dirx * 3 * Math.sin(t * Math.PI);
       }
       sp.container.position.set(sx, sy);
-      sp.container.zIndex = y;
+      sp.container.zIndex = sy;
 
       if (!sp.dying) {
         const isSel = sp.squadIdx >= 0 && (selected === 'all' || (ents.side[i] === 0 && selected.includes(world.squads[sp.squadIdx]?.slot ?? -1)));
@@ -514,7 +513,45 @@ export class Battlefield {
     }
 
     if (getDebugState().overlay) this.renderDebug(world, alpha);
-    else this.debugLayer.removeChildren();
+    else for (const child of this.debugLayer.removeChildren()) child.destroy();
+  }
+
+  private renderRoutes(world: World, selected: SelectedSlots, dt: number): void {
+    const squads = world.squads.filter((sq) => sq.side === 0 && (selected === 'all' || selected.includes(sq.slot))).slice(0, 4);
+    const intents = squads.map((sq) => getSquadIntent(world, sq.index));
+    const signature = squads.map((sq, i) => `${sq.index}:${intents[i]!.command}:${intents[i]!.approach}`).join('|');
+    if (signature !== this.routeSignature) {
+      this.routeSignature = signature;
+      this.routeAge = 0;
+    } else this.routeAge += world.paused ? 0 : dt;
+    if (this.routeAge < 1.5) {
+      this.routePaths = [];
+      this.routeGuide.clear();
+      for (const [i, sq] of squads.entries()) {
+        const intent = intents[i]!;
+        if (intent.command === 'hold' || sq.alive === 0) continue;
+        const ents = world.ents;
+        const fallback = intent.command === 'fallBack';
+        const target = fallback ? -1 : previewSquadTarget(world, sq.index);
+        if (!fallback && target < 0) continue;
+        const anchor = world.generals[0];
+        const route = approachPreview(this.projection, {
+          x: sq.centroidX, y: sq.centroidY,
+          targetX: fallback ? anchor.startX : ents.x[target]!, targetY: fallback ? anchor.startY : ents.y[target]!,
+          approach: fallback ? 'direct' : intent.approach, ...this.data.behaviors.approach,
+        }).map(([x, y]) => projectGround(this.projection, x, y));
+        this.routePaths.push(route);
+        const start = route[0]!;
+        this.routeGuide.moveTo(...start);
+        for (const point of route.slice(1)) this.routeGuide.lineTo(...point);
+        this.routeGuide.stroke({ color: this.squadColor(0, sq.slot), width: 1.5, alpha: 0.4 });
+        const end = route[route.length - 1]!, prev = route[route.length - 2]!;
+        const angle = Math.atan2(end[1] - prev[1], end[0] - prev[0]);
+        for (const offset of [-0.5, 0.5]) this.routeGuide.moveTo(...end).lineTo(end[0] - 8 * Math.cos(angle + offset), end[1] - 8 * Math.sin(angle + offset));
+        this.routeGuide.stroke({ color: this.squadColor(0, sq.slot), width: 1.5, alpha: 0.4 });
+      }
+    }
+    this.routeGuide.alpha = Math.max(0, 1 - this.routeAge / 1.5);
   }
 
   /** Apply one tick's sim events for cosmetic effects: flashes, projectiles, special FX, damage numbers. */
@@ -549,18 +586,21 @@ export class Battlefield {
   private spawnProjectile(world: World, from: number, to: number): void {
     const ents = world.ents;
     const g = new Graphics();
-    const fromX = ents.x[from]!;
-    const fromY = ents.y[from]! * Y_SQUASH;
-    const targetX = ents.x[to]!;
-    const targetY = ents.y[to]! * Y_SQUASH;
-    const ang = Math.atan2(targetY - fromY, targetX - fromX);
+    const fromX = ents.x[from]!, fromY = ents.y[from]!;
+    const targetX = ents.x[to]!, targetY = ents.y[to]!;
+    const start = projectGround(this.projection, fromX, fromY);
+    const end = projectGround(this.projection, targetX, targetY);
+    const ang = Math.atan2(end[1] - start[1], end[0] - start[0]);
     g.moveTo(-6, 0).lineTo(6, 0).stroke({ color: 0xffe066, width: 2 });
     g.rotation = ang;
-    g.position.set(fromX, fromY);
+    g.position.set(...start);
+    g.scale.set(depthScale(this.projection, fromY));
     this.fx.addChild(g);
     this.fxTimeline.add(0.15, (t) => {
       const a = t / 0.15;
-      g.position.set(lerp(fromX, targetX, a), lerp(fromY, targetY, a));
+      const y = lerp(fromY, targetY, a);
+      g.position.set(...projectGround(this.projection, lerp(fromX, targetX, a), y));
+      g.scale.set(depthScale(this.projection, y));
       if (a >= 1) g.destroy();
     });
   }
@@ -593,13 +633,19 @@ export class Battlefield {
     return loading;
   }
 
+  /** Semantic FX points stay in flat ground coordinates until this placement boundary. */
+  private placeFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number, waitForAsset = true): void {
+    const [px, py] = projectGround(this.projection, x, y);
+    this.spawnFxInstance(px, py, fxId, kind, color, waitForAsset, depthScale(this.projection, y));
+  }
+
   /** Wait for existing art instead of substituting a first-use placeholder. */
-  private spawnFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number, waitForAsset = true): void {
+  private spawnFxInstance(x: number, y: number, fxId: string | null, kind: 'overlay' | 'wave' | 'strike' | 'aura', color: number, waitForAsset = true, scale = 1): void {
     if (this.destroyed) return;
     const frames = fxId ? this.fxTextures.get(fxId) : null;
     if (waitForAsset && fxId && !frames && this.fxSheets.has(fxId)) {
       void this.loadFxFrames(fxId).then(() => {
-        if (!this.destroyed) this.spawnFxInstance(x, y, fxId, kind, color, false);
+        if (!this.destroyed) this.spawnFxInstance(x, y, fxId, kind, color, false, scale);
       });
       return;
     }
@@ -611,6 +657,7 @@ export class Battlefield {
       const size = fxSize(kind, sheet.frameW, sheet.frameH);
       sp.width = size.width;
       sp.height = size.height;
+      sp.scale.set(sp.scale.x * scale, sp.scale.y * scale);
       sp.position.set(x, y);
       this.fx.addChild(sp);
       const durationMs = sheet.frames.reduce((sum, f) => sum + f.durationMs, 0);
@@ -625,6 +672,7 @@ export class Battlefield {
     const g = new Graphics();
     const r = kind === 'strike' ? 8 : kind === 'aura' ? 10 : 14;
     g.circle(0, 0, r).fill({ color, alpha: 0.5 });
+    g.scale.set(scale);
     g.position.set(x, y);
     this.fx.addChild(g);
     this.fxTimeline.add(0.6, (t) => {
@@ -637,7 +685,10 @@ export class Battlefield {
   private triggerBigFx(color: number): void {
     this.screenShakeT = 0.3;
     this.screenShakeMag = 6;
-    const g = new Graphics().rect(0, 0, this.fieldW, this.fieldH * Y_SQUASH).fill({ color, alpha: 0.3 });
+    const g = new Graphics().poly([
+      ...projectGround(this.projection, 0, 0), ...projectGround(this.projection, this.fieldW, 0),
+      ...projectGround(this.projection, this.fieldW, this.fieldH), ...projectGround(this.projection, 0, this.fieldH),
+    ]).fill({ color, alpha: 0.3 });
     this.fx.addChild(g);
     this.fxTimeline.add(0.5, (t) => {
       g.alpha = Math.max(0, 0.3 - t * 0.6);
@@ -649,21 +700,22 @@ export class Battlefield {
   private spawnSpecialFx(ev: Extract<World['events'][number], { type: 'special' }>): void {
     if (this.destroyed) return;
     const ents = this.lastWorld?.ents;
+    const auraRecipients = new Set<number>();
     this.fxSeed = (this.fxSeed * 48271) % 2147483647;
     for (const [index, area] of ev.areas.entries()) {
       const kind = kindForArea(area);
       if (kind === 'overlay') {
         this.triggerBigFx(0xff7040);
-        for (const [x, y] of overlayPoints(this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed, overlayScatterCount(this.fieldW, this.fieldH))) {
-          this.spawnFxInstance(x, y, ev.fx, 'overlay', 0xff7040);
+        for (const [x, y] of overlayPoints(this.fieldW, this.fieldH, this.fxSeed, overlayScatterCount(this.fieldW, this.fieldH))) {
+          this.placeFxInstance(x, y, ev.fx, 'overlay', 0xff7040);
         }
       } else if (kind === 'wave') {
-        const points = timedWavePoints(ev.x, ev.y * Y_SQUASH, ev.dirX, ev.dirY * Y_SQUASH, ev.width * Y_SQUASH, this.fieldW, this.fieldH * Y_SQUASH, this.fxSeed);
+        const points = timedWavePoints(ev.x, ev.y, ev.dirX, ev.dirY, ev.width, this.fieldW, this.fieldH, this.fxSeed);
         const start = (): void => {
           if (this.destroyed) return;
           this.triggerBigFx(0xffa040);
           for (const { x, y, delayS } of points) {
-            this.fxTimeline.schedule(delayS, () => this.spawnFxInstance(x, y, ev.fx, 'wave', 0xffa040, false));
+            this.fxTimeline.schedule(delayS, () => this.placeFxInstance(x, y, ev.fx, 'wave', 0xffa040, false));
           }
         };
         if (ev.fx && this.fxSheets.has(ev.fx) && !this.fxTextures.has(ev.fx)) {
@@ -681,11 +733,19 @@ export class Battlefield {
         const legacy = area === 'buff' || area === 'debuff'
           ? Array.from({ length: ents.count }, (_, i) => i).filter((i) => ents.alive[i] && ents.side[i] === targetSide)
           : ev.affected.filter((i) => ents.side[i] === targetSide);
+        // A heal+buff reuses one aura on each recipient, not two identical sheets.
+        // Identity (not position) preserves separate bodies and hostile strike effects.
+        const take = (entity: number): boolean => {
+          if (kind !== 'aura') return true;
+          if (auraRecipients.has(entity)) return false;
+          auraRecipients.add(entity);
+          return true;
+        };
         const points: [number, number][] = snapshot
-          ? snapshot.targets.map((t) => [t.x, t.y * Y_SQUASH])
-          : perEntityPoints(legacy, (e) => e >= 0 && e < ents.count ? [ents.x[e]!, ents.y[e]! * Y_SQUASH] : null);
+          ? snapshot.targets.filter((t) => take(t.entity)).map((t) => [t.x, t.y])
+          : perEntityPoints(legacy.filter(take), (e) => e >= 0 && e < ents.count ? [ents.x[e]!, ents.y[e]!] : null);
         for (const [x, y] of points) {
-          this.spawnFxInstance(x, y, ev.fx, kind, color);
+          this.placeFxInstance(x, y, ev.fx, kind, color);
         }
       }
     }
@@ -696,20 +756,22 @@ export class Battlefield {
     const ents = world.ents;
     const text = new Text({ text: Math.round(amount).toString(), style: { fill: 0xffee88, fontSize: 12, fontWeight: 'bold' } });
     text.anchor.set(0.5);
-    text.position.set(ents.x[entity]!, ents.y[entity]! * Y_SQUASH - 16);
+    const [x, y] = projectGround(this.projection, ents.x[entity]!, ents.y[entity]!);
+    text.scale.set(depthScale(this.projection, ents.y[entity]!));
+    text.position.set(x, y - 16 * text.scale.y);
     this.fx.addChild(text);
     this.damageNumbers.push({ text, t: 0, vy: 20 });
   }
 
   private renderDebug(world: World, _alpha: number): void {
-    this.debugLayer.removeChildren();
+    for (const child of this.debugLayer.removeChildren()) child.destroy();
     const g = new Graphics();
     const cell = this.data.constants.GRID_CELL;
     for (let x = 0; x <= this.fieldW; x += cell) {
-      g.moveTo(x, 0).lineTo(x, this.fieldH * Y_SQUASH);
+      g.moveTo(...projectGround(this.projection, x, 0)).lineTo(...projectGround(this.projection, x, this.fieldH));
     }
     for (let y = 0; y <= this.fieldH; y += cell) {
-      g.moveTo(0, y * Y_SQUASH).lineTo(this.fieldW, y * Y_SQUASH);
+      g.moveTo(...projectGround(this.projection, 0, y)).lineTo(...projectGround(this.projection, this.fieldW, y));
     }
     g.stroke({ color: 0x00ffff, width: 1, alpha: 0.15 });
     this.debugLayer.addChild(g);
@@ -720,7 +782,7 @@ export class Battlefield {
       if (ents.alive[i] === 0) continue;
       const target = ents.target[i]!;
       if (target >= 0 && ents.alive[target] === 1) {
-        lines.moveTo(ents.x[i]!, ents.y[i]! * Y_SQUASH).lineTo(ents.x[target]!, ents.y[target]! * Y_SQUASH);
+        lines.moveTo(...projectGround(this.projection, ents.x[i]!, ents.y[i]!)).lineTo(...projectGround(this.projection, ents.x[target]!, ents.y[target]!));
       }
     }
     lines.stroke({ color: 0xff00ff, width: 1, alpha: 0.25 });
@@ -732,7 +794,8 @@ export class Battlefield {
         style: { fill: 0xffffff, fontSize: 10 },
       });
       label.anchor.set(0.5, 1);
-      label.position.set(sq.centroidX, sq.centroidY * Y_SQUASH - 46);
+      const [x, y] = projectGround(this.projection, sq.centroidX, sq.centroidY);
+      label.position.set(x, y - 46);
       this.debugLayer.addChild(label);
     }
   }
@@ -751,6 +814,6 @@ export class Battlefield {
   }
 }
 
-export function worldPointToScreen(wx: number, wy: number, cam: Camera, viewportW: number, viewportH: number): [number, number] {
-  return worldToScreen(wx, wy * Y_SQUASH, cam, viewportW, viewportH);
+export function worldPointToScreen(wx: number, wy: number, cam: Camera, viewportW: number, viewportH: number, projection: FieldProjection, hudOffsetY = 0): [number, number] {
+  return groundToScreen(wx, wy, projection, cam, viewportW, viewportH, hudOffsetY);
 }

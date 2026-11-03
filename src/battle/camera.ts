@@ -1,8 +1,8 @@
 // Pure camera math (pan/zoom clamp) — testable without Pixi/DOM.
 import { projectGround, unprojectGround, type FieldProjection } from '../render/projection';
 export interface Camera {
-  x: number; // world-space center x
-  y: number; // world-space center y
+  x: number; // projected-plane center x
+  y: number; // projected-plane center y
   zoom: number;
 }
 
