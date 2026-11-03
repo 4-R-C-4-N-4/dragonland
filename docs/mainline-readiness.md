@@ -1,10 +1,12 @@
 # MVP2 → mainline readiness and UI/UX pass
 
-Status: **integrated on `mvp2`, not ready to merge into `main` yet**.
+Status: **draft PR [#2](https://github.com/4-R-C-4-N-4/dragonland/pull/2), `mvp2` → `main`; final integration gates remain open**.
+
+The findings below preserve the original audit, not the current implementation state. Current evidence: `PROGRESS.md`, `docs/qa/browser-smoke.md`, `docs/qa/release-diagnostics.json`, `docs/qa/perspective-verification.json` and `art/reviews/fx.json`. The integrated parent gate is 322 tests/build; the corrected perspective candidate passes 344 tests/build and spec re-review, with quality re-review pending.
 
 Baseline: `1e6cafd` (retaliation + pause planning) and `02c1c70` (provisional FX sources/runtime assets). Gate: `npm run check` = **247 tests passing**, `npm run build` passes. No new gameplay systems are recommended for this pass.
 
-`main` is still the initial commit; the existing open PR #1 targets `main` from the older `mvp` branch. The eventual release should review `mvp2` against `main`, not accidentally merge only MVP1.
+The actual release proposal is draft PR #2 from `mvp2` to `main`. The older MVP1-only PR #1 was explicitly closed as superseded; its `mvp` branch was preserved. No mainline merge has been performed.
 
 ## What is integrated
 
@@ -102,10 +104,10 @@ Acceptance: transformed ground and every attached effect agree spatially; invers
 
 - [x] HUD controls visible/clickable at supported widths; order/approach/locked-disposition semantics clear. Integrated `0c10d49` + dynamic view reservations; parent browser checked 1280/1024/800, keyboard and mouse paused edits and mixed selections. Final production smoke remains below.
 - [ ] First-cast, buff-only and travelling-wave FX fixed; all 15 effects visually reviewed at game scale.
-- [ ] View teardown and repeated-battle lifecycle checked.
-- [ ] Current mixed-army campaign/hero diagnostics recorded; no known ranged-survivor stalls.
+- [x] View teardown and repeated-battle lifecycle checked: three actual views destroyed during real queued FX and dragging; tracked handlers/frame callbacks returned to zero with no late callbacks/errors.
+- [x] Current mixed-army campaign/hero diagnostics recorded; no known ranged-survivor stalls. Four variants, 90 campaigns/588 completed battles; time-limit duels and weak bot policies remain explicit, not hidden.
 - [ ] Full browser run/save/reward/loss smoke plus production-build smoke completed.
-- [ ] CI and minimal player/developer documentation present.
+- [x] Node 22 npm-ci/check/build CI and player/developer README present. Clean-install local gate and earlier remote CI passed; final integrated-head CI is still required before completing release review.
 - [ ] Perspective either implemented and verified, or explicitly deferred with Ivy's agreement.
 - [ ] Final review of `mvp2` against `main`; no automatic mainline merge from this audit.
 

@@ -30,7 +30,7 @@ Deploy the contents of `dist/` to a static host. Raw art generation is not part 
 ## Campaign
 
 - Pick one of 15 heroes. Each starts with 60 stage-1 troops from its class and one fixed neutral partner class.
-- Inspect committed enemy armies, then deploy up to 100 troops across four squads. Composition-first controls avoid selecting every troop individually; named veterans can be pinned when you want finer choices.
+- Inspect committed enemy armies, then deploy up to 100 troops across four squads. Composition-first controls avoid selecting every troop individually; named veteran lists show who is deployed or benched, with highest-level troops chosen first.
 - Win to earn troop/hero XP and unlock the defeated general's class for future recruitment.
 - Some casualties recover as wounded after victory; the rest are permanent losses. Defeat grants no recovery or rewards, and your general falling ends the run.
 - Ordinary troops evolve through three stages without becoming generals. Hero milestone upgrades improve vitality, might or special mastery.
