@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Assets, Container, Sprite, Texture } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { Battlefield, Y_SQUASH } from '../../src/render/battlefield';
+import { createProjection } from '../../src/render/projection';
 import { FxTimeline, parseFxSheet, type ParsedFx } from '../../src/render/fx';
 import { createBattle } from '../../src/sim';
 import type { World } from '../../src/sim';
@@ -29,6 +30,9 @@ function harness(): FxHarness {
   const world2screen = new Container();
   world2screen.addChild(fx);
   return Object.assign(Object.create(Battlefield.prototype) as FxHarness, {
+    // Preserve the reviewed vertical-only FX expectations; projectionBattlefield tests the live perspective.
+    projection: { ...createProjection(800, 400), farWidthScale: 1, verticalScale: Y_SQUASH },
+    routeGuide: new Graphics(), routeSignature: '', routeAge: 0, routePaths: [],
     fx, world2screen, fxSheets: new Map(), fxTextures: new Map(), fxLoading: new Map(), fxTimeline: new FxTimeline(),
     destroyed: false, lastWorld: null, sprites: [], damageNumbers: [], sheets: new Map(), fxSeed: 1, fieldW: 800, fieldH: 400,
     debugLayer: new Container(), screenShakeT: 0,
@@ -135,7 +139,7 @@ describe('battlefield FX integration', () => {
     b.spawnSpecialFx({ type: 'special', side: 0, specialId: 'legacy', fx: 'test', x: 0, y: 0, dirX: 1, dirY: 0, width: 0,
       areas: ['general', 'heal', 'buff', 'debuff'], affected: [enemy, ally],
     });
-    expect(spawn.mock.calls.map((c) => [c[0], c[3]])).toEqual([[80, 'strike'], [20, 'aura'], [20, 'aura'], [80, 'aura']]);
+    expect(spawn.mock.calls.map((c) => [c[0], c[3]])).toEqual([[80, 'strike'], [20, 'aura'], [80, 'aura']]); // Heal+buff shares the ally aura.
     b.destroy();
   });
 

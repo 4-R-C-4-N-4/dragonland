@@ -48,10 +48,10 @@ describe('perspective camera composition', () => {
     }
   });
 
-  it('fits the trapezoid inside the actual space between HUD bands', () => {
+  it.each([[1280, 800, 150], [1024, 768, 190], [800, 600, 256]])('fits the trapezoid between HUD bands at %i×%i', (width, height, bottom) => {
     const p = createProjection(1600, 600);
     const b = projectedBounds(p);
-    const top = 68, bottom = 256, width = 800, height = 600;
+    const top = 68;
     const cam = fitCamera({ ...opts, fieldW: b.width, fieldH: b.height, viewportW: width, viewportH: height - top - bottom });
     for (const x of [0, 1600]) for (const y of [0, 600]) {
       const [sx, sy] = groundToScreen(x, y, p, cam, width, height, (top - bottom) / 2);
@@ -59,6 +59,21 @@ describe('perspective camera composition', () => {
       expect(sx).toBeLessThanOrEqual(width);
       expect(sy).toBeGreaterThanOrEqual(top);
       expect(sy).toBeLessThanOrEqual(height - bottom);
+    }
+  });
+});
+
+describe('projected camera pan bounds', () => {
+  it('clamps dragging in projected coordinates and retains the HUD offset', () => {
+    const p = createProjection(1600, 600), b = projectedBounds(p);
+    const projectedOpts = { ...opts, fieldW: b.width, fieldH: b.height };
+    for (const direction of [-1, 1]) {
+      const cam = clampCamera({ x: direction * 1e6, y: direction * 1e6, zoom: 2 }, projectedOpts);
+      expect(cam.x).toBe(direction < 0 ? 200 : 1400);
+      expect(cam.y).toBe(direction < 0 ? 100 : 350);
+      const screen = groundToScreen(123, 234, p, cam, 800, 600, -94);
+      expect(screenToGround(...screen, p, cam, 800, 600, -94)[0]).toBeCloseTo(123);
+      expect(screenToGround(...screen, p, cam, 800, 600, -94)[1]).toBeCloseTo(234);
     }
   });
 });

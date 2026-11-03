@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Texture } from 'pixi.js';
+import { Container, Graphics, Texture } from 'pixi.js';
+import { createProjection } from '../../src/render/projection';
 import { Battlefield } from '../../src/render/battlefield';
 import { getGameData } from '../../src/data';
 import { createBattle } from '../../src/sim';
@@ -38,7 +39,8 @@ describe('uncluttered battlefield', () => {
     const renderSquadBanners = vi.fn();
     const field = Object.assign(Object.create(Battlefield.prototype), {
       world2screen: { position: transform(), scale: transform(), pivot: transform() },
-      damageNumbers: [], renderSquadBanners, debugLayer: { removeChildren: vi.fn() },
+      projection: createProjection(1600, 600), routeGuide: new Graphics(), routeSignature: '', routeAge: 0, routePaths: [],
+      damageNumbers: [], renderSquadBanners, debugLayer: new Container(),
     });
     updateDebugState({ overlay: false });
     field.render(world, { x: 0, y: 0, zoom: 1 }, 1, 800, 600, 1 / 60, 'all');
