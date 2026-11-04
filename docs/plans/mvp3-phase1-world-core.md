@@ -1,10 +1,10 @@
-# MVP3 Phase 1-2 Implementation Plan — World Contract and Overworld Core
+# MVP3 Phase 1-2 Implementation Plan — World Contract and Turn-Based Overworld Core
 
 > **For Hermes:** Use subagent-driven-development to implement this plan task-by-task. Contract in `docs/mvp3.md`. Phases 3+ get their own plan files once this is merged.
 
-**Goal:** a pure, deterministic, replayable overworld simulation with a validated authored map, ready for UI and battle sequencing to build against in parallel.
+**Goal:** a pure, deterministic, replayable turn-based overworld with a validated authored map, ready for UI and battle sequencing to build against in parallel.
 
-**Architecture:** `src/world` mirrors `src/sim`: validated JSON data, a types-only public contract, a fixed-step `stepWorld`, one seeded PRNG whose state lives in war state. No DOM, no `Date`, no `Math.random`. The day-tick is the world's fixed step; battles remain the existing separate simulation.
+**Architecture:** `src/world` mirrors `src/sim`: validated JSON data, a types-only public contract, one seeded PRNG whose state lives in war state. The unit of time is a **turn**, not a tick. Each division gets one order per turn — march to an adjacent node, search, rest or hold — and **all factions' orders resolve together**, so neither side sees the other's move first. No DOM, no `Date`, no `Math.random`. Battles remain the existing separate simulation.
 
 **Tech stack:** TypeScript, zod, Vitest. Node 22. No new dependencies.
 
@@ -16,9 +16,10 @@
 
 - Data validation and cross-reference checks: `src/data/index.ts` `buildGameData()` — collects errors into an array and throws one readable message.
 - Seeded RNG and salting: `src/sim/rng.ts`, and `SALT` / `mixSeed` usage in `src/run/engine.ts`.
-- Fixed-step entry point: `src/sim/step.ts` `step(world)` — pending orders applied first, then phase work, then `tick++`.
+- Queued orders applied at a resolution boundary, then logged: `src/sim/step.ts` `applyPendingCommands`.
 - Public contract module: `src/sim/types.ts` (types only) plus `src/sim/index.ts` (re-exports).
-- Determinism tests: `tests/sim/determinism.test.ts` pattern — same seed same hash, replay equals original, different seed differs.
+- Idempotent result application: `src/run/engine.ts` `applyBattleResult` with `processedBattleIds`.
+- Determinism tests: `tests/sim/determinism.test.ts` — same seed same hash, replay equals original, different seed differs.
 
 ---
 
@@ -43,10 +44,13 @@ export type DivisionId = string;
 export type GeneralRecordId = string;
 
 export type NodeKind = 'castle' | 'town' | 'village' | 'lair';
+/** Drives which wild species a Search order can find. */
+export type Biome = 'plains' | 'forest' | 'mountain' | 'swamp' | 'ruins' | 'settled';
 
 export interface WorldNode {
   id: NodeId;
   kind: NodeKind;
+  biome: Biome;
   name: string;
   /** Map position for presentation only; the sim uses routes, not geometry. */
   x: number;
@@ -54,18 +58,17 @@ export interface WorldNode {
   owner: FactionId | null;
   /** Troops a town/castle can supply per week. 0 for villages and lairs. */
   supplyPerWeek: number;
-  /** Income per day for the owning faction. */
-  incomePerDay: number;
+  /** Income per turn for the owning faction. */
+  incomePerTurn: number;
   /** Max generals a castle garrison holds. 0 for non-castles. */
   garrisonCap: number;
 }
 
+/** Routes are adjacency only: one turn crosses one route, whatever its shape. */
 export interface WorldRoute {
   id: string;
   from: NodeId;
   to: NodeId;
-  /** Travel cost in day-units at speed 1. */
-  length: number;
 }
 
 /** A named general: the hero, a promoted veteran, or a rival. */
@@ -82,30 +85,28 @@ export interface GeneralRecord {
   maxHp: number;
   /** Max troops this general may lead. */
   capacity: number;
-  /** Troops under this general's command. */
   troops: ProgressTroop[];
-  /** Set while injured; counts down in days. */
-  injuredDays: number;
-  /** Where this general is when not marching. */
-  nodeId: NodeId | null;
+  /** Set while injured; counts down one per turn. */
+  injuredTurns: number;
+  /** Which node this general is at. */
+  nodeId: NodeId;
 }
 
 export interface Division {
   id: DivisionId;
   factionId: FactionId;
-  /** 1..5 general record ids, in battle order. */
+  /** 1..MAX_DIVISION_GENERALS general record ids, in battle order. */
   generals: GeneralRecordId[];
-  /** Node the division is sitting at, or null while travelling. */
-  atNode: NodeId | null;
-  /** Active march, or null when stationary. */
-  march: { routeId: string; from: NodeId; to: NodeId; progress: number } | null;
+  /** Node the division occupies. Divisions are always on a node. */
+  atNode: NodeId;
+  /** Node it came from; a beaten or retreating division returns here. */
+  previousNode: NodeId | null;
 }
 
 export interface Faction {
   id: FactionId;
   name: string;
   isPlayer: boolean;
-  /** Strategic personality for AI factions. */
   personality: 'aggressive' | 'defensive' | 'opportunist';
   gold: number;
   /** Captured enemy generals awaiting recruitment. */
@@ -113,40 +114,53 @@ export interface Faction {
   classes: ClassId[];
 }
 
-export type WarPhase = 'march' | 'battle' | 'admin' | 'won' | 'lost';
+export type WarPhase = 'orders' | 'battle' | 'admin' | 'won' | 'lost';
+
+/** One division's action for the current turn. */
+export type WorldOrder =
+  | { type: 'march'; division: DivisionId; toNode: NodeId }
+  | { type: 'search'; division: DivisionId }
+  | { type: 'rest'; division: DivisionId }
+  | { type: 'hold'; division: DivisionId };
+
+export type BattleCause = 'contact' | 'swap' | 'assault' | 'wild';
 
 /** A battle the world has triggered and is waiting on. */
 export interface PendingBattle {
   id: string;
+  cause: BattleCause;
   nodeId: NodeId;
   attacker: DivisionId;
-  /** Defending division, or null for an undefended node capture. */
+  /** Defending division, or null for a garrison-only or wild encounter. */
   defender: DivisionId | null;
+  /** Wild species for a Search encounter, else empty. */
+  wild: { unitId: string; count: number }[];
   /** Skirmish ids already applied; makes result application idempotent. */
   processedSkirmishIds: string[];
 }
 
 export type WorldEvent =
-  | { type: 'arrived'; division: DivisionId; nodeId: NodeId }
+  | { type: 'moved'; division: DivisionId; from: NodeId; to: NodeId }
   | { type: 'captured'; nodeId: NodeId; factionId: FactionId }
-  | { type: 'battleTriggered'; battleId: string }
-  | { type: 'dayPassed'; day: number }
+  | { type: 'battleTriggered'; battleId: string; cause: BattleCause }
+  | { type: 'searchedNothing'; division: DivisionId; nodeId: NodeId }
+  | { type: 'turnPassed'; turn: number }
   | { type: 'weekPassed'; week: number }
   | { type: 'healed'; general: GeneralRecordId; hp: number }
-  | { type: 'resupplied'; general: GeneralRecordId; troops: number };
+  | { type: 'resupplied'; general: GeneralRecordId; troops: number }
+  | { type: 'retreated'; division: DivisionId; toNode: NodeId };
 
-export type MarchOrder = { type: 'march'; division: DivisionId; toNode: NodeId };
-export type RecordedWorldOrder = { day: number; tick: number; order: MarchOrder };
+export interface RecordedWorldTurn {
+  turn: number;
+  orders: WorldOrder[];
+}
 
 export interface War {
   version: 1;
   id: string;
   seed: number;
-  /** Fixed-step tick count; DAY_TICKS ticks make one day. */
-  tick: number;
-  day: number;
+  turn: number;
   week: number;
-  paused: boolean;
   phase: WarPhase;
   factions: Faction[];
   nodes: WorldNode[];
@@ -155,8 +169,9 @@ export interface War {
   divisions: Division[];
   pendingBattle: PendingBattle | null;
   events: WorldEvent[];
-  orderLog: RecordedWorldOrder[];
-  /** Internal: RNG state and lookups. Not part of the public contract. */
+  /** Every resolved turn's orders, for replay. */
+  turnLog: RecordedWorldTurn[];
+  /** Internal: RNG state, lookups, weekly supply budgets. Not public contract. */
   _internal: unknown;
 }
 ```
@@ -167,7 +182,7 @@ export interface War {
 
 ```bash
 git add src/world/types.ts
-git commit -m "feat(world): add overworld public type contract"
+git commit -m "feat(world): add turn-based overworld type contract"
 ```
 
 ---
@@ -189,16 +204,20 @@ import { WorldDataSchema } from '../../src/data/schemas';
 describe('world data schema', () => {
   it('accepts a minimal valid map', () => {
     const parsed = WorldDataSchema.parse({
-      nodes: [{ id: 'a', kind: 'castle', name: 'A', x: 0, y: 0, owner: 'player', supplyPerWeek: 20, incomePerDay: 0, garrisonCap: 10 }],
+      nodes: [{ id: 'a', kind: 'castle', biome: 'settled', name: 'A', x: 0, y: 0, owner: 'player', supplyPerWeek: 20, incomePerTurn: 0, garrisonCap: 7 }],
       routes: [],
       factions: [{ id: 'player', name: 'You', isPlayer: true, personality: 'aggressive', classes: ['human'] }],
+      biomes: { settled: [] },
     });
-    expect(parsed.nodes[0]!.kind).toBe('castle');
+    expect(parsed.nodes[0]!.garrisonCap).toBe(7);
   });
 
-  it('rejects an unknown node kind and a negative length', () => {
-    expect(WorldDataSchema.safeParse({ nodes: [{ id: 'a', kind: 'fortress', name: 'A', x: 0, y: 0, owner: null, supplyPerWeek: 0, incomePerDay: 0, garrisonCap: 0 }], routes: [], factions: [] }).success).toBe(false);
-    expect(WorldDataSchema.safeParse({ nodes: [], routes: [{ id: 'r', from: 'a', to: 'b', length: -1 }], factions: [] }).success).toBe(false);
+  it('rejects an unknown node kind, an unknown biome and a self route', () => {
+    const base = { routes: [], factions: [{ id: 'p', name: 'P', isPlayer: true, personality: 'aggressive', classes: ['human'] }], biomes: {} };
+    const node = { id: 'a', kind: 'castle', biome: 'settled', name: 'A', x: 0, y: 0, owner: null, supplyPerWeek: 0, incomePerTurn: 0, garrisonCap: 0 };
+    expect(WorldDataSchema.safeParse({ ...base, nodes: [{ ...node, kind: 'fortress' }] }).success).toBe(false);
+    expect(WorldDataSchema.safeParse({ ...base, nodes: [{ ...node, biome: 'lava' }] }).success).toBe(false);
+    expect(WorldDataSchema.safeParse({ ...base, nodes: [node], routes: [{ id: 'r', from: 'a', to: 'a' }] }).success).toBe(false);
   });
 });
 ```
@@ -208,23 +227,24 @@ describe('world data schema', () => {
 **Step 3:** Append to `src/data/schemas.ts`:
 
 ```ts
+export const BiomeSchema = z.enum(['plains', 'forest', 'mountain', 'swamp', 'ruins', 'settled']);
 export const WorldNodeSchema = z.object({
   id: z.string().min(1),
   kind: z.enum(['castle', 'town', 'village', 'lair']),
+  biome: BiomeSchema,
   name: z.string().min(1),
   x: z.number().finite(),
   y: z.number().finite(),
   owner: z.string().min(1).nullable(),
   supplyPerWeek: z.number().int().nonnegative(),
-  incomePerDay: z.number().int().nonnegative(),
+  incomePerTurn: z.number().int().nonnegative(),
   garrisonCap: z.number().int().nonnegative(),
 });
 export const WorldRouteSchema = z.object({
   id: z.string().min(1),
   from: z.string().min(1),
   to: z.string().min(1),
-  length: z.number().positive(),
-});
+}).refine((r) => r.from !== r.to, 'route endpoints must differ');
 export const WorldFactionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -232,10 +252,17 @@ export const WorldFactionSchema = z.object({
   personality: z.enum(['aggressive', 'defensive', 'opportunist']),
   classes: z.array(ClassIdSchema).min(1),
 });
+/** Wild species a Search order can find, per biome, with relative weights. */
+export const BiomeTableSchema = z.record(BiomeSchema, z.array(z.object({
+  unitId: z.string().min(1),
+  weight: z.number().positive(),
+  count: z.number().int().positive(),
+})));
 export const WorldDataSchema = z.object({
   nodes: z.array(WorldNodeSchema),
   routes: z.array(WorldRouteSchema),
   factions: z.array(WorldFactionSchema),
+  biomes: BiomeTableSchema,
 });
 export type WorldData = z.infer<typeof WorldDataSchema>;
 ```
@@ -248,7 +275,7 @@ export type WorldData = z.infer<typeof WorldDataSchema>;
 
 ### Task 3: Authored starter map
 
-**Objective:** one real 12-node, 2-faction map as data.
+**Objective:** one real 12-node, 2-faction map with biome tables, as data.
 
 **Files:**
 - Create: `data/world.json`
@@ -264,7 +291,7 @@ it('ships a connected starter map with one castle per faction', () => {
   for (const faction of world.factions) {
     expect(world.nodes.filter(n => n.owner === faction.id && n.kind === 'castle')).toHaveLength(1);
   }
-  // Every route endpoint exists and the map is one connected component.
+  expect(world.nodes.filter(n => n.kind === 'castle').every(n => n.garrisonCap === 7)).toBe(true);
   const ids = new Set(world.nodes.map(n => n.id));
   for (const r of world.routes) { expect(ids.has(r.from)).toBe(true); expect(ids.has(r.to)).toBe(true); }
   const seen = new Set([world.nodes[0]!.id]);
@@ -281,7 +308,7 @@ it('ships a connected starter map with one castle per faction', () => {
 
 **Step 2:** Run it. Expected: FAIL — no `data/world.json`.
 
-**Step 3:** Author `data/world.json`: 2 castles (one per faction at opposite ends), 3 towns, 5 villages, 2 lairs, routes forming a connected graph with two plausible fronts. Castles `garrisonCap: 10`, `supplyPerWeek: 20`; towns `supplyPerWeek: 10`, `incomePerDay: 2`; villages `incomePerDay: 3`; lairs all zeros.
+**Step 3:** Author `data/world.json`: 2 castles (one per faction at opposite ends, `garrisonCap: 7`, `supplyPerWeek: 20`, biome `settled`), 3 towns (`supplyPerWeek: 10`, `incomePerTurn: 2`, `settled`), 5 villages (`incomePerTurn: 3`, mixed wild biomes), 2 lairs (zeros, `mountain` and `swamp`). Routes form a connected graph with two plausible fronts. Biome tables: `settled` empty; each wild biome lists 2–3 stage-1 species with weights and counts, drawn from `data/units.json`.
 
 **Step 4:** Run the test. Expected: 3 passed.
 
@@ -291,16 +318,16 @@ it('ships a connected starter map with one castle per faction', () => {
 
 ### Task 4: World constants
 
-**Objective:** day-tick rate and world tuning in validated JSON.
+**Objective:** turn tuning in validated JSON.
 
 **Files:**
 - Create: `data/world-constants.json`
 - Modify: `src/data/schemas.ts`
 - Test: `tests/world/worldData.test.ts`
 
-Constants: `DAY_TICKS` 20, `DAYS_PER_WEEK` 7, `HEAL_HP_PER_DAY_FRAC` 0.1, `RESUPPLY_TROOPS_PER_DAY` 3, `MARCH_SPEED_PER_DAY` 1, `RETREAT_TROOP_LOSS_FRAC` 0.25, `CAPTURE_WEIGHT` 0.6, `INJURE_WEIGHT` 0.3, `KILL_WEIGHT` 0.1, `GARRISON_VS_DIVISION` [10, 5], `MAX_DIVISION_GENERALS` 5.
+Constants: `TURNS_PER_WEEK` 7, `HEAL_HP_PER_REST_FRAC` 0.25, `RESUPPLY_TROOPS_PER_REST` 6, `CAPTURE_WEIGHT` 0.6, `INJURE_WEIGHT` 0.3, `KILL_WEIGHT` 0.1, `GARRISON_CAP` 7, `MAX_DIVISION_GENERALS` 5, `SEARCH_CHANCE_LAIR` 0.5, `SEARCH_CHANCE_WILD` 0.2, `INJURY_TURNS` 3, `STARTING_GOLD` 100.
 
-Test that the three defeat weights sum to 1 and that `DAY_TICKS` is a positive integer. Same red-green-commit cycle.
+Test that the three defeat weights sum to 1, that `TURNS_PER_WEEK` and `MAX_DIVISION_GENERALS` are positive integers, and that `GARRISON_CAP` exceeds `MAX_DIVISION_GENERALS` — the defender advantage is intentional. Red-green-commit.
 
 ---
 
@@ -312,9 +339,9 @@ Test that the three defeat weights sum to 1 and that `DAY_TICKS` is a positive i
 - Create: `src/world/data.ts`
 - Test: `tests/world/worldData.test.ts`
 
-Checks, all collected then thrown as one message: unknown route endpoints; duplicate node/route/faction ids; node owner referencing an unknown faction; a faction with no starting castle; disconnected map; `garrisonCap > 0` only on castles; self-routes. Returns `{ nodes, routes, factions, constants, nodeById, routeById, factionById, routesFrom }`.
+Checks, all collected then thrown as one message: unknown route endpoints; duplicate node/route/faction ids; node owner referencing an unknown faction; a faction with no starting castle; disconnected map; `garrisonCap > 0` on a non-castle; biome table entries referencing unknown or non-stage-1 species; a wild biome with an empty table. Returns `{ nodes, routes, factions, biomes, constants, nodeById, routeById, factionById, neighbours }` where `neighbours` maps a node id to its adjacent node ids.
 
-Test each failure mode with a deliberately broken fixture and assert the message names the offending id. Red-green-commit.
+Test each failure mode with a deliberately broken fixture and assert the message names the offending id. Also assert `neighbours` is symmetric. Red-green-commit.
 
 ---
 
@@ -323,69 +350,79 @@ Test each failure mode with a deliberately broken fixture and assert the message
 **Objective:** `createWar` builds a valid initial war from data plus a setup.
 
 **Files:**
-- Create: `src/world/engine.ts`, `src/world/rng.ts` (re-export `src/sim/rng.ts` helpers with world salts)
+- Create: `src/world/engine.ts`, `src/world/rng.ts` (world salts over `src/sim/rng.ts`)
 - Test: `tests/world/createWar.test.ts`
 
-`createWar(data, { seed, heroId, heroName })` produces: faction records with starting gold; the hero as a `GeneralRecord` with `isHero: true` at its faction castle; starting generals and troops per `docs/mvp3.md` defaults; one player division at its castle; rival divisions per faction personality; `tick: 0`, `day: 1`, `week: 1`, `phase: 'march'`, `paused: false`.
+`createWar(data, { seed, heroId, heroName })` produces: faction records with `STARTING_GOLD`; the hero as a `GeneralRecord` with `isHero: true` at its faction castle; starting generals and troops per `docs/mvp3.md` defaults; one player division at its castle with `previousNode: null`; rival divisions per faction personality; `turn: 1`, `week: 1`, `phase: 'orders'`.
 
-Tests: hero identity and placement; roster counts; every general sits at a node; no division exceeds `MAX_DIVISION_GENERALS`; two `createWar` calls with the same seed are deeply equal; different seeds differ. Red-green-commit.
+Tests: hero identity and placement; roster counts; every division sits on a node; no division exceeds `MAX_DIVISION_GENERALS`; two `createWar` calls with the same seed are deeply equal; different seeds differ. Red-green-commit.
 
 ---
 
 ### Task 7: `hashWar` and the order queue
 
-**Objective:** a stable hash and queued-order plumbing, so determinism tests can exist before movement does.
+**Objective:** a stable hash and order plumbing, before resolution exists.
 
 **Files:**
 - Modify: `src/world/engine.ts`
 - Create: `src/world/index.ts` (public re-exports, mirroring `src/sim/index.ts`)
 - Test: `tests/world/determinism.test.ts`
 
-`hashWar(war)` mixes tick/day/phase/node owners/division positions/general HP and troop counts — the same FNV-style mix as `hashWorld`. `issueMarchOrder(war, division, toNode)` pushes onto an internal pending queue and is applied at the start of the next executed tick, then appended to `orderLog`.
+`hashWar(war)` mixes turn/week/phase/node owners/division positions and previous nodes/general HP and troop counts — the same FNV-style mix as `hashWorld`. `issueOrder(war, order)` validates that the division exists, stores **one order per division** (a second order for the same division replaces the first), and mutates nothing else.
 
-Tests: hash is stable for an unchanged war; changes when a division moves; queued orders do not take effect until a tick runs. Red-green-commit.
+Tests: hash stable for an unchanged war; changes when a division moves; latest order per division wins; an order for an unknown division is rejected without mutation. Red-green-commit.
 
 ---
 
-### Task 8: Fixed-step `stepWorld` — day and week rollover
+### Task 8: `resolveTurn` — simultaneous resolution and the clock
 
-**Objective:** the world clock.
+**Objective:** the turn engine.
 
 **Files:**
-- Create: `src/world/step.ts`
-- Test: `tests/world/clock.test.ts`
+- Create: `src/world/turn.ts`
+- Test: `tests/world/turn.test.ts`
 
-`stepWorld(war)`: no-op when `paused` or `phase` is `battle`/`admin`/`won`/`lost`; otherwise clear `events`, apply pending orders, advance movement (Task 9), run daily upkeep on day boundaries, emit `dayPassed`, and on `DAYS_PER_WEEK` boundaries set `phase: 'admin'` and emit `weekPassed`; then `tick++`.
+`resolveTurn(war)`:
+1. No-op unless `phase === 'orders'`.
+2. Clear `events`.
+3. Snapshot every division's intended action from its queued order; divisions with no order default to `hold`.
+4. Resolve **movement for all factions from that one snapshot**, so no faction sees another's move first.
+5. Detect encounters (Task 11). If one triggers, set `phase: 'battle'` and stop the rest of the turn.
+6. Otherwise apply node actions (search/rest), upkeep and income (Task 10).
+7. Append the turn's orders to `turnLog`, clear the queue, `turn++`, emit `turnPassed`.
+8. On a `TURNS_PER_WEEK` boundary set `phase: 'admin'`, bump `week`, and emit `weekPassed`.
 
-Tests: `DAY_TICKS` steps advance exactly one day; a week boundary fires once and enters admin; pause freezes tick/day; `phase: 'admin'` freezes the clock until cleared. Red-green-commit.
+Tests: one call advances exactly one turn; two hostile divisions moving into each other's node both arrive and clash rather than one pre-empting the other; a week boundary fires once and enters admin; `phase: 'battle'` and `phase: 'admin'` both block further resolution until cleared; a division with no order holds. Red-green-commit.
 
 ---
 
-### Task 9: Division movement
+### Task 9: Movement — one node per turn
 
-**Objective:** divisions march along routes at their slowest general's pace.
+**Objective:** adjacency movement with previous-node tracking and retreat resolution.
 
 **Files:**
 - Create: `src/world/movement.ts`
 - Test: `tests/world/movement.test.ts`
 
-A march order from a node with a route to the target starts a march; illegal targets (no route, division already marching, division is empty) are rejected without mutating state. Progress advances by `MARCH_SPEED_PER_DAY * slowestSpeed / DAY_TICKS` per tick, where speed comes from each general's slowest troop species via `data.unitById`. On `progress >= length` the division arrives: `atNode` set, `march` cleared, `arrived` emitted. An unowned or enemy node with no defender flips owner and emits `captured`.
+A `march` order is legal only to a node adjacent to `atNode` via a real route, for a non-empty division. Illegal orders mutate nothing and resolve as `hold`. On a legal march: `previousNode = atNode`, `atNode = toNode`, emit `moved`. An unowned or enemy node with no defending division and no garrison flips owner and emits `captured`.
 
-Tests: legal and illegal orders; arrival timing from route length and speed; slowest-member pacing; undefended capture; a general-less division cannot march. Red-green-commit.
+Also expose `retreatNode(war, division)`: returns the division's `previousNode`, walks further back to the last friendly or empty node when that node is hostile-occupied, or returns `null` when there is nowhere to fall back to. Phase 3 consumes this.
+
+Tests: legal and illegal targets; non-adjacent rejected; previous node recorded on every move; undefended capture; a general-less division cannot march; `retreatNode` for the simple case, the hostile-previous-node case and the nowhere-to-go case. Red-green-commit.
 
 ---
 
-### Task 10: Daily upkeep — healing, resupply, income, injury recovery
+### Task 10: Node actions and upkeep
 
-**Objective:** garrison recovery and economy.
+**Objective:** rest, income, weekly supply and injury recovery.
 
 **Files:**
 - Create: `src/world/upkeep.ts`
 - Test: `tests/world/upkeep.test.ts`
 
-On each day boundary, for every general at a friendly town/castle: heal `HEAL_HP_PER_DAY_FRAC` of max HP (clamped), and resupply up to `RESUPPLY_TROOPS_PER_DAY` fresh stage-1 troops of an unlocked class while the node's weekly supply budget and the general's capacity allow. Weekly budgets reset on week rollover. Owners collect `incomePerDay` from owned nodes. Injured generals decrement `injuredDays` and become available at 0.
+A `rest` order at a friendly town or castle heals each general in the division by `HEAL_HP_PER_REST_FRAC` of max HP (clamped) and resupplies up to `RESUPPLY_TROOPS_PER_REST` fresh stage-1 troops of an unlocked class, bounded by the node's remaining weekly supply budget and each general's capacity. Resting elsewhere heals nothing. Weekly budgets reset on week rollover. Every turn, owners collect `incomePerTurn` from owned nodes, and injured generals decrement `injuredTurns`.
 
-Tests: healing clamps at max HP; resupply respects both capacity and weekly supply, and the budget resets weekly; income accrues per owned node; marching generals do not heal; injury countdown. Red-green-commit.
+Tests: healing clamps at max HP; resupply respects capacity and weekly supply; the budget resets weekly; resting on a neutral node does nothing; income accrues per owned node per turn; injury countdown reaches zero and frees the general. Red-green-commit.
 
 ---
 
@@ -397,9 +434,14 @@ Tests: healing clamps at max HP; resupply respects both capacity and weekly supp
 - Create: `src/world/encounter.ts`
 - Test: `tests/world/encounter.test.ts`
 
-After movement, detect: two hostile divisions on the same node; a division arriving at an enemy castle with a garrison; two hostile divisions crossing on the same route. Produce one `PendingBattle` with a deterministic id, set `phase: 'battle'`, emit `battleTriggered`, and stop further movement that tick. While a pending battle exists no new one is created.
+After movement resolves, detect in a sweep whose result does not depend on faction array order:
+- `contact` — two hostile divisions on the same node.
+- `swap` — two hostile divisions that exchanged nodes along the same route this turn; they cannot slip past each other.
+- `assault` — a division on an enemy castle that still has a garrison.
 
-Tests: node contact, castle assault, mid-route crossing, no duplicate pending battle, allied divisions sharing a node do not fight, deterministic battle ids. Red-green-commit.
+Produce one `PendingBattle` with a deterministic id derived from turn and node, set `phase: 'battle'`, emit `battleTriggered`. While a pending battle exists no new one is created.
+
+Tests: node contact; swap clash; castle assault; no duplicate pending battle; allied divisions sharing a node do not fight; deterministic ids; detection independent of faction ordering. Red-green-commit.
 
 ---
 
@@ -411,9 +453,9 @@ Tests: node contact, castle assault, mid-route crossing, no duplicate pending ba
 - Modify: `src/world/engine.ts`, `src/world/index.ts`
 - Test: `tests/world/determinism.test.ts`
 
-`replayWar(data, setup, orderLog, maxTicks)` re-runs from the log and must reproduce an identical `hashWar`.
+`replayWar(data, setup, turnLog, maxTurns)` re-runs from the log and must reproduce an identical `hashWar`.
 
-Tests: a 30-day war with scripted marches replays to the same hash; a different seed diverges; pause windows in the log do not change the outcome; a mirrored war (same map, both factions identical) is not biased toward faction 0 across a seed ensemble. Red-green-commit.
+Tests: a 30-turn war with scripted orders replays to the same hash; a different seed diverges; a mirrored war (same map, both factions identical and symmetric) shows no faction-0 bias across a seed ensemble; shuffling the order array within a single turn does not change the resolved outcome. Red-green-commit.
 
 ---
 
@@ -424,7 +466,7 @@ Tests: a 30-day war with scripted marches replays to the same hash; a different 
 **Step 1:** `npm run check` — expect 492 baseline plus the new world suites, all passing.
 **Step 2:** `npm run build` — expect success.
 **Step 3:** `git diff --check`.
-**Step 4:** Confirm `src/world` has no imports from `src/ui`, `src/render`, `pixi.js`, and no `Date`/`Math.random`:
+**Step 4:** Confirm purity:
 
 ```bash
 grep -rnE "from '\.\./(ui|render)|pixi\.js|Math\.random|new Date|Date\.now" src/world/ && echo "VIOLATION" || echo "PURE"
@@ -438,10 +480,13 @@ grep -rnE "from '\.\./(ui|render)|pixi\.js|Math\.random|new Date|Date\.now" src/
 
 - [ ] `src/world` is pure: no DOM, Pixi, `Date` or `Math.random`
 - [ ] Same seed ⇒ identical `hashWar`; replay equals original; different seed differs
+- [ ] Simultaneous resolution: order within a turn does not change outcomes
 - [ ] Mirrored war shows no faction-0 bias across a seed ensemble
-- [ ] Pause and admin both freeze the clock
-- [ ] Week boundary fires exactly once per week
-- [ ] Illegal orders are rejected without mutating state
+- [ ] One order per division per turn; latest replaces earlier
+- [ ] Illegal orders resolve as hold without corrupting state
+- [ ] Every move records `previousNode`; `retreatNode` handles blocked fallback
+- [ ] Castle garrison cap 7 exceeds division cap 5
+- [ ] Week boundary fires exactly once per 7 turns and enters admin
 - [ ] One pending battle at a time, with deterministic ids
 - [ ] Every data error names the offending id
 - [ ] `npm run check` and `npm run build` pass
