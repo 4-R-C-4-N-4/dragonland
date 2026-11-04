@@ -28,6 +28,13 @@ describe('semantic save validation', () => {
     ['frozen player troop', (s: ReturnType<typeof activeRun>) => { s.battle!.setup.sides[0]!.squads[0]!.troops[0]!.unitId = 'removed-species'; }],
     ['chosen encounter troop', (s: ReturnType<typeof activeRun>) => { s.encounter!.side.squads[0]!.troops[0]!.unitId = 'removed-species'; }],
     ['recruit offer troop', (s: ReturnType<typeof activeRun>) => { s.recruitOffers = [{ id: 'r', troops: [{ id: 'x', name: 'X', unitId: 'removed-species', xp: 0, level: 1 }] }]; }],
+    ['frozen general override species', (s: ReturnType<typeof activeRun>) => {
+      s.battle!.setup.sides[0]!.general = { ...data.generalById.get('paladin')!, unitId: 'removed-species' };
+    }],
+    ['frozen general override identity', (s: ReturnType<typeof activeRun>) => {
+      // A saved override must describe the side's own general, not a different hero.
+      s.battle!.setup.sides[0]!.general = { ...data.generalById.get('dragon')!, hp: 1234 };
+    }],
     ['summary casualty', (s: ReturnType<typeof activeRun>) => {
       s.lastSummary = { battleId: 'b', won: false, boss: false, dead: [{ id: 'd', name: 'D', unitId: 'removed-species' }], recovered: [], xpAwarded: 0, levelUps: 0, evolutions: [], heroLevelFrom: 1, heroLevelTo: 1 };
     }],
@@ -38,13 +45,21 @@ describe('semantic save validation', () => {
     const raw = storage.getItem(RUN_KEY);
     const loaded = loadRun(storage, data);
     expect(loaded.kind).toBe('corrupt');
-    if (loaded.kind === 'corrupt') expect(loaded.error).toContain('removed-species');
+    if (loaded.kind === 'corrupt') expect(loaded.error).toMatch(/removed-species|does not match/);
     // A corrupt save is reported, never silently rewritten.
     expect(storage.getItem(RUN_KEY)).toBe(raw);
   });
 
-  it('accepts every reference in a real saved run', () => {
+  it('accepts every reference in a real saved run, including legitimate frozen hero stats', () => {
     expect(() => validateRun(data, activeRun())).not.toThrow();
+    const progressed = activeRun();
+    const base = data.generalById.get(progressed.battle!.setup.sides[0]!.generalId)!;
+    // Hero progression legitimately freezes scaled stats and special power.
+    progressed.battle!.setup.sides[0]!.general = {
+      ...base, level: 7, hp: base.hp * 1.4, attack: base.attack * 1.2,
+      special: { ...base.special, power: base.special.power * 1.3 },
+    };
+    expect(() => validateRun(data, progressed)).not.toThrow();
   });
 });
 

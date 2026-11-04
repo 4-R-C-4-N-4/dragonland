@@ -1,6 +1,6 @@
 # Progress
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 490 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 492 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## Release blockers closed
 
@@ -9,6 +9,7 @@ Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 490 tests) a
 - Backtick debug overlay has one owner per press; the battle listener stops propagation so the application listener cannot toggle it straight back.
 - Balance diagnostics regenerated on the corrected pursuit engine: 2,216 runs, all 15 specials, zero unfinished and **zero time-limit transitions** (previously 54-94). Shepherd 6/48 -> 25/48 among healers. `docs/qa/mp-special-balance.md`.
 - Parent gate: 490 tests, build and `git diff --check` pass. Real-browser release smoke covered depleted recovery, corrupt-save recovery and a full campaign battle with MP cast; storage restored and read back. `docs/qa/release-smoke.json`.
+- Final integration review (`cee0b6b`) found a frozen-general override that bypassed semantic validation: an unknown override species loaded as ok and then threw in `createBattle`, with the headless fallback hitting the same setup. Validation now requires a saved override to describe that side's own hero and checks its unit reference, while accepting legitimately progressed stats/special power. Two regressions went red first; gate is 492 tests.
 
 ## Quit battle and lifecycle completion
 

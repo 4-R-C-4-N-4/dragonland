@@ -42,9 +42,16 @@ export function validateRun(data: GameData, state: RunState): void {
   const unit = (unitId: string, where: string): void => {
     if (!data.unitById.has(unitId)) throw new Error(`${where}: unknown unit ${unitId}`);
   };
-  const general = (side: { generalId: string; general?: { special?: unknown } }, where: string): void => {
+  const general = (side: { generalId: string; general?: { id?: string; unitId?: string } }, where: string): void => {
     const def = data.generalById.get(side.generalId as GeneralId);
     if (!def) throw new Error(`${where}: unknown general ${side.generalId}`);
+    // A frozen override may carry progressed stats, but it must still describe
+    // this side's own hero: the engine uses it in place of the catalog entry.
+    const override = side.general;
+    if (override) {
+      if (override.id !== side.generalId) throw new Error(`${where}: saved general ${override.id} does not match side general ${side.generalId}`);
+      unit(override.unitId ?? def.unitId, `${where} saved general ${side.generalId}`);
+    }
     unit(def.unitId, `${where} general ${side.generalId}`);
   };
   const sides = [

@@ -22,7 +22,7 @@ Two independent mechanics contributed:
 - All15 heroes, both sides, Hold and Fall Back:60 actual simulation fixtures. Every hero landed a normal hit within4.35 simulated seconds and cleared its ranged survivor. Fall Back fixtures begin inside its configured acquisition radius; distant, non-attacking troops are not retaliation cases.
 - Shepherd versus10 wounded ranged survivors (50 HP each), mirrored:20 normal attacks, all10 defeated in35.05s,780/1500 hero HP remaining, no special activation. This does not claim every hero defeats any10 full-health elite troops.
 - Dedicated checks cover attack-on-arrival, no duplicate attack, original slow return speed, movement debuffs, existing aggro expiry/home return and deterministic pause behavior.
-- `npm run check`:439 tests passed. `npm run build` and `git diff --check` passed.
+- `npm run check`:492 tests passed (final integrated gate). `npm run build` and `git diff --check` passed.
 - Independent read-only review:APPROVED, with86 focused tests/typecheck reported; parent reran the full suite.
 - Real battle-view browser fixture: first normal hit2.85s;20 normal hits;10 defeated;780 HP; zero specials or captured errors. The browser pauses immediately after the last death, before the next fight-end check, at35.00s; the headless fixture includes that next tick (35.05s). View destroyed and campaign storage read back unchanged.
 
@@ -30,4 +30,4 @@ Evidence: `hero-stragglers.json`, `hero-stragglers-browser.json`, `hero-straggle
 
 ## Balance scope
 
-The hero movement/attack correction changes combat outcomes. Earlier `special-balance-*.json` calibration reports retain their original fingerprints and are historical evidence, not current-engine balance certification. `hero-pursuit-peer-smoke.json` is an exploratory two-seed, all15-special peer smoke using the corrected engine; it is not a replacement full calibration. No unverified mainline readiness or merge claim is made.
+The hero movement/attack correction changes combat outcomes, so the full calibration was regenerated on the corrected engine: see `mp-special-balance.md` and the refreshed `special-balance-*.json` reports, whose source fingerprints match this engine. `hero-pursuit-peer-smoke.json` was the interim exploratory two-seed smoke taken before that regeneration and is superseded by it. No unverified mainline readiness or merge claim is made.
