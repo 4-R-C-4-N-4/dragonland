@@ -134,3 +134,5 @@ export function deriveHeroDef(base: GeneralDef, hero: HeroProgress): GeneralDef 
   const rank = (kind: HeroUpgradeKind) => (1 + config.hero.upgradePerRank) ** hero.upgrades[kind];
   return { ...base, level: hero.level, hp: base.hp * growth * rank('vitality'), attack: base.attack * growth * rank('might'), special: { ...base.special, power: base.special.power * rank('mastery') } };
 }
+
+export { GENERAL_TRACK_TUNING, promoteTroop, recruitCaptive, generalTrackXp, canPromoteTroop, capacityForGeneralTrackXp, type PromotionResult, type CaptiveRecruitmentResult } from './general';
