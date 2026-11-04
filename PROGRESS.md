@@ -1,5 +1,14 @@
 # Progress
 
+## MVP3 — the full game (branch `mvp3`)
+
+Contract: `docs/mvp3.md`. Phase 1-2 task plan: `docs/plans/mvp3-phase1-world-core.md`.
+
+MVP2 is merged to `main` as `cac3773` (PR #2). MVP3 adds the war layer: overworld navigation, sequenced general-vs-general battles, general promotion, weekly admin and a full campaign. MVP2's 8-battle run is retained as Skirmish Campaign so nothing regresses.
+
+Six open questions in `docs/mvp3.md` have defaults and need Ivy's call before Phase 3: map size, starting force, rival general count, castle capacity, retreat cost and hero signature moves. Nothing is implemented yet.
+
+
 Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 492 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
 
 ## Release blockers closed
