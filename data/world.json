@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    { "id": "dawnkeep", "kind": "castle", "biome": "settled", "name": "Dawnkeep", "x": 0, "y": 300, "owner": "player", "supplyPerWeek": 20, "incomePerTurn": 0, "garrisonCap": 7 },
+    { "id": "westmere", "kind": "town", "biome": "settled", "name": "Westmere", "x": 180, "y": 100, "owner": "player", "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "greenfield", "kind": "village", "biome": "plains", "name": "Greenfield", "x": 360, "y": 80, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
+    { "id": "pinewatch", "kind": "village", "biome": "forest", "name": "Pinewatch", "x": 560, "y": 100, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
+    { "id": "eastgate", "kind": "town", "biome": "settled", "name": "Eastgate", "x": 800, "y": 120, "owner": "invader", "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "nightspire", "kind": "castle", "biome": "settled", "name": "Nightspire", "x": 1000, "y": 300, "owner": "invader", "supplyPerWeek": 20, "incomePerTurn": 0, "garrisonCap": 7 },
+    { "id": "reedhaven", "kind": "village", "biome": "swamp", "name": "Reedhaven", "x": 180, "y": 500, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
+    { "id": "stoneford", "kind": "town", "biome": "settled", "name": "Stoneford", "x": 400, "y": 500, "owner": null, "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "oldwall", "kind": "village", "biome": "ruins", "name": "Oldwall", "x": 620, "y": 520, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
+    { "id": "highpass", "kind": "village", "biome": "mountain", "name": "Highpass", "x": 820, "y": 500, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
+    { "id": "wyrmpeak", "kind": "lair", "biome": "mountain", "name": "Wyrmpeak", "x": 480, "y": 280, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 0, "garrisonCap": 0 },
+    { "id": "mirehollow", "kind": "lair", "biome": "swamp", "name": "Mirehollow", "x": 280, "y": 680, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 0, "garrisonCap": 0 }
+  ],
+  "routes": [
+    { "id": "dawn-west", "from": "dawnkeep", "to": "westmere" },
+    { "id": "west-green", "from": "westmere", "to": "greenfield" },
+    { "id": "green-pine", "from": "greenfield", "to": "pinewatch" },
+    { "id": "pine-east", "from": "pinewatch", "to": "eastgate" },
+    { "id": "east-night", "from": "eastgate", "to": "nightspire" },
+    { "id": "dawn-reed", "from": "dawnkeep", "to": "reedhaven" },
+    { "id": "reed-stone", "from": "reedhaven", "to": "stoneford" },
+    { "id": "stone-old", "from": "stoneford", "to": "oldwall" },
+    { "id": "old-high", "from": "oldwall", "to": "highpass" },
+    { "id": "high-night", "from": "highpass", "to": "nightspire" },
+    { "id": "green-peak", "from": "greenfield", "to": "wyrmpeak" },
+    { "id": "peak-stone", "from": "wyrmpeak", "to": "stoneford" },
+    { "id": "reed-mire", "from": "reedhaven", "to": "mirehollow" },
+    { "id": "mire-stone", "from": "mirehollow", "to": "stoneford" }
+  ],
+  "factions": [
+    { "id": "player", "name": "Dawn Alliance", "isPlayer": true, "personality": "defensive", "classes": ["human", "mage", "beast"] },
+    { "id": "invader", "name": "Night Host", "isPlayer": false, "personality": "aggressive", "classes": ["ethereal", "construct", "beast"] }
+  ],
+  "biomes": {
+    "settled": [],
+    "plains": [{ "unitId": "dog", "weight": 3, "count": 8 }, { "unitId": "raven", "weight": 2, "count": 6 }],
+    "forest": [{ "unitId": "sprite", "weight": 3, "count": 6 }, { "unitId": "dog", "weight": 2, "count": 8 }, { "unitId": "raven", "weight": 1, "count": 5 }],
+    "mountain": [{ "unitId": "wyrm", "weight": 3, "count": 5 }, { "unitId": "golem", "weight": 2, "count": 4 }],
+    "swamp": [{ "unitId": "zombie", "weight": 3, "count": 8 }, { "unitId": "witch", "weight": 2, "count": 5 }],
+    "ruins": [{ "unitId": "imp", "weight": 3, "count": 6 }, { "unitId": "automata", "weight": 2, "count": 4 }, { "unitId": "cherub", "weight": 1, "count": 4 }]
+  }
+}

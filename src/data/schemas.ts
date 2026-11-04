@@ -288,3 +288,68 @@ export const LoadoutSchema = z.object({
   color: HexColorSchema.optional(),
 });
 export type Loadout = z.infer<typeof LoadoutSchema>;
+
+export const BiomeSchema = z.enum(['plains', 'forest', 'mountain', 'swamp', 'ruins', 'settled']);
+export const WorldNodeSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum(['castle', 'town', 'village', 'lair']),
+  biome: BiomeSchema,
+  name: z.string().min(1),
+  x: z.number().finite(),
+  y: z.number().finite(),
+  owner: z.string().min(1).nullable(),
+  supplyPerWeek: z.number().int().nonnegative(),
+  incomePerTurn: z.number().int().nonnegative(),
+  garrisonCap: z.number().int().nonnegative(),
+});
+export const WorldRouteSchema = z.object({
+  id: z.string().min(1),
+  from: z.string().min(1),
+  to: z.string().min(1),
+}).refine((r) => r.from !== r.to, 'route endpoints must differ');
+export const WorldFactionSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  isPlayer: z.boolean(),
+  personality: z.enum(['aggressive', 'defensive', 'opportunist']),
+  classes: z.array(ClassIdSchema).min(1),
+});
+/** Wild species a Search order can find, per biome, with relative weights.
+ * Tables may be omitted in standalone schema fixtures; buildWorldData validates wild tables.
+ */
+export const BiomeTableSchema = z.partialRecord(BiomeSchema, z.array(z.object({
+  unitId: z.string().min(1),
+  weight: z.number().positive(),
+  count: z.number().int().positive(),
+})));
+export const WorldDataSchema = z.object({
+  nodes: z.array(WorldNodeSchema),
+  routes: z.array(WorldRouteSchema),
+  factions: z.array(WorldFactionSchema),
+  biomes: BiomeTableSchema,
+});
+export type WorldData = z.infer<typeof WorldDataSchema>;
+
+export const WorldConstantsSchema = z.object({
+  TURNS_PER_WEEK: z.number().int().positive(),
+  HEAL_HP_PER_REST_FRAC: z.number().min(0).max(1),
+  RESUPPLY_TROOPS_PER_REST: z.number().int().nonnegative(),
+  CAPTURE_WEIGHT: z.number().min(0).max(1),
+  INJURE_WEIGHT: z.number().min(0).max(1),
+  KILL_WEIGHT: z.number().min(0).max(1),
+  GARRISON_CAP: z.number().int().positive(),
+  MAX_DIVISION_GENERALS: z.number().int().positive(),
+  SEARCH_CHANCE_LAIR: z.number().min(0).max(1),
+  SEARCH_CHANCE_WILD: z.number().min(0).max(1),
+  INJURY_TURNS: z.number().int().nonnegative(),
+  STARTING_GOLD: z.number().int().nonnegative(),
+  STARTING_TROOPS: z.number().int().nonnegative(),
+  STARTING_GENERALS: z.number().int().positive(),
+  STARTING_CAPACITY: z.number().int().positive(),
+}).refine(c => Math.abs(c.CAPTURE_WEIGHT + c.INJURE_WEIGHT + c.KILL_WEIGHT - 1) <= 1e-9,
+  'CAPTURE_WEIGHT, INJURE_WEIGHT and KILL_WEIGHT must sum to 1')
+  .refine(c => c.GARRISON_CAP > c.MAX_DIVISION_GENERALS,
+    'GARRISON_CAP must exceed MAX_DIVISION_GENERALS')
+  .refine(c => c.STARTING_GENERALS * c.STARTING_CAPACITY >= c.STARTING_TROOPS,
+    'STARTING_GENERALS * STARTING_CAPACITY must cover STARTING_TROOPS');
+export type WorldConstants = z.infer<typeof WorldConstantsSchema>;
