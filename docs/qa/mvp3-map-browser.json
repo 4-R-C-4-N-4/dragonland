@@ -1,0 +1,52 @@
+{
+  "scope": "isolated interactive map widget, not integrated campaign",
+  "base": "28f6c2a",
+  "sourceFingerprint": "5219ff19347d3faade26f4fc3c8eeb8e5d56a3b0627ca872575481bd77bd1c20",
+  "files": [
+    "src/render/worldMap.ts",
+    "src/ui/world/index.ts",
+    "src/ui/world/world.css",
+    "src/ui/world/presentation.ts",
+    "tests/ui/worldMap.test.ts"
+  ],
+  "viewportChecks": [
+    {
+      "width": 800,
+      "height": 600,
+      "endVisible": true,
+      "noHorizontalOverflow": true,
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "endVisible": true,
+      "noHorizontalOverflow": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "endVisible": true,
+      "noHorizontalOverflow": true,
+      "errors": []
+    }
+  ],
+  "verified": [
+    "real Pixi canvas node pointer selection",
+    "real keyboard Enter Hold callback",
+    "native select ArrowDown and Enter March callback to adjacent Reedhaven",
+    "phase battle disables order buttons",
+    "removing owned division clears stale order selection",
+    "destroy twice removes fixture canvas and section",
+    "right-edge Nightspire label clipping observed, fixed, visually rechecked at800x600"
+  ],
+  "errorsObserved": [],
+  "limitations": [
+    "no campaign assembly or save checks",
+    "no GPU-memory/performance claim",
+    "viewport images before label fix are historical; map-800x600-label-fixed.png is corrected"
+  ],
+  "evidenceDir": "/home/ivy/.hermes/cache/scratch/mvp3-map-browser",
+  "qaServer": "5188 stopped after verification"
+}
