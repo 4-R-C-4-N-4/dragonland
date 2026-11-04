@@ -1,0 +1,12 @@
+{
+  "overrideCorruptRecovery": {
+    "recoveryShown": true,
+    "savePreserved": true,
+    "heroes": 15,
+    "errors": []
+  },
+  "validSaveStillResumes": {
+    "resumed": true,
+    "errors": []
+  }
+}
