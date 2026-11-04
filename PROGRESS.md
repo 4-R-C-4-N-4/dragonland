@@ -21,7 +21,7 @@ Opening decisions are locked: hero + two generals share **100 troops**, default 
 Plan: `docs/plans/mvp3-sequence-promotion.md`. Two isolated implementation worktrees, capped at two workers:
 
 - `mvp3-sequence`: defender-first skirmish sequencing and real battle-result bridge, including 7-vs-5 garrisons, casualties, idempotency and retreat.
-- `mvp3-promotion`: general-track XP, identity-preserving promotion, capacity growth and captive recruitment.
+- `mvp3-promotion`: implementation returned; parent reran **579 tests and build successfully in its isolated worktree**. Only four new tests so far; spec and quality reviews are running before accepting completion or integration. Main `mvp3` remains at the 575-test baseline. General-track completeness, ownership validation and boundary coverage still need review.
 
 Worker routing: **GPT-6-Luna, low reasoning**, selected from the available catalog's fast/affordable tier. Sonnet CLI is installed but unauthenticated; Codex Mini was rejected by the account. No credential/config changes. Workers do not push or merge; parent requires independent spec/quality reviews and reruns gates before integration. Next parent-owned seam: interrupted-turn continuation, simultaneous encounter queue and battle-result replay, then biome search and playable UI.
 
