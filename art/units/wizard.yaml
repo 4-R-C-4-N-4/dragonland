@@ -1,0 +1,29 @@
+# MVP2 stage 2; provisional design direction.
+name: Wizard
+size: stage2
+evolvesFrom: adept
+description: >-
+  An evolved Adept: brown-skinned scholar retaining square blue cap, indigo robes, book and wand.
+  Taller layered cap, shoulder cape, spectacles and a large buckled book spine distinguish the
+  silhouette. Left palm supports open ochre book; right fist encloses ivory wand base, tip UP and
+  RIGHT. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the stated
+  non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a broad
+  chest stole in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: small reading nod and chest rise. Walk: follow the body-specific walkNotes. Attack: draw
+  wand toward right shoulder above book; extend right forearm and tip RIGHT; blue-white rune
+  flashes compactly; recover to reading guard. Hit: book braces at chest as head recoils. Death:
+  knees buckle and robes settle sideways with book close; final frame remains still. All five
+  animations: idle, walk, attack, hit, death. Use four distinct sequential attack poses:
+  anticipation, extension, follow-through, recovery. Keep full body, weapons, wings, tail, cloth
+  and effects inside each cell with generous uninterrupted magenta gutters on all four sides,
+  including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement or
+  neighbouring-cell overlap.
+walkNotes: >-
+  Unhurried balanced steps, alternate near and far boot contact beneath robe, cape trails LEFT.
+  Head stays level and book does not bounce or swap hands. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

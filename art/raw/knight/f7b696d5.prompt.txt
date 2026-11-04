@@ -1,0 +1,14 @@
+Pixel-art game sprite sheet in a 16-bit SNES era style (think Dragon Force, Ogre Battle, Final Fantasy Tactics). Limited palette, clean 1px dark outline, no anti-aliasing, crisp pixel clusters, strong readable silhouette that works at very small size, soft top-left lighting.
+Side view, the character faces RIGHT, full body visible, slight top-down tilt.
+Character: Knight. An evolved Soldier: armoured human knight in plate with a kite shield and longsword, closed helm with a small plume. Same silhouette family as the Soldier but heavier and more detailed. Team colour: a tabard over the plate and the plume.
+Animation notes: Attack: overhead longsword slash.
+The character wears a team-colour element (tabard, sash, banner, scarf or collar, as described) painted in pure flat green #00FF00 with only darker green shading. Use #00FF00 nowhere else.
+Layout: a strict grid of 5 rows x 4 columns of equal square cells. Every cell shows the SAME character at the SAME scale with feet on the same baseline. Row 1 idle (subtle breathing), row 2 walk cycle (see the walk description), row 3 attack, row 4 taking a hit (flinch back), row 5 death (collapses and lies on the ground in the last frame).
+Movement quality: exaggerated, clearly different poses readable at 32 pixels tall; stay in place within each cell. Row 2 has exactly 4 frames, NOT the six-frame layout used for separate walk strips. Bipeds: near leg forward contact, far knee raised passing, far leg forward contact, near knee raised passing; distinguish near and far legs with shading, swing arms opposite the legs. Quadrupeds: extended diagonal pair, tucked passing, opposite diagonal pair extended, tucked passing; keep all four legs readable. Fliers: wings fully raised, halfway down, fully lowered, halfway up, with slight body bob. Do not repeat nearly identical poses.
+Solid flat pure magenta #FF00FF background everywhere, including between cells. No ground, no cast shadows, no text, no labels, no numbers, no grid lines, no borders.
+An attached reference sheet shows the established art style: match its pixel density, outline, palette treatment, lighting, cell layout and character scale exactly (a different character).
+Another attached sheet shows the previous evolution stage of this character: keep its silhouette, pose language and colour scheme recognisable, but make this one bigger, more armoured and more detailed.
+
+references:
+  style: art/raw/soldier/de089c64-1.png
+  evolution: art/raw/soldier/de089c64-1.png

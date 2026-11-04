@@ -1,0 +1,29 @@
+# MVP2 stage 3; provisional design direction.
+name: Hierophant
+size: general
+evolvesFrom: cleric
+description: >-
+  An evolved Cleric: imposing brown-skinned priest retaining beads, white-gold mantle, mace and
+  round shield. A tall split ivory mitre, layered circular shoulder plates and floor-length split
+  vestments add height without hiding feet. Right fist grips gold mace below its sun-shaped head,
+  head UP and RIGHT; shield remains on left forearm. Face RIGHT in every frame. Natural body,
+  hair, feathers, stone and metal use the stated non-green palette; saturated green is reserved
+  exclusively for team cloth. Team cloth: a wide front stole in readable pure flat green #00FF00;
+  keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: slow chest rise and subtle bead sway. Walk: follow the body-specific walkNotes. Attack:
+  bend right elbow and load mace above shoulder; extend mace in a short RIGHTward arc; halt it
+  clear of shield; pull back to guard. Hit: shield rises as upper body recoils. Death: knees fold,
+  mitre tilts and vestments settle sideways; final frame remains still. All five animations: idle,
+  walk, attack, hit, death. Use four distinct sequential attack poses: anticipation, extension,
+  follow-through, recovery. Keep full body, weapons, wings, tail, cloth and effects inside each
+  cell with generous uninterrupted magenta gutters on all four sides, including death; shrink pose
+  reach if needed. Fixed scale and anchor, no camera movement or neighbouring-cell overlap.
+walkNotes: >-
+  Solemn low heel-to-toe steps with clearly alternating feet beneath split vestments, minimal head
+  bob; mace and shield remain controlled in their original hands. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

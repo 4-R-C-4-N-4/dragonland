@@ -1,0 +1,13 @@
+# Wyrm — beast, line M, stage1. Edit, then `npm run art -- gen wyrm`.
+name: Wyrm
+size: stage1
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 0.65
+description: >-
+  A young wingless wyrm, a low four-legged serpentine lizard with a long tail and small horns,
+  olive-brown scales (muted ochre and brown, never saturated green). Team colour: a broad cloth
+  saddle blanket on its back in reserved pure green; only this cloth uses saturated green.
+animationNotes: >-
+  Attack: lunging bite.
+walkNotes: >-
+  Four-legged low lizard crawl with a side-to-side tail sway.

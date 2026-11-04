@@ -1,0 +1,9 @@
+# Ranger — human, line A, stage2. Edit, then `npm run art -- gen ranger`.
+name: Ranger
+size: stage2
+description: >-
+  An evolved Archer: veteran ranger with a longbow, layered cloak, bracers and a feathered cap. Same silhouette family as the Archer, more detail. Team colour: the cloak.
+animationNotes: >-
+  Attack: full longbow draw and release.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: archer

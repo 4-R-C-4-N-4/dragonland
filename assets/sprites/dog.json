@@ -1,0 +1,244 @@
+{
+ "frames": {
+  "dog 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 180
+  },
+  "dog 1": {
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 180
+  },
+  "dog 2": {
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 180
+  },
+  "dog 3": {
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 180
+  },
+  "dog 4": {
+   "frame": {
+    "x": 0,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 5": {
+   "frame": {
+    "x": 46,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 6": {
+   "frame": {
+    "x": 92,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 7": {
+   "frame": {
+    "x": 138,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 8": {
+   "frame": {
+    "x": 184,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 9": {
+   "frame": {
+    "x": 230,
+    "y": 34,
+    "w": 46,
+    "h": 27
+   },
+   "duration": 120
+  },
+  "dog 10": {
+   "frame": {
+    "x": 0,
+    "y": 61,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 90
+  },
+  "dog 11": {
+   "frame": {
+    "x": 44,
+    "y": 61,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 90
+  },
+  "dog 12": {
+   "frame": {
+    "x": 88,
+    "y": 61,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 90
+  },
+  "dog 13": {
+   "frame": {
+    "x": 132,
+    "y": 61,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 90
+  },
+  "dog 14": {
+   "frame": {
+    "x": 0,
+    "y": 95,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 110
+  },
+  "dog 15": {
+   "frame": {
+    "x": 44,
+    "y": 95,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 110
+  },
+  "dog 16": {
+   "frame": {
+    "x": 88,
+    "y": 95,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 110
+  },
+  "dog 17": {
+   "frame": {
+    "x": 132,
+    "y": 95,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 110
+  },
+  "dog 18": {
+   "frame": {
+    "x": 0,
+    "y": 129,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 140
+  },
+  "dog 19": {
+   "frame": {
+    "x": 44,
+    "y": 129,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 140
+  },
+  "dog 20": {
+   "frame": {
+    "x": 88,
+    "y": 129,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 140
+  },
+  "dog 21": {
+   "frame": {
+    "x": 132,
+    "y": 129,
+    "w": 44,
+    "h": 34
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "dog.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 276,
+   "h": 163
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 9,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 10,
+    "to": 13,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 14,
+    "to": 17,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 18,
+    "to": 21,
+    "direction": "forward"
+   }
+  ]
+ }
+}

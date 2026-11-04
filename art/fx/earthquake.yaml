@@ -1,0 +1,7 @@
+# FX spec for `earthquake` (art/fx/earthquake.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Earthquake
+kind: overlay # overlay | wave | strike | aura
+frames: 6
+heroes: ['kyilkhor']
+description: >-
+  A jagged crack splitting open in the dusty brown-grey ground with chunks of debris popping upward and a small plume of dust and rubble; raw seismic violence.

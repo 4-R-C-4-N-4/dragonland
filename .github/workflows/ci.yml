@@ -1,0 +1,36 @@
+name: Verify Dragonland
+
+on:
+  push:
+    branches: [main, mvp2]
+  pull_request:
+    branches: [main, mvp2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out sources and editable art
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck and test
+        run: npm run check
+      - name: Build production site
+        run: npm run build

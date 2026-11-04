@@ -1,0 +1,94 @@
+{
+ "frames": {
+  "meteor-fall 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 1": {
+   "frame": {
+    "x": 291,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 2": {
+   "frame": {
+    "x": 582,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 3": {
+   "frame": {
+    "x": 873,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 4": {
+   "frame": {
+    "x": 1164,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 5": {
+   "frame": {
+    "x": 1455,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 6": {
+   "frame": {
+    "x": 1746,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  },
+  "meteor-fall 7": {
+   "frame": {
+    "x": 2037,
+    "y": 0,
+    "w": 291,
+    "h": 467
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "meteor-fall.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2328,
+   "h": 467
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

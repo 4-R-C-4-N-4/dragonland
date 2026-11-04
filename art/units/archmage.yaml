@@ -1,0 +1,29 @@
+# MVP2 stage 3; provisional design direction.
+name: Archmage
+size: general
+evolvesFrom: wizard
+description: >-
+  An evolved Wizard: elder brown-skinned scholar retaining square blue cap, spectacles, indigo
+  robes and ochre book. A tall tiered cap, broad star-edged mantle and long silver beard form a
+  stepped silhouette. Left palm supports open book; near right fist grips a silver staff at waist,
+  amber orb UP. Face RIGHT in every frame. Natural body, hair, feathers, stone and metal use the
+  stated non-green palette; saturated green is reserved exclusively for team cloth. Team cloth: a
+  wide front stole in readable pure flat green #00FF00; keep a broad unobstructed panel visible.
+animationNotes: >-
+  Idle: beard and mantle shift with breathing. Walk: follow the body-specific walkNotes. Attack:
+  curl left fingers over book while right staff tilts slightly back; angle staff head UP and
+  RIGHT; emit a compact blue-white pulse; return staff upright. Hit: torso recoils while book
+  stays supported. Death: knees lower, staff folds close and robe rests on its side; final frame
+  remains still. All five animations: idle, walk, attack, hit, death. Use four distinct sequential
+  attack poses: anticipation, extension, follow-through, recovery. Keep full body, weapons, wings,
+  tail, cloth and effects inside each cell with generous uninterrupted magenta gutters on all four
+  sides, including death; shrink pose reach if needed. Fixed scale and anchor, no camera movement
+  or neighbouring-cell overlap.
+walkNotes: >-
+  Slow grounded scholar stride with low boot passing and alternating weight transfer; beard and
+  mantle lag gently, book and staff retain exact hands. Four-frame full sheets use
+  contact/passing/opposite contact/passing or the four flight phases above; six-frame movement
+  strips add intermediate weight-transfer or wing-transition poses. Every adjacent frame advances
+  the cycle. Stay in place facing RIGHT; near limbs lighter and far limbs darker, without swapping
+  identities. Preserve grip and limb count; leave magenta clearance around the entire moving
+  silhouette.

@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "earthquake 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  },
+  "earthquake 1": {
+   "frame": {
+    "x": 341,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  },
+  "earthquake 2": {
+   "frame": {
+    "x": 682,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  },
+  "earthquake 3": {
+   "frame": {
+    "x": 1023,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  },
+  "earthquake 4": {
+   "frame": {
+    "x": 1364,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  },
+  "earthquake 5": {
+   "frame": {
+    "x": 1705,
+    "y": 0,
+    "w": 341,
+    "h": 377
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "earthquake.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2046,
+   "h": 377
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

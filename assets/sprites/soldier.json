@@ -1,0 +1,244 @@
+{
+ "frames": {
+  "soldier 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "soldier 1": {
+   "frame": {
+    "x": 46,
+    "y": 0,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "soldier 2": {
+   "frame": {
+    "x": 92,
+    "y": 0,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "soldier 3": {
+   "frame": {
+    "x": 138,
+    "y": 0,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 180
+  },
+  "soldier 4": {
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 5": {
+   "frame": {
+    "x": 38,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 6": {
+   "frame": {
+    "x": 76,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 7": {
+   "frame": {
+    "x": 114,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 8": {
+   "frame": {
+    "x": 152,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 9": {
+   "frame": {
+    "x": 190,
+    "y": 40,
+    "w": 38,
+    "h": 41
+   },
+   "duration": 120
+  },
+  "soldier 10": {
+   "frame": {
+    "x": 0,
+    "y": 81,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "soldier 11": {
+   "frame": {
+    "x": 46,
+    "y": 81,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "soldier 12": {
+   "frame": {
+    "x": 92,
+    "y": 81,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "soldier 13": {
+   "frame": {
+    "x": 138,
+    "y": 81,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 90
+  },
+  "soldier 14": {
+   "frame": {
+    "x": 0,
+    "y": 121,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "soldier 15": {
+   "frame": {
+    "x": 46,
+    "y": 121,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "soldier 16": {
+   "frame": {
+    "x": 92,
+    "y": 121,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "soldier 17": {
+   "frame": {
+    "x": 138,
+    "y": 121,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 110
+  },
+  "soldier 18": {
+   "frame": {
+    "x": 0,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "soldier 19": {
+   "frame": {
+    "x": 46,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "soldier 20": {
+   "frame": {
+    "x": 92,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  },
+  "soldier 21": {
+   "frame": {
+    "x": 138,
+    "y": 161,
+    "w": 46,
+    "h": 40
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "soldier.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 228,
+   "h": 201
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 9,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 10,
+    "to": 13,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 14,
+    "to": 17,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 18,
+    "to": 21,
+    "direction": "forward"
+   }
+  ]
+ }
+}

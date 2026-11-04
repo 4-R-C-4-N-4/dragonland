@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "assassin 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 180
+  },
+  "assassin 1": {
+   "frame": {
+    "x": 86,
+    "y": 0,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 180
+  },
+  "assassin 2": {
+   "frame": {
+    "x": 172,
+    "y": 0,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 180
+  },
+  "assassin 3": {
+   "frame": {
+    "x": 258,
+    "y": 0,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 180
+  },
+  "assassin 4": {
+   "frame": {
+    "x": 0,
+    "y": 71,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "assassin 5": {
+   "frame": {
+    "x": 86,
+    "y": 71,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "assassin 6": {
+   "frame": {
+    "x": 172,
+    "y": 71,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "assassin 7": {
+   "frame": {
+    "x": 258,
+    "y": 71,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 120
+  },
+  "assassin 8": {
+   "frame": {
+    "x": 0,
+    "y": 142,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 90
+  },
+  "assassin 9": {
+   "frame": {
+    "x": 86,
+    "y": 142,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 90
+  },
+  "assassin 10": {
+   "frame": {
+    "x": 172,
+    "y": 142,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 90
+  },
+  "assassin 11": {
+   "frame": {
+    "x": 258,
+    "y": 142,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 90
+  },
+  "assassin 12": {
+   "frame": {
+    "x": 0,
+    "y": 213,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 110
+  },
+  "assassin 13": {
+   "frame": {
+    "x": 86,
+    "y": 213,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 110
+  },
+  "assassin 14": {
+   "frame": {
+    "x": 172,
+    "y": 213,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 110
+  },
+  "assassin 15": {
+   "frame": {
+    "x": 258,
+    "y": 213,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 110
+  },
+  "assassin 16": {
+   "frame": {
+    "x": 0,
+    "y": 284,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 140
+  },
+  "assassin 17": {
+   "frame": {
+    "x": 86,
+    "y": 284,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 140
+  },
+  "assassin 18": {
+   "frame": {
+    "x": 172,
+    "y": 284,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 140
+  },
+  "assassin 19": {
+   "frame": {
+    "x": 258,
+    "y": 284,
+    "w": 86,
+    "h": 71
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "assassin.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 344,
+   "h": 355
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

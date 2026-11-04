@@ -1,0 +1,21 @@
+{
+  "battles": 8,
+  "startingTroopsPerLine": 10,
+  "startingClasses": ["human", "beast", "mage", "ethereal", "construct"],
+  "startingPartners": { "human": "mage", "mage": "construct", "construct": "beast", "beast": "ethereal", "ethereal": "human" },
+  "encounterOfferCount": 2,
+  "recruitOfferCount": 3,
+  "recruitsPerOffer": 12,
+  "rosterCap": 160,
+  "woundedRecoveryOnWin": 0.5,
+  "enemyStartingTroops": 40,
+  "enemyTroopsPerDepth": 6,
+  "enemyMaxTroops": 100,
+  "enemyStage2Depth": 3,
+  "enemyStage3Depth": 6,
+  "enemyStage2Share": 0.3,
+  "enemyStage3Share": 0.15,
+  "enemyGeneralGrowthPerDepth": 0.03,
+  "bossGeneralMultiplier": 1.2,
+  "defaultTeamColor": "#5ba8ff"
+}

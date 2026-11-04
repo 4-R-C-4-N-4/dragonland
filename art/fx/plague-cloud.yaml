@@ -1,0 +1,7 @@
+# FX spec for `plague-cloud` (art/fx/plague-cloud.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Plague Cloud
+kind: overlay # overlay | wave | strike | aura
+frames: 6
+heroes: ['servitor']
+description: >-
+  A sickly bubbling patch of yellow-green toxic mist with drifting spore motes and faint skull-like vapor swirls low to the ground; rot and pestilence given shape.

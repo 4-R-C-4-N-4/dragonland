@@ -1,0 +1,36 @@
+# Wolf — beast, line Z, stage2. Edit, then `npm run art -- gen wolf`.
+name: Wolf
+size: stage2
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 0.8
+description: >-
+  An evolved Dog: a lean adult grey timber wolf, unmistakably a natural four-legged wolf,
+  NOT a puppy, bear, cat, werewolf or humanoid. Long narrow muzzle, small erect triangular ears,
+  amber eyes, long level back, deep narrow chest, tucked waist, long digitigrade legs and a
+  bushy tail carried low to the LEFT. Head faces RIGHT, neck extended forward, shoulder blades
+  visible under short silver-grey fur; dark charcoal along the spine, pale throat and paws.
+  Dangerous alert expression, not a round smiling cartoon face. Restrained leather chest
+  harness only: no bulky shoulder pauldrons or full-body armour hiding the anatomy.
+  Team colour: a broad short pure-green cloth panel secured over the upper back, clear of
+  shoulders, knees and paws. Four distinct legs: nearer pair light grey, farther pair dark grey.
+animationNotes: >-
+  All animations stay anatomically quadrupedal. Idle: alert breathing and a small ear twitch.
+  Attack: 1 shoulders lower and hindlegs load, 2 push off into a short forward bite with jaws
+  open, 3 jaws close and forefeet land, 4 recover to alert stance. Hit: a compact sideways
+  recoil with paws near ground, never rears upright or waves its front paws like hands.
+  Death: knees buckle, chest lowers, body rolls onto its side, final frame lies still.
+  Keep the same long-legged adult proportions in every cell. Generous magenta gutters,
+  no tail, muzzle, cloth or limb crosses into another cell.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: dog
+walkNotes: >-
+  A smooth low wolf trot, NOT a high-stepping march or rabbit hop. Head and shoulders remain
+  nearly level; paws skim the ground. Maintain four separate legs with lighter near limbs and
+  darker far limbs. Six-frame cycle: 1 near foreleg and far hindleg reach forward, opposite
+  diagonal pair back; 2 forward pair bears weight while opposite pair lifts under the body;
+  3 opposite pair passes beneath chest and hips, loaded pair pushes back; 4 far foreleg and
+  near hindleg reach forward, first diagonal pair back; 5 opposite pair bears weight while
+  first pair lifts; 6 first pair passes beneath body to loop into 1. Four-frame full sheets
+  use phases 1,3,4,6. Every adjacent frame changes the paw positions. No extra legs, merged
+  forelegs or changing leg lengths. Tail trails low to the LEFT, muzzle points RIGHT,
+  fixed body scale and cell anchor, subtle shoulder motion rather than bouncing vertically.

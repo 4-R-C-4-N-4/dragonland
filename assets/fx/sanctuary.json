@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "sanctuary 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  },
+  "sanctuary 1": {
+   "frame": {
+    "x": 327,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  },
+  "sanctuary 2": {
+   "frame": {
+    "x": 654,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  },
+  "sanctuary 3": {
+   "frame": {
+    "x": 981,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  },
+  "sanctuary 4": {
+   "frame": {
+    "x": 1308,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  },
+  "sanctuary 5": {
+   "frame": {
+    "x": 1635,
+    "y": 0,
+    "w": 327,
+    "h": 310
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "sanctuary.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1962,
+   "h": 310
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

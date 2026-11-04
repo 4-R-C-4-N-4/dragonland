@@ -1,0 +1,100 @@
+.dl-screen-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.dl-flavor {
+  color: var(--dl-text-dim);
+  margin-bottom: 16px;
+}
+
+.dl-commit-card,
+.dl-response-card {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.dl-commit-card h2,
+.dl-response-card h2 {
+  margin-top: 0;
+  font-family: var(--dl-font);
+  color: var(--dl-accent);
+}
+
+.dl-enemy-squads {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.dl-formation-picker {
+  display: block;
+  margin: 10px 0;
+}
+
+.dl-formation-diagram {
+  margin-bottom: 12px;
+}
+
+.dl-matchup-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.dl-matchup-list li {
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(74, 58, 40, 0.3);
+}
+
+.dl-matchup-strong {
+  color: var(--dl-good);
+}
+
+.dl-matchup-weak {
+  color: var(--dl-bad);
+}
+
+.dl-matchup-neutral {
+  color: var(--dl-text-dim);
+}
+
+.dl-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dl-result-grid .dl-panel {
+  padding: 12px;
+}
+
+.dl-troop-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.dl-troop-list.dl-fallen li {
+  color: var(--dl-bad);
+  text-decoration: line-through;
+}
+
+.dl-battle-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+}
+
+@media (max-width: 800px) {
+  .dl-result-grid {
+    grid-template-columns: 1fr;
+  }
+}

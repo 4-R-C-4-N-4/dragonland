@@ -1,0 +1,31 @@
+# Rogue — human, line M, stage2. Edit, then `npm run art -- gen rogue`.
+name: Rogue
+size: stage2
+description: >-
+  An evolved Spy: a lean hooded assassin in a short asymmetrical charcoal leather coat,
+  wrapped boots and a low forward-leaning crouch, unlike an upright marching soldier.
+  Exactly TWO short silver daggers, one firmly gripped in EACH hand. Near-side right hand
+  held low just ahead of the hip in REVERSE grip: blade exits the little-finger side of the
+  fist and points DOWN and slightly BACK, away from the thigh. Far-side left hand held ahead
+  of the chest in FORWARD grip: blade exits the thumb side and points horizontally RIGHT
+  toward the enemy. Show dark fist/handle between silver blade and forearm; never attach a
+  blade to an elbow, wrist or sleeve. Keep the two blades separated in silhouette, never crossed
+  or floating. Maintain these grips in every frame. Team colour: a broad waist sash and short scarf.
+animationNotes: >-
+  Attack: controlled low assassin strike, NOT a spinning slash. Frame 1 low poised guard,
+  frame 2 far hand extends its forward-pointing blade to the RIGHT in a thrust while the
+  near reverse-grip dagger stays low, frame 3 near hand makes a short outward downward cut
+  while the far hand withdraws, frame 4 both hands recover to the original guard. Distinct
+  anticipation, extension, follow-through and recovery poses; exactly two knives throughout.
+walkNotes: >-
+  This character's motion OVERRIDES the generic exaggerated high-knee biped walk. A stealthy
+  stalking glide, knees always bent, torso leaning forward with head at almost constant height.
+  No stomping, marching, hopping or high knee lifts. Feet skim just above the ground.
+  Six-frame strip: 1 near foot reaches forward toe-first, far foot behind; 2 weight glides
+  onto near foot with knee flexed; 3 far foot slides past close to the floor; 4 far foot reaches
+  forward toe-first with near foot behind; 5 weight glides onto far foot; 6 near foot slides past
+  close to the floor, ready to loop to 1. For a four-frame full sheet use phases 1,3,4,6.
+  Keep hips centred in each cell, head bob under one game pixel. Arms stay in the low/forward
+  knife guard described above, not swinging like a soldier. Short scarf trails behind to the LEFT.
+# Previous evolution stage; its picked sheet is attached so the silhouette carries over.
+evolvesFrom: spy

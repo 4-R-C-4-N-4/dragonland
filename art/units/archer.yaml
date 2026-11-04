@@ -1,0 +1,7 @@
+# Archer — human, line A, stage1. Edit, then `npm run art -- gen archer`.
+name: Archer
+size: stage1
+description: >-
+  A lean human archer with a short bow, quiver on the back, hood and light leather armour. Team colour: the hood and a short cape.
+animationNotes: >-
+  Attack: draws and looses an arrow (the arrow can leave the frame; no projectile needed).

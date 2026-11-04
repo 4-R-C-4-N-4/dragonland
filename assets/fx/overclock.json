@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "overclock 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  },
+  "overclock 1": {
+   "frame": {
+    "x": 345,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  },
+  "overclock 2": {
+   "frame": {
+    "x": 690,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  },
+  "overclock 3": {
+   "frame": {
+    "x": 1035,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  },
+  "overclock 4": {
+   "frame": {
+    "x": 1380,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  },
+  "overclock 5": {
+   "frame": {
+    "x": 1725,
+    "y": 0,
+    "w": 345,
+    "h": 477
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "overclock.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2070,
+   "h": 477
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

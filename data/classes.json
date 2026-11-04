@@ -1,0 +1,32 @@
+[
+  {
+    "id": "beast",
+    "name": "Beast",
+    "strongAgainst": "mage",
+    "color": "#c0703a"
+  },
+  {
+    "id": "mage",
+    "name": "Mage",
+    "strongAgainst": "ethereal",
+    "color": "#8a5cd6"
+  },
+  {
+    "id": "ethereal",
+    "name": "Ethereal",
+    "strongAgainst": "construct",
+    "color": "#62c9d8"
+  },
+  {
+    "id": "construct",
+    "name": "Construct",
+    "strongAgainst": "human",
+    "color": "#8d8f94"
+  },
+  {
+    "id": "human",
+    "name": "Human",
+    "strongAgainst": "beast",
+    "color": "#d8c25a"
+  }
+]

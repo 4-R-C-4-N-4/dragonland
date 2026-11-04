@@ -1,0 +1,57 @@
+{
+  "paused": {
+    "phase": "fight",
+    "tick": 125,
+    "time": 3.1999999999999966,
+    "paused": true,
+    "mp": [
+      20,
+      14.545454545454534
+    ],
+    "recharge": 16,
+    "labels": [
+      "MP 20/100 \u00b7 Paused",
+      "MP 14/100 \u00b7 Paused"
+    ],
+    "fx": 0,
+    "casts": 0,
+    "obsolete": false
+  },
+  "full": {
+    "phase": "fight",
+    "tick": 381,
+    "time": 16.000000000000092,
+    "paused": false,
+    "mp": [
+      100,
+      72.72727272727283
+    ],
+    "recharge": 16,
+    "labels": [
+      "MP 100/100 \u00b7 FULL",
+      "MP 72/100 \u00b7 Recharging"
+    ],
+    "fx": 2,
+    "casts": 0,
+    "obsolete": false
+  },
+  "afterCast": {
+    "phase": "fight",
+    "tick": 395,
+    "time": 16.700000000000102,
+    "paused": true,
+    "mp": [
+      4.0625,
+      75.9090909090911
+    ],
+    "recharge": 16,
+    "labels": [
+      "MP 4/100 \u00b7 Paused",
+      "MP 75/100 \u00b7 Paused"
+    ],
+    "fx": 56,
+    "casts": 1,
+    "obsolete": false
+  },
+  "errors": []
+}

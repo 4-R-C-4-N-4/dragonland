@@ -1,0 +1,324 @@
+[
+  {
+    "id": "adept",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "attack row frame 2/3 staff pose slightly stiff but acceptable anticipation/strike read"
+    ],
+    "file": "3a585c04-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "wizard",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "evolution silhouette consistent with adept; minor robe-fold noise in death row"
+    ],
+    "file": "a18ba51d-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "cherub",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "attack row glow VFX overlaps body slightly; walk flap cycle a bit subtle frame-to-frame"
+    ],
+    "file": "9e69a5bd-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "angel",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "hit row frame 4 pose compresses sword oddly but readable"
+    ],
+    "file": "ba20fead-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "archangel",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "unused 5th raw-sheet column leaves blank canvas padding, cosmetic only, no processed frame loss"
+    ],
+    "file": "fc87475c-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "automata",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "walk cycle leg swap is subtle, could use more pose separation"
+    ],
+    "file": "a5e82a55-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "machine",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "evolution bulk reads well vs automata; attack windup frame slightly similar to idle"
+    ],
+    "file": "fca35622-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "anima",
+    "verdict": "accept",
+    "blocking": [],
+    "defer": [
+      "final-stage bulk consistent with machine line; death row frame 3/4 near-duplicate collapse poses"
+    ],
+    "file": "dfaf9744-1.png",
+    "reviewer": "isolated subagent (vision), orchestrator spot-checked automata/archangel",
+    "batch": 1
+  },
+  {
+    "id": "archmage",
+    "verdict": "accept",
+    "defer": [
+      "Attack row frame 3 spell-flash VFX is a bit busy but readable; purely cosmetic"
+    ],
+    "blocking": [],
+    "file": "5459f7c5-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "assassin",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "ce0b4aec-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "monk",
+    "verdict": "accept",
+    "defer": [
+      "Idle/walk silhouettes are very close; walk cycle differs mainly in arm bob"
+    ],
+    "blocking": [],
+    "file": "2619df62-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "cleric",
+    "verdict": "accept",
+    "defer": [
+      "Low visual differentiation from monk aside from robe/shield"
+    ],
+    "blocking": [],
+    "file": "38ee5dbe-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "deadeye",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "1d57e03b-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "imp",
+    "verdict": "accept",
+    "defer": [
+      "Team-cloth panel is small (loincloth only)"
+    ],
+    "blocking": [],
+    "file": "1a568ccd-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "demon",
+    "verdict": "accept",
+    "defer": [
+      "Team-cloth panel is small (loincloth only)"
+    ],
+    "blocking": [],
+    "file": "5c5ea223-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "devil",
+    "verdict": "accept",
+    "defer": [
+      "Team-cloth panel is small (loincloth only)"
+    ],
+    "blocking": [],
+    "file": "bd81a2f2-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 2
+  },
+  {
+    "id": "witch",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "0cf14155-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "necromancer",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "16a5798a-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "diabolist",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "dbe07f32-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "eagle",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "5d8081a0-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "golem",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "acf95555-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "elemental",
+    "verdict": "accept",
+    "defer": [
+      "Floating joints not evident; silhouette close to golem, weak evolution differentiation"
+    ],
+    "blocking": [],
+    "file": "70d58d86-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "hierophant",
+    "verdict": "accept",
+    "defer": [
+      "Attack row weapon continuity: mace in frame 1, rod-like object frames 2-3"
+    ],
+    "blocking": [],
+    "file": "40492729-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "kyilkhor",
+    "verdict": "accept",
+    "defer": [
+      "Not distinctly mandala-like; close to golem/elemental frame"
+    ],
+    "blocking": [],
+    "file": "76960cf0-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 3
+  },
+  {
+    "id": "zombie",
+    "verdict": "accept",
+    "defer": [
+      "Walk swing subtle"
+    ],
+    "blocking": [],
+    "file": "c8d70267-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "skeleton",
+    "verdict": "accept",
+    "defer": [
+      "Attack recovery close to anticipation"
+    ],
+    "blocking": [],
+    "file": "c9bcb073-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "sprite",
+    "verdict": "accept",
+    "defer": [],
+    "blocking": [],
+    "file": "243b8433-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "spirit",
+    "verdict": "accept",
+    "defer": [
+      "Palette very close to sprite"
+    ],
+    "blocking": [],
+    "file": "e08fc714-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "servitor",
+    "verdict": "accept",
+    "defer": [],
+    "overruled": "Reviewer C reported blank columns 2-4; rejected: every processed frame has 1295+ opaque px (pixel count) and orchestrator visual check shows full 5x4 animated sheets.",
+    "blocking": [],
+    "file": "a2cd364f-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "shepherd",
+    "verdict": "accept",
+    "defer": [],
+    "overruled": "Reviewer C reported blank columns 2-4; rejected: every processed frame has 1295+ opaque px (pixel count) and orchestrator visual check shows full 5x4 animated sheets.",
+    "blocking": [],
+    "file": "cf4b7b6f-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  },
+  {
+    "id": "warg",
+    "verdict": "accept",
+    "defer": [],
+    "overruled": "Reviewer C reported blank columns 2-4; rejected: every processed frame has 1295+ opaque px (pixel count) and orchestrator visual check shows full 5x4 animated sheets.",
+    "blocking": [],
+    "file": "1710cfaf-1.png",
+    "reviewer": "isolated subagent (vision)",
+    "batch": 4
+  }
+]

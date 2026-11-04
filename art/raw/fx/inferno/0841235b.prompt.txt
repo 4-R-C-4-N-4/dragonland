@@ -1,0 +1,5 @@
+Pixel-art special-attack VFX sprite strip in the same 16-bit SNES era style as the unit sheets (think Dragon Force, Final Fantasy Tactics spell effects). Limited palette, no anti-aliasing, crisp pixel clusters, glowing highlights, strong readable silhouette, no characters or creatures drawn, effect only.
+Side view, same ground plane and scale as the unit sprites.
+Effect: Inferno. A jagged tongue of hellish orange-red flame erupting upward from a cracked scorched patch of ground, with curling black smoke and drifting embers; raw demonic combustion.
+Layout: ONE single horizontal strip of 8 equal square cells, nothing else. Every cell shows one frame of the SAME continuous effect animation at the same scale, roughly centred in its cell (the effect may grow, move or fade across frames, but keep it from touching the cell edges so slicing lines up cleanly).
+Solid flat pure magenta #FF00FF background everywhere, including between frames. No ground, no characters, no text, no labels, no numbers, no grid lines, no borders. Never use pure green #00FF00 anywhere in the artwork.

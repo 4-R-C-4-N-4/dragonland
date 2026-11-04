@@ -1,0 +1,74 @@
+{
+  "cancelRunningAndBlockKeys": true,
+  "keyboardOpenAndSafeContinue": true,
+  "cancelPreservesExistingPause": true,
+  "viewports": [
+    {
+      "x": 170,
+      "y": 193.046875,
+      "width": 460,
+      "height": 213.90625,
+      "viewport": [
+        800,
+        600
+      ]
+    },
+    {
+      "x": 282,
+      "y": 277.046875,
+      "width": 460,
+      "height": 213.90625,
+      "viewport": [
+        1024,
+        768
+      ]
+    },
+    {
+      "x": 410,
+      "y": 293.046875,
+      "width": 460,
+      "height": 213.90625,
+      "viewport": [
+        1280,
+        800
+      ]
+    }
+  ],
+  "failedForfeitPreservesBattle": true,
+  "campaignForfeit": {
+    "actualCasualties": 1,
+    "rosterBefore": 60,
+    "rosterAfter": 59,
+    "phase": "lost",
+    "stopped": {
+      "tick": 274,
+      "paused": true,
+      "mp": 53.25,
+      "pending": 0,
+      "frames": 527,
+      "phase": "fight",
+      "time": 10.650000000000016,
+      "dead": [
+        "t12-jh"
+      ]
+    }
+  },
+  "forfeitSurvivesReload": true,
+  "sandboxQuit": {
+    "actualCasualties": 1,
+    "returnedToBuilder": true,
+    "stopped": {
+      "tick": 198,
+      "paused": true,
+      "mp": 34.25,
+      "pending": 0,
+      "frames": 278,
+      "phase": "fight",
+      "time": 6.849999999999984,
+      "dead": [
+        "troop-a50e41d0ac9426e4"
+      ]
+    }
+  },
+  "errors": []
+}

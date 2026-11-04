@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "arrow-storm 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  },
+  "arrow-storm 1": {
+   "frame": {
+    "x": 340,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  },
+  "arrow-storm 2": {
+   "frame": {
+    "x": 680,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  },
+  "arrow-storm 3": {
+   "frame": {
+    "x": 1020,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  },
+  "arrow-storm 4": {
+   "frame": {
+    "x": 1360,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  },
+  "arrow-storm 5": {
+   "frame": {
+    "x": 1700,
+    "y": 0,
+    "w": 340,
+    "h": 451
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "arrow-storm.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2040,
+   "h": 451
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

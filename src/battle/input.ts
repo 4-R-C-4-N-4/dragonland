@@ -1,0 +1,111 @@
+// Keyboard input bindings (implementation.md §6 input). All actions also reachable via HUD.
+import { issueCommand, issueApproach, fireSpecial, setPaused } from '../sim';
+import type { World } from '../sim';
+import type { Approach } from '../data';
+import type { Selection } from './selection';
+import { updateDebugState, getDebugState } from '../debug/state';
+
+export interface InputCallbacks {
+  onSpeedToggle(): void;
+  onQuit?(): void;
+  isBlocked?(): boolean;
+}
+
+/** Bindings: Space=pause, 1-4=select squad, A=select all, Q/W/E=Advance/Hold/FallBack,
+ *  R/T/Y=Direct/FarFlank/NearFlank, S=special, `=debug overlay, F=speed toggle. */
+export function attachInput(target: Document | HTMLElement, world: World, selection: Selection, cb: InputCallbacks): () => void {
+  const squadIdFor = (slot: number): string | undefined => world.squads.find((s) => s.side === 0 && s.slot === slot)?.id;
+
+  const issueToSelection = (cmd: 'advance' | 'hold' | 'fallBack'): void => {
+    const sel = selection.selectedSlots();
+    if (sel === 'all') {
+      issueCommand(world, 0, 'all', cmd);
+    } else {
+      for (const slot of sel) {
+        const id = squadIdFor(slot);
+        if (id) issueCommand(world, 0, id, cmd);
+      }
+    }
+  };
+
+  const approachToSelection = (approach: Approach): void => {
+    const sel = selection.selectedSlots();
+    if (sel === 'all') issueApproach(world, 0, 'all', approach);
+    else for (const slot of sel) {
+      const id = squadIdFor(slot);
+      if (id) issueApproach(world, 0, id, approach);
+    }
+  };
+
+  const onKeyDown = (e: KeyboardEvent): void => {
+    // Leave Escape's native dialog cancellation and focus navigation to the modal.
+    if (cb.isBlocked?.()) {
+      e.stopPropagation();
+      return;
+    }
+    switch (e.key) {
+      case 'Escape':
+        if (cb.onQuit) { e.preventDefault(); cb.onQuit(); }
+        break;
+      case ' ':
+        e.preventDefault();
+        setPaused(world, !world.paused);
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+        selection.selectOnly(Number(e.key) - 1);
+        break;
+      case 'a':
+      case 'A':
+        selection.selectAll();
+        break;
+      case 'q':
+      case 'Q':
+        issueToSelection('advance');
+        break;
+      case 'w':
+      case 'W':
+        issueToSelection('hold');
+        break;
+      case 'e':
+      case 'E':
+        issueToSelection('fallBack');
+        break;
+      case 'r':
+      case 'R':
+        approachToSelection('direct');
+        break;
+      case 't':
+      case 'T':
+        approachToSelection('farFlank');
+        break;
+      case 'y':
+      case 'Y':
+        approachToSelection('nearFlank');
+        break;
+      case 's':
+      case 'S':
+        fireSpecial(world, 0);
+        break;
+      case '`':
+        // One owner per press: the application-level listener would otherwise
+        // receive the bubbling event and toggle the overlay straight back.
+        e.stopPropagation();
+        updateDebugState({ overlay: !getDebugState().overlay });
+        break;
+      case 'f':
+      case 'F':
+      case 'Tab':
+        e.preventDefault();
+        cb.onSpeedToggle();
+        break;
+      default:
+        break;
+    }
+  };
+
+  target.addEventListener('keydown', onKeyDown as EventListener);
+  return () => target.removeEventListener('keydown', onKeyDown as EventListener);
+}

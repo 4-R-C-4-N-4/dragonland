@@ -1,0 +1,24 @@
+.dl-quit-dialog {
+  color: var(--dl-text, #eee4c8);
+  background: var(--dl-bg-panel, #1d1712);
+  border: 1px solid var(--dl-border, #666447);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: min(460px, calc(100vw - 48px));
+  font: 16px/1.5 system-ui, sans-serif;
+}
+.dl-quit-dialog::backdrop { background: rgb(0 0 0 / 65%); }
+.dl-quit-dialog h2 { margin-top: 0; }
+.dl-quit-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.dl-quit-actions button {
+  min-height: 44px;
+  padding: 8px 16px;
+  color: inherit;
+  background: var(--dl-bg-panel-2, #241c15);
+  border: 1px solid var(--dl-border, #666447);
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.dl-quit-actions .dl-quit-confirm { background: var(--dl-accent-2, #8a2f2f); }
+.dl-quit-actions button:focus-visible { outline: 3px solid var(--dl-accent, #dfc06c); outline-offset: 3px; }

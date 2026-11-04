@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "plague-cloud 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  },
+  "plague-cloud 1": {
+   "frame": {
+    "x": 343,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  },
+  "plague-cloud 2": {
+   "frame": {
+    "x": 686,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  },
+  "plague-cloud 3": {
+   "frame": {
+    "x": 1029,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  },
+  "plague-cloud 4": {
+   "frame": {
+    "x": 1372,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  },
+  "plague-cloud 5": {
+   "frame": {
+    "x": 1715,
+    "y": 0,
+    "w": 343,
+    "h": 341
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "plague-cloud.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2058,
+   "h": 341
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   }
+  ]
+ }
+}

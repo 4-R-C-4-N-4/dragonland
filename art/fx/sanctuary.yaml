@@ -1,0 +1,7 @@
+# FX spec for `sanctuary` (art/fx/sanctuary.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Sanctuary
+kind: aura # overlay | wave | strike | aura
+frames: 6
+heroes: ['hierophant']
+description: >-
+  A hexagonal seal of soft cyan-white holy light hovering and rotating slowly with faint rune glyphs along its rim, protective and serene, gentle pulsing glow.

@@ -1,0 +1,226 @@
+{
+ "frames": {
+  "wyrm 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 180
+  },
+  "wyrm 1": {
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 180
+  },
+  "wyrm 2": {
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 180
+  },
+  "wyrm 3": {
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 180
+  },
+  "wyrm 4": {
+   "frame": {
+    "x": 0,
+    "y": 31,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 120
+  },
+  "wyrm 5": {
+   "frame": {
+    "x": 44,
+    "y": 31,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 120
+  },
+  "wyrm 6": {
+   "frame": {
+    "x": 88,
+    "y": 31,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 120
+  },
+  "wyrm 7": {
+   "frame": {
+    "x": 132,
+    "y": 31,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 120
+  },
+  "wyrm 8": {
+   "frame": {
+    "x": 0,
+    "y": 62,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 90
+  },
+  "wyrm 9": {
+   "frame": {
+    "x": 44,
+    "y": 62,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 90
+  },
+  "wyrm 10": {
+   "frame": {
+    "x": 88,
+    "y": 62,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 90
+  },
+  "wyrm 11": {
+   "frame": {
+    "x": 132,
+    "y": 62,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 90
+  },
+  "wyrm 12": {
+   "frame": {
+    "x": 0,
+    "y": 93,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 110
+  },
+  "wyrm 13": {
+   "frame": {
+    "x": 44,
+    "y": 93,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 110
+  },
+  "wyrm 14": {
+   "frame": {
+    "x": 88,
+    "y": 93,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 110
+  },
+  "wyrm 15": {
+   "frame": {
+    "x": 132,
+    "y": 93,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 110
+  },
+  "wyrm 16": {
+   "frame": {
+    "x": 0,
+    "y": 124,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 140
+  },
+  "wyrm 17": {
+   "frame": {
+    "x": 44,
+    "y": 124,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 140
+  },
+  "wyrm 18": {
+   "frame": {
+    "x": 88,
+    "y": 124,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 140
+  },
+  "wyrm 19": {
+   "frame": {
+    "x": 132,
+    "y": 124,
+    "w": 44,
+    "h": 31
+   },
+   "duration": 140
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "wyrm.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 176,
+   "h": 155
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   },
+   {
+    "name": "walk",
+    "from": 4,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "attack",
+    "from": 8,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 12,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "death",
+    "from": 16,
+    "to": 19,
+    "direction": "forward"
+   }
+  ]
+ }
+}

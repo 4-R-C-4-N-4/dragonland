@@ -1,0 +1,244 @@
+[
+  {
+    "id": "adept",
+    "candidate": "3a585c04-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "cherub",
+    "candidate": "9e69a5bd-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "angel",
+    "candidate": "ba20fead-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "automata",
+    "candidate": "a5e82a55-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "machine",
+    "candidate": "fca35622-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "anima",
+    "candidate": "dfaf9744-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) attack, death; split by grid columns"
+    ]
+  },
+  {
+    "id": "archangel",
+    "candidate": "fc87475c-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) attack; split by grid columns"
+    ]
+  },
+  {
+    "id": "wizard",
+    "candidate": "a18ba51d-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "archmage",
+    "candidate": "5459f7c5-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) death; split by grid columns"
+    ]
+  },
+  {
+    "id": "assassin",
+    "candidate": "ce0b4aec-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "monk",
+    "candidate": "2619df62-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "cleric",
+    "candidate": "38ee5dbe-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "deadeye",
+    "candidate": "1d57e03b-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "imp",
+    "candidate": "1a568ccd-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "demon",
+    "candidate": "5c5ea223-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) attack; split by grid columns"
+    ]
+  },
+  {
+    "id": "devil",
+    "candidate": "bd81a2f2-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) attack, death; split by grid columns"
+    ]
+  },
+  {
+    "id": "witch",
+    "candidate": "0cf14155-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "necromancer",
+    "candidate": "16a5798a-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "diabolist",
+    "candidate": "dbe07f32-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) death; split by grid columns"
+    ]
+  },
+  {
+    "id": "eagle",
+    "candidate": "5d8081a0-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) death; split by grid columns"
+    ]
+  },
+  {
+    "id": "golem",
+    "candidate": "acf95555-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "elemental",
+    "candidate": "70d58d86-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "hierophant",
+    "candidate": "40492729-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "reduced blob dilation to 1 to preserve cell gutters"
+    ]
+  },
+  {
+    "id": "kyilkhor",
+    "candidate": "76960cf0-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) attack; split by grid columns"
+    ]
+  },
+  {
+    "id": "zombie",
+    "candidate": "c8d70267-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "skeleton",
+    "candidate": "c9bcb073-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "servitor",
+    "candidate": "a2cd364f-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "merged figures in row(s) death; split by grid columns"
+    ]
+  },
+  {
+    "id": "sprite",
+    "candidate": "243b8433-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "spirit",
+    "candidate": "e08fc714-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": []
+  },
+  {
+    "id": "shepherd",
+    "candidate": "cf4b7b6f-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "reduced blob dilation to 1 to preserve cell gutters"
+    ]
+  },
+  {
+    "id": "warg",
+    "candidate": "1710cfaf-1.png",
+    "technical": "pass",
+    "visualReview": "pending",
+    "warnings": [
+      "reduced blob dilation to 1 to preserve cell gutters",
+      "merged figures in row(s) attack, death; split by grid columns"
+    ]
+  }
+]

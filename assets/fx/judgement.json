@@ -1,0 +1,94 @@
+{
+ "frames": {
+  "judgement 0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 1": {
+   "frame": {
+    "x": 331,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 2": {
+   "frame": {
+    "x": 662,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 3": {
+   "frame": {
+    "x": 993,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 4": {
+   "frame": {
+    "x": 1324,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 5": {
+   "frame": {
+    "x": 1655,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 6": {
+   "frame": {
+    "x": 1986,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  },
+  "judgement 7": {
+   "frame": {
+    "x": 2317,
+    "y": 0,
+    "w": 331,
+    "h": 328
+   },
+   "duration": 80
+  }
+ },
+ "meta": {
+  "app": "dragonland art pipeline",
+  "image": "judgement.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2648,
+   "h": 328
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "play",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

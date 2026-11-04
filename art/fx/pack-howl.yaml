@@ -1,0 +1,7 @@
+# FX spec for `pack-howl` (art/fx/pack-howl.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Pack Howl
+kind: aura # overlay | wave | strike | aura
+frames: 6
+heroes: ['warg']
+description: >-
+  A rippling shockwave ring of feral amber-grey energy expanding outward from a howling muzzle silhouette, with faint claw-scratch streaks; primal, bristling frenzy aura.

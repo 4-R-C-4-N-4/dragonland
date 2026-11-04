@@ -1,0 +1,690 @@
+[
+  {
+    "id": "beast-horde",
+    "name": "Beast Horde (70% Beast)",
+    "generalId": "dragon",
+    "formation": "wedge",
+    "color": "#d5423a",
+    "squads": [
+      {
+        "name": "Talons",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 12
+          },
+          {
+            "unitId": "hawk",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "name": "Pack",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 10
+          },
+          {
+            "unitId": "wolf",
+            "count": 10
+          },
+          {
+            "unitId": "spy",
+            "count": 2
+          },
+          {
+            "unitId": "rogue",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "name": "Wyrmguard",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 5
+          },
+          {
+            "unitId": "drake",
+            "count": 5
+          },
+          {
+            "unitId": "soldier",
+            "count": 5
+          },
+          {
+            "unitId": "knight",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Scales",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 7
+          },
+          {
+            "unitId": "drake",
+            "count": 8
+          },
+          {
+            "unitId": "archer",
+            "count": 7
+          },
+          {
+            "unitId": "ranger",
+            "count": 8
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "human-legion",
+    "name": "Human Legion (70% Human)",
+    "generalId": "paladin",
+    "formation": "line",
+    "color": "#e0b030",
+    "squads": [
+      {
+        "name": "Bows",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 12
+          },
+          {
+            "unitId": "ranger",
+            "count": 13
+          },
+          {
+            "unitId": "wyrm",
+            "count": 2
+          },
+          {
+            "unitId": "drake",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "name": "Blades",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 7
+          },
+          {
+            "unitId": "rogue",
+            "count": 8
+          },
+          {
+            "unitId": "raven",
+            "count": 5
+          },
+          {
+            "unitId": "hawk",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Shields",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 10
+          },
+          {
+            "unitId": "knight",
+            "count": 10
+          },
+          {
+            "unitId": "dog",
+            "count": 2
+          },
+          {
+            "unitId": "wolf",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "name": "Line",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 5
+          },
+          {
+            "unitId": "knight",
+            "count": 5
+          },
+          {
+            "unitId": "dog",
+            "count": 5
+          },
+          {
+            "unitId": "wolf",
+            "count": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mixed-host",
+    "name": "Mixed Host (50/50)",
+    "generalId": "dragon",
+    "formation": "line",
+    "color": "#8a4fd8",
+    "squads": [
+      {
+        "name": "Archers",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 12
+          },
+          {
+            "unitId": "ranger",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "name": "Hounds",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 12
+          },
+          {
+            "unitId": "wolf",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "name": "Knights",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 12
+          },
+          {
+            "unitId": "knight",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "name": "Wings",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 12
+          },
+          {
+            "unitId": "hawk",
+            "count": 13
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beast-wall",
+    "name": "Beast Wall (60% Beast)",
+    "generalId": "paladin",
+    "formation": "guard",
+    "color": "#e8742a",
+    "squads": [
+      {
+        "name": "Wolves",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 7
+          },
+          {
+            "unitId": "wolf",
+            "count": 8
+          },
+          {
+            "unitId": "soldier",
+            "count": 5
+          },
+          {
+            "unitId": "knight",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Drakes",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 7
+          },
+          {
+            "unitId": "drake",
+            "count": 8
+          },
+          {
+            "unitId": "archer",
+            "count": 5
+          },
+          {
+            "unitId": "ranger",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Hawks",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 7
+          },
+          {
+            "unitId": "hawk",
+            "count": 8
+          },
+          {
+            "unitId": "spy",
+            "count": 5
+          },
+          {
+            "unitId": "rogue",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Dogs",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 7
+          },
+          {
+            "unitId": "wolf",
+            "count": 8
+          },
+          {
+            "unitId": "soldier",
+            "count": 5
+          },
+          {
+            "unitId": "knight",
+            "count": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "human-skirmish",
+    "name": "Human Skirmishers (60% Human)",
+    "generalId": "dragon",
+    "formation": "wedge",
+    "color": "#1fb5a8",
+    "squads": [
+      {
+        "name": "Rogues",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 7
+          },
+          {
+            "unitId": "rogue",
+            "count": 8
+          },
+          {
+            "unitId": "raven",
+            "count": 5
+          },
+          {
+            "unitId": "hawk",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Rangers",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 7
+          },
+          {
+            "unitId": "ranger",
+            "count": 8
+          },
+          {
+            "unitId": "wyrm",
+            "count": 5
+          },
+          {
+            "unitId": "drake",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "Spies",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 7
+          },
+          {
+            "unitId": "rogue",
+            "count": 8
+          },
+          {
+            "unitId": "raven",
+            "count": 2
+          },
+          {
+            "unitId": "hawk",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "name": "Wardens",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 7
+          },
+          {
+            "unitId": "knight",
+            "count": 8
+          },
+          {
+            "unitId": "dog",
+            "count": 7
+          },
+          {
+            "unitId": "wolf",
+            "count": 8
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lean-human",
+    "name": "Lean (60% Human)",
+    "generalId": "paladin",
+    "formation": "line",
+    "test": true,
+    "squads": [
+      {
+        "name": "A",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 15
+          },
+          {
+            "unitId": "raven",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "M",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 15
+          },
+          {
+            "unitId": "wyrm",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Z",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 15
+          },
+          {
+            "unitId": "dog",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Mix",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "ranger",
+            "count": 3
+          },
+          {
+            "unitId": "rogue",
+            "count": 6
+          },
+          {
+            "unitId": "knight",
+            "count": 6
+          },
+          {
+            "unitId": "hawk",
+            "count": 2
+          },
+          {
+            "unitId": "drake",
+            "count": 4
+          },
+          {
+            "unitId": "wolf",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lean-beast",
+    "name": "Lean (60% Beast)",
+    "generalId": "paladin",
+    "formation": "line",
+    "test": true,
+    "squads": [
+      {
+        "name": "A",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "raven",
+            "count": 15
+          },
+          {
+            "unitId": "archer",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "M",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "wyrm",
+            "count": 15
+          },
+          {
+            "unitId": "spy",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Z",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "dog",
+            "count": 15
+          },
+          {
+            "unitId": "soldier",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "name": "Mix",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "hawk",
+            "count": 3
+          },
+          {
+            "unitId": "drake",
+            "count": 6
+          },
+          {
+            "unitId": "wolf",
+            "count": 6
+          },
+          {
+            "unitId": "ranger",
+            "count": 2
+          },
+          {
+            "unitId": "rogue",
+            "count": 4
+          },
+          {
+            "unitId": "knight",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "even",
+    "name": "Even (50/50)",
+    "generalId": "paladin",
+    "formation": "line",
+    "test": true,
+    "squads": [
+      {
+        "name": "A",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "archer",
+            "count": 13
+          },
+          {
+            "unitId": "raven",
+            "count": 12
+          }
+        ]
+      },
+      {
+        "name": "M",
+        "disposition": "fierce",
+        "units": [
+          {
+            "unitId": "spy",
+            "count": 12
+          },
+          {
+            "unitId": "wyrm",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "name": "Z",
+        "disposition": "mixed",
+        "units": [
+          {
+            "unitId": "soldier",
+            "count": 13
+          },
+          {
+            "unitId": "dog",
+            "count": 12
+          }
+        ]
+      },
+      {
+        "name": "Mix",
+        "disposition": "guard",
+        "units": [
+          {
+            "unitId": "ranger",
+            "count": 4
+          },
+          {
+            "unitId": "rogue",
+            "count": 4
+          },
+          {
+            "unitId": "knight",
+            "count": 4
+          },
+          {
+            "unitId": "hawk",
+            "count": 4
+          },
+          {
+            "unitId": "drake",
+            "count": 5
+          },
+          {
+            "unitId": "wolf",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  }
+]

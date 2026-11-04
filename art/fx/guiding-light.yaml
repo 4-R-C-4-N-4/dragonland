@@ -1,0 +1,7 @@
+# FX spec for `guiding-light` (art/fx/guiding-light.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Guiding Light
+kind: aura # overlay | wave | strike | aura
+frames: 6
+heroes: ['shepherd']
+description: >-
+  A soft wavering beam of pale gold-white light with gentle drifting sparkles swirling upward, calm and nurturing, like a lantern's glow given form.

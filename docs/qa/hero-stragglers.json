@@ -1,0 +1,623 @@
+{
+  "fixture": "Same fixtures as tests/sim/generalStragglers.test.ts. Fresh hero, own army wiped, living ranged Imps at50HP, no special activation. Hold/FallBack. Existing enemy hero far from the exchange.",
+  "cases": [
+    {
+      "hero": "paladin",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 3.949999999999994,
+      "hits": 2,
+      "seconds": 4.99999999999999,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "paladin",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 2.5999999999999988,
+      "hits": 2,
+      "seconds": 7.499999999999981,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "paladin",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 3.949999999999994,
+      "hits": 2,
+      "seconds": 4.99999999999999,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "paladin",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 2.5999999999999988,
+      "hits": 2,
+      "seconds": 7.499999999999981,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "deadeye",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1487,
+      "remaining": 0
+    },
+    {
+      "hero": "deadeye",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "deadeye",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1487,
+      "remaining": 0
+    },
+    {
+      "hero": "deadeye",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "assassin",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "assassin",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "assassin",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "assassin",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "dragon",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 3.1999999999999966,
+      "hits": 2,
+      "seconds": 4.249999999999993,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "dragon",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 1.900000000000001,
+      "hits": 2,
+      "seconds": 2.9499999999999975,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "dragon",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 3.1999999999999966,
+      "hits": 2,
+      "seconds": 4.249999999999993,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "dragon",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 1.900000000000001,
+      "hits": 2,
+      "seconds": 2.9499999999999975,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "eagle",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 0.8000000000000002,
+      "hits": 2,
+      "seconds": 1.6500000000000008,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "eagle",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 0.5499999999999999,
+      "hits": 2,
+      "seconds": 1.4000000000000006,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "eagle",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 0.8000000000000002,
+      "hits": 2,
+      "seconds": 1.6500000000000008,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "eagle",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 0.5499999999999999,
+      "hits": 2,
+      "seconds": 1.4000000000000006,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "warg",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "warg",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "warg",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "warg",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "archmage",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1490.5,
+      "remaining": 0
+    },
+    {
+      "hero": "archmage",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "archmage",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1490.5,
+      "remaining": 0
+    },
+    {
+      "hero": "archmage",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "diabolist",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1489.5,
+      "remaining": 0
+    },
+    {
+      "hero": "diabolist",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "diabolist",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1489.5,
+      "remaining": 0
+    },
+    {
+      "hero": "diabolist",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "hierophant",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1491.5,
+      "remaining": 0
+    },
+    {
+      "hero": "hierophant",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1491.5,
+      "remaining": 0
+    },
+    {
+      "hero": "hierophant",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1491.5,
+      "remaining": 0
+    },
+    {
+      "hero": "hierophant",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1491.5,
+      "remaining": 0
+    },
+    {
+      "hero": "devil",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1487,
+      "remaining": 0
+    },
+    {
+      "hero": "devil",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "devil",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1487,
+      "remaining": 0
+    },
+    {
+      "hero": "devil",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 0.05,
+      "hits": 2,
+      "seconds": 2.3,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "shepherd",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "shepherd",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "shepherd",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1488,
+      "remaining": 0
+    },
+    {
+      "hero": "shepherd",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "archangel",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "archangel",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "archangel",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 2,
+      "seconds": 5.4999999999999885,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "archangel",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 2,
+      "seconds": 7.79999999999998,
+      "hp": 1489,
+      "remaining": 0
+    },
+    {
+      "hero": "servitor",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1484.5,
+      "remaining": 0
+    },
+    {
+      "hero": "servitor",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "servitor",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1484.5,
+      "remaining": 0
+    },
+    {
+      "hero": "servitor",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "kyilkhor",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1485.5,
+      "remaining": 0
+    },
+    {
+      "hero": "kyilkhor",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "kyilkhor",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 2.549999999999999,
+      "hits": 2,
+      "seconds": 3.699999999999995,
+      "hp": 1485.5,
+      "remaining": 0
+    },
+    {
+      "hero": "kyilkhor",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 1.7000000000000008,
+      "hits": 2,
+      "seconds": 2.849999999999998,
+      "hp": 1500,
+      "remaining": 0
+    },
+    {
+      "hero": "anima",
+      "side": 0,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 3,
+      "seconds": 6.5999999999999845,
+      "hp": 1486.5,
+      "remaining": 0
+    },
+    {
+      "hero": "anima",
+      "side": 0,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 3,
+      "seconds": 8.899999999999991,
+      "hp": 1486.5,
+      "remaining": 0
+    },
+    {
+      "hero": "anima",
+      "side": 1,
+      "command": "hold",
+      "firstHitS": 4.3499999999999925,
+      "hits": 3,
+      "seconds": 6.5999999999999845,
+      "hp": 1486.5,
+      "remaining": 0
+    },
+    {
+      "hero": "anima",
+      "side": 1,
+      "command": "fallBack",
+      "firstHitS": 2.9999999999999973,
+      "hits": 3,
+      "seconds": 8.899999999999991,
+      "hp": 1486.5,
+      "remaining": 0
+    }
+  ],
+  "tenTroops": [
+    {
+      "side": 0,
+      "firstHitS": 2.849999999999998,
+      "hits": 20,
+      "seconds": 35.050000000000146,
+      "hp": 780,
+      "remaining": 0
+    },
+    {
+      "side": 1,
+      "firstHitS": 2.849999999999998,
+      "hits": 20,
+      "seconds": 35.050000000000146,
+      "hp": 780,
+      "remaining": 0
+    }
+  ]
+}

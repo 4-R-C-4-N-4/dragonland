@@ -1,0 +1,11 @@
+# Dog — beast, line Z, stage1. Edit, then `npm run art -- gen dog`.
+name: Dog
+size: stage1
+# Idle height relative to its size class (a standing human = 1).
+heightScale: 0.72
+description: >-
+  A sturdy war dog, mastiff build, short fur, studded leather harness. Team colour: a cloth vest on the harness.
+animationNotes: >-
+  Attack: leaping bite.
+walkNotes: >-
+  Four-legged trot.

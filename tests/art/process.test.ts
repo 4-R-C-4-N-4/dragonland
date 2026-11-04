@@ -1,0 +1,114 @@
+import { describe, expect, it } from 'vitest';
+import { asepriteJson, classify, packRows, Px, processSheet, rowFigureHeight, type Rgba } from '../../tools/art/process';
+
+// Synthetic "generated" sheet: magenta background, 5 rows x 4 cells, each with a body block,
+// a green team-cloth stripe and a pink fringe ring that must be removed.
+function synthSheet(): Rgba {
+  const cell = 100, W = cell * 4, H = cell * 5;
+  const data = new Uint8Array(W * H * 4);
+  const set = (x: number, y: number, r: number, g: number, b: number) => { const o = (y * W + x) * 4; data[o] = r; data[o + 1] = g; data[o + 2] = b; data[o + 3] = 255; };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) set(x, y, 255, 0, 255);
+  for (let r = 0; r < 5; r++)
+    for (let c = 0; c < 4; c++) {
+      const x0 = c * cell + 35 + (r === 1 ? (c % 2) * 6 : 0); // walk frames shift inside their cell
+      const y1 = r * cell + 90;
+      const h = 60;
+      for (let y = y1 - h - 1; y <= y1; y++) for (let x = x0 - 1; x <= x0 + 31; x++) set(x, y, 230, 120, 230); // pink fringe
+      for (let y = y1 - h; y < y1; y++) for (let x = x0; x < x0 + 30; x++) set(x, y, 120, 80, 40);
+      for (let y = y1 - 40; y < y1 - 30; y++) for (let x = x0; x < x0 + 30; x++) set(x, y, 0, 220, 0);
+    }
+  return { width: W, height: H, data };
+}
+
+const opts = { targetHeight: 30, rows: ['idle', 'walk', 'attack', 'hit', 'death'] as const, framesPerRow: 4, alphaCut: 120, outline: null };
+
+describe('art processing', () => {
+  it('classifies key colours', () => {
+    expect(classify(255, 0, 255)).toBe(Px.Bg);
+    expect(classify(0, 255, 0)).toBe(Px.Cloth);
+    expect(classify(120, 80, 40)).toBe(Px.Fg);
+  });
+
+  it('slices a 5x4 sheet, scales to target height, separates cloth into the mask, drops fringe', () => {
+    const res = processSheet(synthSheet(), opts);
+    expect(res.scale).toBeCloseTo(30 / 62, 1);
+    const { width: SW, data } = res.body;
+    // Collect alpha rows of frame 0 to measure height; check no pink pixels survive anywhere.
+    let top = Infinity, bottom = -1, pink = 0, maskPx = 0;
+    for (let y = 0; y < res.frameH; y++) for (let x = 0; x < res.frameW; x++) {
+      const o = (y * SW + x) * 4;
+      if (data[o + 3]) { top = Math.min(top, y); bottom = Math.max(bottom, y); }
+    }
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] && data[i]! > 200 && data[i + 2]! > 200 && data[i + 1]! < 150) pink++;
+      if (res.mask.data[i + 3]) maskPx++;
+    }
+    expect(bottom - top + 1).toBeGreaterThanOrEqual(29);
+    expect(bottom - top + 1).toBeLessThanOrEqual(32);
+    expect(pink).toBe(0);
+    expect(maskPx).toBeGreaterThan(20 * 4 * 5);
+  });
+
+  it('anchors frames to cells so in-cell motion is preserved (no re-centring)', () => {
+    const res = processSheet(synthSheet(), opts);
+    const leftEdge = (row: number, k: number) => {
+      for (let x = 0; x < res.frameW; x++)
+        for (let y = 0; y < res.frameH; y++) if (res.body.data[(((row * res.frameH + y) * res.body.width) + k * res.frameW + x) * 4 + 3]) return x;
+      return -1;
+    };
+    // walk frames 0 and 1 differ by 6 source px (~3 game px); idle frames identical
+    expect(leftEdge(0, 0)).toBe(leftEdge(0, 1));
+    expect(Math.abs(leftEdge(1, 1) - leftEdge(1, 0))).toBeGreaterThanOrEqual(2);
+  });
+
+  it('keeps adjacent animation rows separate when dilation bridges a raised weapon', () => {
+    const img = synthSheet();
+    // Extend one attack weapon to within 10px of the walk frame above: two dilation
+    // passes bridge the gutter, but one pass preserves the actual separation.
+    for (let y = 201; y < 235; y++) for (let x = 135; x < 165; x++) {
+      const p = (y * img.width + x) * 4;
+      img.data[p] = 120; img.data[p + 1] = 80; img.data[p + 2] = 40;
+    }
+    const res = processSheet(img, opts);
+    expect(res.body.height).toBe(res.frameH * 5);
+    for (let row = 0; row < 5; row++) for (let col = 0; col < 4; col++) {
+      let opaque = 0;
+      for (let y = 0; y < res.frameH; y++) for (let x = 0; x < res.frameW; x++) {
+        if (res.body.data[(((row * res.frameH + y) * res.body.width) + col * res.frameW + x) * 4 + 3]) opaque++;
+      }
+      expect(opaque).toBeGreaterThan(100);
+    }
+  });
+
+  it('rejects sheets with the wrong grid', () => {
+    const img = synthSheet();
+    for (let i = 0; i < img.width * 100 * 4; i += 4) { img.data[i] = 255; img.data[i + 1] = 0; img.data[i + 2] = 255; } // blank the first row
+    expect(() => processSheet(img, opts)).toThrow(/expected 5 rows/);
+  });
+
+  it('writes Aseprite JSON with one tag per animation', () => {
+    const res = processSheet(synthSheet(), opts);
+    const json = asepriteJson('dog', 'dog.png', res, opts.rows, 4, { idle: 100, walk: 100, attack: 80, hit: 90, death: 120 });
+    expect(json.meta.frameTags.map((t) => t.name)).toEqual([...opts.rows]);
+    expect(Object.keys(json.frames)).toHaveLength(20);
+  });
+
+  it('swaps a regenerated single-animation strip into a sheet (packRows)', () => {
+    const main = processSheet(synthSheet(), opts);
+    // A 1x6 walk strip with taller figures, scaled to match the main sheet's walk height.
+    const cell = 100, W = cell * 6, H = 140;
+    const data = new Uint8Array(W * H * 4);
+    for (let i = 0; i < W * H; i++) { data[i * 4] = 255; data[i * 4 + 2] = 255; data[i * 4 + 3] = 255; }
+    for (let k = 0; k < 6; k++) for (let y = 20; y < 130; y++) for (let x = k * cell + 30; x < k * cell + 70; x++) { const o = (y * W + x) * 4; data[o] = 90; data[o + 1] = 60; data[o + 2] = 30; }
+    const target = rowFigureHeight(main, 1, 4);
+    const strip = processSheet({ width: W, height: H, data }, { ...opts, rows: ['walk'], framesPerRow: 6, targetHeight: target });
+    expect(rowFigureHeight(strip, 0, 6)).toBeGreaterThanOrEqual(target - 1);
+    expect(rowFigureHeight(strip, 0, 6)).toBeLessThanOrEqual(target + 1);
+    const rows = opts.rows.map((anim, r) => (anim === 'walk' ? { anim, res: strip, row: 0, frames: 6 } : { anim, res: main, row: r, frames: 4 }));
+    const packed = packRows('dog', 'dog.png', rows, { idle: 1, walk: 1, attack: 1, hit: 1, death: 1 });
+    const tags = packed.json.meta.frameTags;
+    expect(tags.find((t) => t.name === 'walk')).toMatchObject({ from: 4, to: 9 });
+    expect(Object.keys(packed.json.frames)).toHaveLength(22);
+    expect(packed.body.height).toBe(main.frameH * 4 + strip.frameH);
+  });
+});

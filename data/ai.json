@@ -1,0 +1,7 @@
+{
+  "generalLowHpFrac": 0.4,
+  "threatClearRadius": 150,
+  "specialMinEnemiesInArea": 3,
+  "specialMinWoundedAllies": 3,
+  "decisionIntervalS": 1.0
+}

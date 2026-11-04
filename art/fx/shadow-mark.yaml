@@ -1,0 +1,7 @@
+# FX spec for `shadow-mark` (art/fx/shadow-mark.yaml). See docs/art-pipeline.md and art/style.yaml `fx:` section.
+name: Shadow Mark
+kind: strike # overlay | wave | strike | aura
+frames: 6
+heroes: ['assassin']
+description: >-
+  A jagged violet-black slash of shadow tearing open with wisps of dark smoke and a brief sickly purple afterimage flare; a single quick, vicious cut that fades to tendrils of shade.
