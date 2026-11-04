@@ -1,7 +1,7 @@
 {
   "scope": "isolated interactive map widget, not integrated campaign",
   "base": "28f6c2a",
-  "sourceFingerprint": "5219ff19347d3faade26f4fc3c8eeb8e5d56a3b0627ca872575481bd77bd1c20",
+  "sourceFingerprint": "6a329d29c0d611b92e91e5a4a4a6b9f12e3adff732b390a685d7cb0508e4cfa1",
   "files": [
     "src/render/worldMap.ts",
     "src/ui/world/index.ts",
@@ -39,7 +39,8 @@
     "phase battle disables order buttons",
     "removing owned division clears stale order selection",
     "destroy twice removes fixture canvas and section",
-    "right-edge Nightspire label clipping observed, fixed, visually rechecked at800x600"
+    "right-edge Nightspire label clipping observed, fixed, visually rechecked at800x600",
+    "node-switch regression observed enabled stale army controls under Nightspire; shared canvas/DOM selectNode fix now clears selection and disables controls, verified in browser"
   ],
   "errorsObserved": [],
   "limitations": [
