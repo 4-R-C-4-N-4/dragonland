@@ -8,10 +8,27 @@ MVP2 is merged to `main` as `cac3773` (PR #2). MVP3 adds the war layer: overworl
 
 Decided with Ivy: castle garrison 7 vs attacking division 5 (tighter than Dragon Force's 10v5, so castles matter but still change hands); the overworld is **turn-based** — one node per turn, every node action costs a turn, enemies move simultaneously; losing or retreating returns a division to its previous node.
 
-Four open questions remain in `docs/mvp3.md` with defaults: map size, starting force, rival general count and hero signature moves, plus search success rates and enemy visibility. Nothing is implemented yet.
+Opening decisions are locked: hero + two generals share **100 troops**, default 34/33/33, customizable within command capacity. Remaining defaults accepted; no blocking design questions.
+
+### Current integrated state
+
+- Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.
+- Phase 2 headless turn core: `cebedd2`, war creation, order queue, simultaneous movement, encounters, rest/upkeep and completed-turn replay. Parent verified **575 tests**, production build, whitespace and purity checks. Independent probe verified 100 unique starting troops, custom allocation/rejections, order-submission invariance, same-seed equality and 30-turn replay.
+- This is **not yet a playable overworld**. Search currently reports nothing; battle-result sequencing, interrupted-turn completion/replay, strategic AI, map UI, admin UI, war persistence and mode assembly are not integrated. The completed-turn replay test does not prove battle-result replay.
+
+### Active orchestration
+
+Plan: `docs/plans/mvp3-sequence-promotion.md`. Two isolated implementation worktrees, capped at two workers:
+
+- `mvp3-sequence`: defender-first skirmish sequencing and real battle-result bridge, including 7-vs-5 garrisons, casualties, idempotency and retreat.
+- `mvp3-promotion`: general-track XP, identity-preserving promotion, capacity growth and captive recruitment.
+
+Worker routing: **GPT-6-Luna, low reasoning**, selected from the available catalog's fast/affordable tier. Sonnet CLI is installed but unauthenticated; Codex Mini was rejected by the account. No credential/config changes. Workers do not push or merge; parent requires independent spec/quality reviews and reruns gates before integration. Next parent-owned seam: interrupted-turn continuation, simultaneous encounter queue and battle-result replay, then biome search and playable UI.
 
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 492 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+## Historical MVP2 release notes
+
+Historical branch: `mvp2`. Final pre-merge gate: `npm run check` (tsc + vitest, 492 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. All milestone measurements and blocker states below are historical; current MVP3 status is above.
 
 ## Release blockers closed
 

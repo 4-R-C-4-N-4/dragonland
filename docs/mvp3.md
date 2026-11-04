@@ -4,7 +4,7 @@
 
 **Goal:** a complete playable campaign — choose a hero, march a living overworld, fight sequenced general-vs-general battles, take castles, promote veterans into generals, and win or lose a war.
 
-**Architecture:** add a pure overworld/campaign layer (`src/world`) beside the existing pure battle simulation (`src/sim`). The overworld is a fixed-step deterministic simulation too: same seeded-RNG discipline, same replay guarantees, no DOM or wall-clock inside it. Battles stay exactly as they are and are invoked *by* the overworld rather than by the campaign screen. One versioned save snapshot holds the whole war.
+**Architecture:** add a pure overworld/campaign layer (`src/world`) beside the existing pure battle simulation (`src/sim`). The overworld is turn-based and deterministic: same seeded-RNG discipline and replay guarantees, no DOM or wall-clock inside it. Battles stay exactly as they are and are invoked *by* the overworld rather than by the campaign screen. One versioned save snapshot holds the whole war.
 
 **Stack:** unchanged. TypeScript, PixiJS, plain DOM/CSS, zod, Vitest, Node 22. No new runtime dependencies, no UI framework.
 
