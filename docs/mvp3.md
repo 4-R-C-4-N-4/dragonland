@@ -78,17 +78,16 @@ General bonds and combo specials; terrain modifiers; parley/diplomacy; multiple 
 - **Castle capacity: garrison 7 vs attacking division of 5.** Tighter than Dragon Force's 10v5 on purpose — castles are a real obstacle but can change hands, so the map stays fluid.
 - **Turn-based overworld.** One node per turn; every node action costs a turn; enemies move one node per turn simultaneously.
 - **Retreat and defeat return a division to its previous node.** No separate troop penalty for retreating; losing the skirmishes is the cost.
+- **Starting force: hero + 2 generals, 100 troops total, freely split between them** subject to each general's command capacity. The player chooses the split at war start; the default split is even.
+- **Map:** 12 nodes, 2 factions (you + 1 rival).
+- **Rival generals:** 6 named, no recurring grudge logic.
+- **Hero specials:** the hero keeps its single class special from MVP2. The 3–4 unlockable signature moves stay deferred.
+- **Search success:** 50% at a lair, 20% in wilderness, never in a friendly settlement.
+- **Enemy visibility:** divisions are visible within one node of a node you own or occupy. The resolved turn reveals where visible enemies moved.
 
-## Open questions — answer before Phase 3
+## Open questions
 
-Defaults are what will be built if you say nothing.
-
-1. **Map size.** Default: 12 nodes, 2 factions (you + 1 rival), ~45 min campaign.
-2. **Starting force.** Default: hero + 2 generals, 60 troops total.
-3. **Rival generals.** Default: 6 named rival generals, no recurring grudge logic.
-4. **Hero signature moves.** Default: the hero keeps its single class special from MVP2; the 3–4 unlockable signature moves stay deferred.
-5. **Search success rate.** Default: a Search turn finds wild troops 50% of the time at a lair, 20% in wilderness, never in a friendly town.
-6. **Simultaneous-move reveal.** Default: the player commits, then the resolved turn shows where every visible enemy division moved. Enemy divisions are only visible within one node of a node you own or occupy.
+None blocking. Raise new ones as phases land.
 
 ---
 

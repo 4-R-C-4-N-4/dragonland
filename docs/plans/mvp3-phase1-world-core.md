@@ -325,9 +325,9 @@ it('ships a connected starter map with one castle per faction', () => {
 - Modify: `src/data/schemas.ts`
 - Test: `tests/world/worldData.test.ts`
 
-Constants: `TURNS_PER_WEEK` 7, `HEAL_HP_PER_REST_FRAC` 0.25, `RESUPPLY_TROOPS_PER_REST` 6, `CAPTURE_WEIGHT` 0.6, `INJURE_WEIGHT` 0.3, `KILL_WEIGHT` 0.1, `GARRISON_CAP` 7, `MAX_DIVISION_GENERALS` 5, `SEARCH_CHANCE_LAIR` 0.5, `SEARCH_CHANCE_WILD` 0.2, `INJURY_TURNS` 3, `STARTING_GOLD` 100.
+Constants: `TURNS_PER_WEEK` 7, `HEAL_HP_PER_REST_FRAC` 0.25, `RESUPPLY_TROOPS_PER_REST` 6, `CAPTURE_WEIGHT` 0.6, `INJURE_WEIGHT` 0.3, `KILL_WEIGHT` 0.1, `GARRISON_CAP` 7, `MAX_DIVISION_GENERALS` 5, `SEARCH_CHANCE_LAIR` 0.5, `SEARCH_CHANCE_WILD` 0.2, `INJURY_TURNS` 3, `STARTING_GOLD` 100, `STARTING_TROOPS` 100, `STARTING_GENERALS` 3, `STARTING_CAPACITY` 50.
 
-Test that the three defeat weights sum to 1, that `TURNS_PER_WEEK` and `MAX_DIVISION_GENERALS` are positive integers, and that `GARRISON_CAP` exceeds `MAX_DIVISION_GENERALS` — the defender advantage is intentional. Red-green-commit.
+Test that the three defeat weights sum to 1, that `TURNS_PER_WEEK` and `MAX_DIVISION_GENERALS` are positive integers, that `GARRISON_CAP` exceeds `MAX_DIVISION_GENERALS` — the defender advantage is intentional — and that `STARTING_GENERALS * STARTING_CAPACITY >= STARTING_TROOPS`, so the opening 100 troops can always be legally distributed. Red-green-commit.
 
 ---
 
@@ -353,9 +353,9 @@ Test each failure mode with a deliberately broken fixture and assert the message
 - Create: `src/world/engine.ts`, `src/world/rng.ts` (world salts over `src/sim/rng.ts`)
 - Test: `tests/world/createWar.test.ts`
 
-`createWar(data, { seed, heroId, heroName })` produces: faction records with `STARTING_GOLD`; the hero as a `GeneralRecord` with `isHero: true` at its faction castle; starting generals and troops per `docs/mvp3.md` defaults; one player division at its castle with `previousNode: null`; rival divisions per faction personality; `turn: 1`, `week: 1`, `phase: 'orders'`.
+`createWar(data, { seed, heroId, heroName, split? })` produces: faction records with `STARTING_GOLD`; the hero as a `GeneralRecord` with `isHero: true` at its faction castle; 2 further starting generals; **100 starting troops split across the three, even by default and overridable by `split`**, each general clamped to its command capacity; one player division at its castle with `previousNode: null`; rival divisions per faction personality; `turn: 1`, `week: 1`, `phase: 'orders'`.
 
-Tests: hero identity and placement; roster counts; every division sits on a node; no division exceeds `MAX_DIVISION_GENERALS`; two `createWar` calls with the same seed are deeply equal; different seeds differ. Red-green-commit.
+Tests: hero identity and placement; **exactly 100 troops across the three starting generals**; even default split; a custom split is honoured; a split exceeding a general's capacity is rejected rather than silently trimmed; a split whose total is not 100 is rejected; every division sits on a node; no division exceeds `MAX_DIVISION_GENERALS`; two `createWar` calls with the same seed are deeply equal; different seeds differ. Red-green-commit.
 
 ---
 
