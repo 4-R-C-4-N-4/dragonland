@@ -1,0 +1,18 @@
+.dl-world-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 320px); gap: 12px; min-width: 0; height: min(800px, calc(100vh - 24px)); min-height: 420px; color: var(--dl-text); font-family: var(--dl-font-ui); }
+.dl-world-map__stage { display: grid; grid-template-rows: minmax(260px, 1fr) minmax(110px, auto); min-width: 0; min-height: 0; gap: 8px; }
+.dl-world-map__canvas { min-width: 0; min-height: 0; overflow: hidden; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); background: #14100e; }
+.dl-world-map__canvas canvas { display: block; width: 100%; height: 100%; }
+.dl-world-map__info, .dl-world-map__side { overflow: auto; padding: 10px; }
+.dl-world-map__info { background: var(--dl-bg-panel); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
+.dl-world-map__info h2 { margin: 0 0 6px; font: 18px var(--dl-font); color: var(--dl-accent); }
+.dl-world-map__info p { margin: 5px 0; }
+.dl-world-map__side { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.dl-world-map__status { color: var(--dl-accent); font-family: var(--dl-font); font-weight: 700; }
+.dl-world-map__nodes { display: grid; grid-template-columns: 1fr; gap: 4px; overflow: auto; min-height: 70px; }
+.dl-world-map__nodes button { text-align: left; }
+.dl-world-map__orders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.dl-world-map__orders select { grid-column: 1 / -1; min-height: 32px; }
+.dl-world-map__orders button:last-child { grid-column: 1 / -1; }
+.dl-world-map button:focus-visible, .dl-world-map select:focus-visible { outline: 3px solid var(--dl-accent); outline-offset: 2px; }
+@media (max-width: 760px) { .dl-world-map { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(280px, 55vh) minmax(260px, 1fr); height: auto; min-height: 600px; } .dl-world-map__stage { grid-template-rows: minmax(240px, 1fr) minmax(100px, auto); } .dl-world-map__side { max-height: 42vh; } }
+@media (max-width: 420px) { .dl-world-map__orders { grid-template-columns: 1fr; } .dl-world-map__orders select, .dl-world-map__orders button:last-child { grid-column: 1; } }
