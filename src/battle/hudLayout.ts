@@ -1,6 +1,6 @@
 /** Screen-space geometry only. No renderer or simulation state is needed. */
 export interface HudRect { x: number; y: number; width: number; height: number }
-export type HudButton = 'all' | 'advance' | 'hold' | 'fallBack' | 'direct' | 'farFlank' | 'nearFlank' | 'pause' | 'speed' | 'special';
+export type HudButton = 'all' | 'advance' | 'hold' | 'fallBack' | 'direct' | 'farFlank' | 'nearFlank' | 'pause' | 'speed' | 'special' | 'quit';
 export interface HudLayout {
   compact: boolean;
   bottomBand: HudRect;
@@ -36,6 +36,7 @@ export function getHudLayout(width: number, height: number): HudLayout {
       direct: rect(280, controlY, 84), farFlank: rect(372, controlY, 84), nearFlank: rect(464, controlY, 84),
       pause: rect(width - 146, y + (compact ? 120 : 124), 72),
       speed: rect(width - 66, y + (compact ? 120 : 124), 56),
+      quit: rect(width - 218, controlY, 96),
       special: rect(width - 110, controlY, 100),
     },
   };

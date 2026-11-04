@@ -13,12 +13,11 @@ function enemySide(side: Side): Side {
 }
 
 export function canFireSpecial(world: World, side: Side): boolean {
-  const internal = internalOf(world);
-  return canFireSpecialReal(internal.data, world.generals[side]);
+  return (world.phase === 'fight' || world.phase === 'duel') && canFireSpecialReal(world.generals[side]);
 }
 
-export function canFireSpecialReal(data: GameData, g: GeneralState): boolean {
-  return g.meter >= data.constants.SPECIAL_METER_MAX && g.mp >= g.special.mpCost && g.specialCooldown <= 0;
+export function canFireSpecialReal(g: GeneralState): boolean {
+  return g.maxMp > 0 && g.mp >= g.maxMp - 1e-9;
 }
 
 /** Strength of a multiplier scaled by power: 1.3 at power 2 -> 1.6; 0.8 at power 2 -> 0.6 (floored). */
@@ -117,9 +116,7 @@ export function doFireSpecial(world: World, data: GameData, side: Side): void {
   }
 
   world.events.push({ type: 'special', side, specialId: sp.id, fx: sp.fx, areas, x: gx, y: gy, dirX, dirY, width: waveWidth, affected: [...affected], areaTargets });
-  g.mp -= sp.mpCost;
-  g.meter = 0;
-  g.specialCooldown = sp.cooldownS;
+  g.mp = 0;
 }
 
 function activeFrom(fx: Extract<SpecialEffect, { type: 'buff' | 'debuff' }>, side: Side, specialId: string, power: number): ActiveEffect {
@@ -165,21 +162,10 @@ export function tickActiveEffects(world: World, dt: number): void {
   world.activeEffects = world.activeEffects.filter((a) => a.remainingS > 1e-9);
 }
 
-export function tickSpecialCooldowns(world: World, dt: number): void {
-  for (const side of [0, 1] as const) {
-    const g = world.generals[side];
-    if (g.specialCooldown > 0) {
-      g.specialCooldown = Math.max(0, g.specialCooldown - dt);
-      if (g.specialCooldown === 0) g.mp = g.maxMp;
-    }
-  }
-}
-
-export function chargeMetersByTime(world: World, dt: number): void {
-  const internal = internalOf(world);
-  const data = internal.data;
-  for (const side of [0, 1] as const) {
-    const g = world.generals[side];
-    g.meter = Math.min(data.constants.SPECIAL_METER_MAX, g.meter + data.constants.SPECIAL_CHARGE_PER_S * dt);
+/** MP is the only special resource; combat time alone replenishes it. */
+export function rechargeMp(world: World, dt: number): void {
+  for (const g of world.generals) {
+    const mp = Math.max(0, Math.min(g.maxMp, g.mp + g.maxMp / g.special.rechargeS * dt));
+    g.mp = g.maxMp - mp <= 1e-9 ? g.maxMp : mp;
   }
 }

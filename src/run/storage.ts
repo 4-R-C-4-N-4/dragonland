@@ -1,6 +1,6 @@
 // Run persistence: one versioned snapshot under one key, written atomically per transition.
 // A corrupt save is reported (never silently replaced by a fresh army); an empty roster is legal.
-import type { GameData } from '../data';
+import type { GameData, GeneralId } from '../data';
 import { awardTroopXp, pendingMilestones, type UnitById } from '../progression';
 import { RunStateSchema, type RunState } from './schema';
 
@@ -36,6 +36,34 @@ export function validateRun(data: GameData, state: RunState): void {
   if (state.phase === 'select' && state.offers.length === 0) throw new Error('select phase without encounter offers');
   for (const id of state.battle?.setup.sides[0].squads.flatMap((q) => q.troops.map((t) => t.troopId)) ?? []) {
     if (!ids.has(id)) throw new Error(`frozen battle references missing troop ${id}`);
+  }
+  // Persisted encounters, frozen setups, recruit offers and summaries are rendered
+  // directly; an unknown species must surface recovery, not crash the screen.
+  const unit = (unitId: string, where: string): void => {
+    if (!data.unitById.has(unitId)) throw new Error(`${where}: unknown unit ${unitId}`);
+  };
+  const general = (side: { generalId: string; general?: { special?: unknown } }, where: string): void => {
+    const def = data.generalById.get(side.generalId as GeneralId);
+    if (!def) throw new Error(`${where}: unknown general ${side.generalId}`);
+    unit(def.unitId, `${where} general ${side.generalId}`);
+  };
+  const sides = [
+    ...state.offers.map((o, i) => [o.side, `encounter offer ${o.id || i}`] as const),
+    ...(state.encounter ? [[state.encounter.side, `encounter ${state.encounter.id}`] as const] : []),
+    ...(state.battle?.setup.sides.map((side, i) => [side, `frozen battle side ${i}`] as const) ?? []),
+  ];
+  for (const [side, where] of sides) {
+    general(side, where);
+    if (!data.formationById.has(side.formationId)) throw new Error(`${where}: unknown formation ${side.formationId}`);
+    for (const squad of side.squads) for (const troop of squad.troops) unit(troop.unitId, `${where} troop ${troop.name}`);
+  }
+  for (const offer of state.recruitOffers) for (const troop of offer.troops) unit(troop.unitId, `recruit offer ${offer.id} troop ${troop.name}`);
+  for (const group of [state.lastSummary?.dead, state.lastSummary?.recovered, state.lastSummary?.survived]) {
+    for (const troop of group ?? []) unit(troop.unitId, `last summary troop ${troop.name}`);
+  }
+  for (const evolution of state.lastSummary?.evolutions ?? []) {
+    unit(evolution.from, `last summary evolution ${evolution.name}`);
+    unit(evolution.to, `last summary evolution ${evolution.name}`);
   }
 }
 

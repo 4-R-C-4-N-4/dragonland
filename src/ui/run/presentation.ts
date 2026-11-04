@@ -5,6 +5,16 @@ import { getRunConfig, type RunState } from '../../run';
 export const esc = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const className = (data: GameData, id: string): string => data.classes.find((c) => c.id === id)?.name ?? id;
 
+export function depletedCompanyHtml(data: GameData, s: RunState): string {
+  if ((s.phase !== 'select' && s.phase !== 'prepare') || s.roster.length >= data.constants.MIN_SQUAD) return '';
+  return `<div class="dl-panel">
+    <h2>Company depleted</h2>
+    <p>At least ${data.constants.MIN_SQUAD} troops are needed to form a squad. Your company has too few troops to fight.</p>
+    <p id="dl-abandon-warning">Starting over discards this run and returns you to hero selection. Choose a hero and press Begin to start a new company.</p>
+    <button class="dl-primary" id="dl-abandon" aria-describedby="dl-abandon-warning">Abandon run and start over</button>
+  </div>`;
+}
+
 export function heroChoicesHtml(data: GameData, selected: GeneralId): string {
   return data.classes.map((c) => `<fieldset class="dl-hero-group"><legend>${esc(c.name)}</legend>${data.generals
     .filter((g) => data.unitById.get(g.unitId)!.classId === c.id)
@@ -22,7 +32,7 @@ export function selectedHeroHtml(data: GameData, id: GeneralId): string {
   return `<h3>Selected hero: ${esc(g.name)}</h3>
     <p>${esc(className(data, u.classId))} · ${u.line} role. Starts with ${esc(className(data, u.classId))} + ${esc(className(data, partner))}.</p>
     <p><strong>Special — ${esc(g.special.name)}:</strong> ${esc(g.special.description)}</p>
-    <p class="dl-dim">Use your special in battle when its meter and MP are ready.</p>`;
+    <p class="dl-dim">${g.special.rechargeS}s recharge. MP starts empty and recharges during combat. At full MP, use your special to spend it all. Pausing freezes recharge.</p>`;
 }
 
 export function campaignHelpHtml(data: GameData): string {
@@ -43,7 +53,7 @@ export function resultHtml(data: GameData, s: RunState): string {
   const upgradeStatus = milestones.length === 0 ? 'No hero upgrade awaiting choice.'
     : s.phase === 'rewards' ? `Hero upgrade available at level ${milestones.join(', ')}: a boon awaits your choice.`
     : `Unspent general milestone${milestones.length > 1 ? 's' : ''} at level${milestones.length > 1 ? 's' : ''} ${milestones.join(', ')}.`;
-  return `<div class="dl-panel"><h2>${r.won ? 'Victory' : 'Defeat'}${r.boss ? ' over the warlord' : ''}</h2>
+  return `<div class="dl-panel"><h2>${r.forfeited ? 'Battle forfeited' : r.won ? 'Victory' : 'Defeat'}${r.boss ? ' over the warlord' : ''}</h2>
     <p>Company roster retained: ${s.roster.length} (includes benched troops${r.recovered.length ? ' and recovered wounded' : ''}).</p>
     ${r.survived !== undefined ? `<details><summary>Surviving deployment (${r.survived.length})</summary><ul class="dl-troop-list">${namedList(r.survived)}</ul></details>` : '<p>Surviving deployment: not recorded in this saved result.</p>'}
     <p>Benched: ${r.benched !== undefined ? r.benched : 'not recorded in this saved result'}.</p>

@@ -1,14 +1,16 @@
 {
-  "status": "provisional-game-scale-reviewed-integration-gates-pending",
+  "status": "provisional-game-scale-reviewed-integrated-release-review-pending",
+  "integrationCommit": "3ccd37985fa32b7c7435948c919d55080fbd4747",
   "notes": [
     "All15 picked sheets processed with shared common trim in a3127cb; all intended frames nonempty, exact sources below.",
     "Raw sources and exact picks remain unchanged. Technical alpha counts are not in-game approval.",
     "Independent source/extraction visual review accepted all15 provisionally: distinct identities, coherent sequences, no obvious chopping, neighbor contamination or magenta leakage.",
     "FX implementation passed independent spec and quality re-reviews before merge c16345e. These code reviews do not substitute for playback signoff.",
-    "Parent visually inspected all15 actual projected game-scale captures; exact per-effect verdicts and limitations below. This is isolated scene verification, not a claim that the full campaign production smoke has passed.",
+    "Parent visually inspected all15 actual projected game-scale captures; exact per-effect verdicts and limitations below. These are isolated scene verdicts; the integrated production playthrough also passed separately on3ccd379 (docs/qa/browser-smoke.md).",
     "All15 actual first casts had15 real FX assets ready and zero remaining FX nodes after2.15 presentation seconds. Pause held Holy Rally frames/placements fixed. Three waves advanced their maximum projected X from about474 at0.2s to1201\u20131205 at0.55s, then cleaned up.",
     "Shared heal+buff auras were deduplicated by recipient identity with red\u2192green regression coverage, preserving distinct hostile strikes/debuffs and legacy side filtering. Holy Rally/Sanctuary/Guiding Light now draw61 auras instead of122.",
-    "Source art remains provisional. Dense aura/strike/debris peaks briefly obscure silhouettes. Real-GPU performance is not measured; browser used software rendering. Perspective code review/integration and final production smoke remain separate gates."
+    "Source art remains provisional. Dense aura/strike/debris peaks briefly obscure silhouettes. Real-GPU performance is not measured; browser renderer is SwiftShader. Perspective reviews/integration and combined production smoke passed; final release review and depleted-company recovery remain separate gates.",
+    "Compiled production preload was verified through actual Pixi image-worker request/reply identities: all15 FX decoded into nonzero ImageBitmaps without errors/warnings. Main-frame ResourceTiming alone does not list these worker fetches."
   ],
   "effects": [
     {

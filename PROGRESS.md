@@ -1,6 +1,38 @@
 # Progress
 
-Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 322 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+Branch: `mvp2`. Current parent gate: `npm run check` (tsc + vitest, 490 tests) and `npm run build`. Node 22. Mainline readiness: `docs/mainline-readiness.md`. Earlier milestone measurements below are historical.
+
+## Release blockers closed
+
+- Depleted-company recovery integrated from its worktree: select/prepare below `MIN_SQUAD` offers explicit abandon-and-restart, preserving unrelated storage and never auto-recruiting a replacement army.
+- `validateRun` now checks persisted encounter offers, the chosen encounter, both frozen battle sides, recruit offers and summary troops/evolutions. Semantically corrupt saves report recovery instead of crashing the screen, and are never silently rewritten.
+- Backtick debug overlay has one owner per press; the battle listener stops propagation so the application listener cannot toggle it straight back.
+- Balance diagnostics regenerated on the corrected pursuit engine: 2,216 runs, all 15 specials, zero unfinished and **zero time-limit transitions** (previously 54-94). Shepherd 6/48 -> 25/48 among healers. `docs/qa/mp-special-balance.md`.
+- Parent gate: 490 tests, build and `git diff --check` pass. Real-browser release smoke covered depleted recovery, corrupt-save recovery and a full campaign battle with MP cast; storage restored and read back. `docs/qa/release-smoke.json`.
+
+## Quit battle and lifecycle completion
+
+- Added visible Quit battle / Escape confirmation in both app modes. Modal pauses, initially focuses Continue, blocks background shortcuts, and restores prior pause state on cancel. Failed save writes keep the battle recoverable.
+- Campaign confirm persists terminal forfeiture with actual casualties and no rewards; legacy saves still load. Sandbox confirm returns to builder without resurrecting fallen IDs or altering the campaign save.
+- Fixed sandbox view ownership on result/quit/controller teardown and stale async completion/rejection. Startup now cleans acquired Pixi/DOM/input/RAF resources on failure before a handle exists.
+- Review found and regressions fixed valid-empty sandbox roster auto-reset and rejected-startup resource leaks. Parent475tests/build/diff checks pass; complete real-browser keyboard/pointer, storage failure, reload, three viewports and both modes passed. Evidence: `docs/qa/quit-battle.md`.
+- This closes the sandbox cleanup release blocker. Depleted-company preparation recovery integration, semantic save validation, debug shortcut, post-pursuit balance/release verification and commit/push/CI are not closed by this feature. No main merge.
+
+## Hero versus stragglers repair
+
+- Reproduced the reported zero-hit drifting: slow return-home speed was reused for pursuit, and attacks checked only before movement could miss forever as a kiter stepped away each next tick.
+- Active pursuit now has a data-defined closing margin; return-home speed stays unchanged. Heroes attack when movement reaches range in the same tick. No HP/damage/range/cadence inflation.
+- Parent439 tests/build pass;67 new regression cases cover all15 heroes/both sides/Hold/FallBack,10 wounded ranged survivors, attack timing, slows and return walking. Independent review APPROVED. Real battle renderer confirmed20 normal hits,10 defeated and780 HP remaining without specials; campaign storage unchanged and view destroyed.
+- Evidence: `docs/qa/hero-stragglers.md`. Old special calibration reports are explicitly historical after this AI correction; an all15 peer smoke is recorded separately. Earlier release blockers remain open; no commit/push/main merge.
+
+## MP-only recharge and special peer tuning
+
+- User-approved MP-only model is implemented in the working tree: start empty, linear combat-time recharge, spend the full bar, no second meter/cost/cooldown state or hit charging. Pause, replay, duplicate queued casts and legacy frozen-v2 saves have regressions.
+- All 15 specials calibrated by peer family. Shepherd now heals35% every16s plus movement, versus25% every20s before; its beam is50% larger and lasts twice as long. Waves trade band width against damage; buffs trade offense/frequency against protection; targeted and field attacks have explicit burst/coverage/delay trade-offs.
+- Parent check:372 tests and build pass. Independent spec/quality reviews approved the MP mechanics and diagnostics after fixing MP color invalidation and missing duel time in reports. Final numeric calibration is recorded in the exact report definitions.
+- Reproducible final evidence: `docs/qa/mp-special-balance.md` and four `special-balance-*.json` reports:2,216 executed runs, all15 heroes, paired sides, neutral-line normalized and native profiles, zero unfinished. Peer time-limit transitions increased54->69; this is disclosed, not a universal campaign-balance signoff. Shepherd normalized healer-peer results7/48->23/48.
+- Live existing-server QA: real Shepherd selection/preparation/battle, MP pause freeze/full readiness/cast/refill and extended FX passed; QA storage restored. Only the main repo dev server is left running. No new art generation, dependencies, commits, pushes or main merge.
+- Earlier release issues (depleted-company recovery integration, sandbox teardown, semantic corrupt-save recovery) remain separate work; this pass does not close the draft PR's release gates.
 
 ## MVP2 implementation (branch `mvp2`)
 

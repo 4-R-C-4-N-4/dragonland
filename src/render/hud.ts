@@ -17,6 +17,7 @@ export interface HudCallbacks {
   onSpecial(): void;
   onPauseToggle(): void;
   onSpeedToggle(): void;
+  onQuit?(): void;
 }
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
@@ -28,20 +29,22 @@ interface Bar {
   w: number;
   h: number;
   lastFrac: number;
+  lastColor: number;
 }
 
 function makeBar(w: number, h: number, color: number): Bar {
   const bg = new Graphics().roundRect(0, 0, w, h, h / 2).fill({ color: 0x1a1a1a, alpha: 0.85 });
   const fg = new Graphics();
-  const wrap = { bg, fg, w, h, lastFrac: -1 };
+  const wrap = { bg, fg, w, h, lastFrac: -1, lastColor: -1 };
   setBar(wrap, 1, color);
   return wrap;
 }
 
 function setBar(bar: Bar, frac: number, color: number): void {
   const f = Math.max(0, Math.min(1, frac));
-  if (Math.abs(f - bar.lastFrac) < 0.002) return;
+  if (Math.abs(f - bar.lastFrac) < 0.002 && color === bar.lastColor) return;
   bar.lastFrac = f;
+  bar.lastColor = color;
   bar.fg.clear();
   const w = Math.max(bar.h, bar.w * f);
   if (f > 0) bar.fg.roundRect(0, 0, w, bar.h, bar.h / 2).fill({ color });
@@ -165,7 +168,7 @@ export class Hud {
   private pauseBtn: Button;
   private speedBtn: Button;
   private specialBtn: Button;
-  private specialMeter: Bar;
+  private quitBtn: Button | null = null;
   private pauseOverlay: Container;
   private resultBanner: Container;
   private duelBanner: Container;
@@ -212,12 +215,10 @@ export class Hud {
     this.speedBtn = new Button(56, MIN_TOUCH, '1x', 'F', () => cb.onSpeedToggle());
     this.specialBtn = new Button(100, MIN_TOUCH, 'Special', 'S', () => cb.onSpecial());
     this.root.addChild(this.pauseBtn.root, this.speedBtn.root, this.specialBtn.root);
-    this.specialMeter = makeBar(90, 8, 0xffcc00);
-    const specialMeterC = new Container();
-    specialMeterC.addChild(this.specialMeter.bg, this.specialMeter.fg);
-    this.root.addChild(specialMeterC);
-    this._specialMeterC = specialMeterC;
-
+    if (cb.onQuit) {
+      this.quitBtn = new Button(96, MIN_TOUCH, 'Quit battle', 'Esc', () => cb.onQuit?.());
+      this.root.addChild(this.quitBtn.root);
+    }
     this.generalHp = [makeBar(120, 12, 0x44cc44), makeBar(120, 12, 0x44cc44)];
     this.generalMp = [makeBar(120, 7, 0x4488ff), makeBar(120, 7, 0x4488ff)];
     this.generalHpLabel = [
@@ -225,8 +226,8 @@ export class Hud {
       new Text({ text: '', style: { fill: 0xffffff, fontSize: 9, fontFamily: FONT } }),
     ];
     this.generalMpLabel = [
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 8, fontFamily: FONT } }),
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 8, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
     ];
     this.generalLabel = [
       new Text({ text: labels.player, style: { fill: 0xffffff, fontSize: 14, fontWeight: 'bold', fontFamily: FONT } }),
@@ -313,7 +314,6 @@ export class Hud {
   private _pauseDim!: Graphics;
   private _pauseTxt!: Text;
   private _pauseHint!: Text;
-  private _specialMeterC!: Container;
 
   layout(width: number, height: number): void {
     if (this.geometry && this.width === width && this.height === height) return;
@@ -337,8 +337,8 @@ export class Hud {
       root.position.set(r.x, r.y);
       this.layoutGeneral(root, side as 0 | 1);
     });
-    this._specialMeterC.position.set(width - 105, layout.buttons.special.y - 14);
     const buttons = { ...this.cmdButtons, ...this.approachButtons, pause: this.pauseBtn, speed: this.speedBtn, special: this.specialBtn };
+    if (this.quitBtn) this.quitBtn.setPosition(layout.buttons.quit.x, layout.buttons.quit.y);
     for (const key of Object.keys(buttons) as (keyof typeof buttons)[]) {
       const r = layout.buttons[key];
       buttons[key].setPosition(r.x, r.y);
@@ -372,9 +372,9 @@ export class Hud {
     this.generalHp[side].bg.position.set(labelX, 30);
     this.generalHp[side].fg.position.set(labelX, 30);
     this.generalHpLabel[side].position.set(labelX + 122, 31);
-    this.generalMp[side].bg.position.set(labelX, 46);
-    this.generalMp[side].fg.position.set(labelX, 46);
-    this.generalMpLabel[side].position.set(labelX + 122, 46);
+    this.generalMp[side].bg.position.set(labelX, 54);
+    this.generalMp[side].fg.position.set(labelX, 54);
+    this.generalMpLabel[side].position.set(labelX, 41);
   }
 
   update(world: World, selectedSlots: number[] | 'all'): void {
@@ -403,17 +403,20 @@ export class Hud {
       const hp = ents.hp[g.entity]!;
       const maxHp = ents.maxHp[g.entity]!;
       setBar(this.generalHp[s], hp / maxHp, hp / maxHp < 0.3 ? 0xcc4444 : 0x44cc44);
-      setBar(this.generalMp[s], g.mp / g.maxMp, 0x4488ff);
+      const fullMp = g.maxMp > 0 && g.mp >= g.maxMp - 1e-9;
+      setBar(this.generalMp[s], g.maxMp > 0 ? g.mp / g.maxMp : 0, fullMp ? 0x00ff66 : 0x4488ff);
       const hpStr = `${Math.round(hp)}/${Math.round(maxHp)}`;
       if (this.generalHpLabel[s].text !== hpStr) this.generalHpLabel[s].text = hpStr;
-      const mpStr = `MP ${Math.round(g.mp)}/${Math.round(g.maxMp)}`;
+      const mpState = fullMp ? 'FULL' : world.phase === 'deploy' ? 'Waiting' : world.phase === 'result' ? 'Ended' : world.paused ? 'Paused' : 'Recharging';
+      const mpStr = `MP ${fullMp ? Math.round(g.maxMp) : Math.floor(g.mp)}/${Math.round(g.maxMp)} · ${mpState}`;
       if (this.generalMpLabel[s].text !== mpStr) this.generalMpLabel[s].text = mpStr;
       const lvlStr = `Lv.${g.def.level ?? 1}`;
       if (this.generalLevel[s].text !== lvlStr) this.generalLevel[s].text = lvlStr;
     }
 
     const canFire = canFireSpecial(world, 0);
-    setBar(this.specialMeter, world.generals[0].meter / this.data.constants.SPECIAL_METER_MAX, canFire ? 0x00ff66 : 0xffcc00);
+    this.quitBtn?.setDimmed(!!world.result);
+    this.specialBtn.setLabel(canFire ? 'Cast Special' : 'Recharge MP');
     this.specialBtn.setDimmed(!canFire);
     const pulse = canFire ? 0.5 + 0.5 * Math.sin(performance.now() / 200) : 0;
     this.specialBtn.setGlow(pulse);
@@ -478,6 +481,7 @@ export class Hud {
       this.approachButtons[approach].setActive(intents.length > 0 && intents.every((i) => i.approach === approach));
     }
     this.pauseBtn.setActive(world.paused);
+    this.quitBtn?.tick();
     for (const b of [this.pauseBtn, this.speedBtn, this.specialBtn, this.cmdButtons.all, this.cmdButtons.advance, this.cmdButtons.hold, this.cmdButtons.fallBack, ...Object.values(this.approachButtons)]) b.tick();
 
     this.pauseOverlay.visible = world.paused && world.phase !== 'result';

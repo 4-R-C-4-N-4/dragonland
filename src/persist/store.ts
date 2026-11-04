@@ -58,7 +58,7 @@ function freshId(prefix: string): string {
 export function createStore(storage: StorageLike, data: GameData): Store {
   function getRoster(): Troop[] {
     const existing = readJson(storage, ROSTER_KEY, RosterSchema);
-    if (existing && existing.length > 0) return existing;
+    if (existing !== undefined) return existing; // An exhausted roster is valid, not an uninitialized save.
     return resetRoster(1);
   }
 

@@ -78,7 +78,9 @@ describe('general retaliation and return home', () => {
     w.ents.x[imp] = 1000;
     w.ents.target[imp] = -1;
     // Isolate the general AI so the imp does not immediately reacquire the hero.
-    const seconds = data.behaviors.generalAggroMemoryS * 2 + 3;
+    // Pursuit is faster than the return walk; budget a full-field walk home.
+    const speed = data.unitById.get(g.def.unitId)!.moveSpeed * data.behaviors.generalLeashSpeedFrac;
+    const seconds = data.behaviors.generalAggroMemoryS + data.constants.FIELD_W / speed + 1;
     for (let t = 0; t < seconds * data.constants.SIM_HZ; t++) { runGenerals(w); w.tick++; }
     expect(w.ents.alive[imp]).toBe(1);
     expect(g.aggro).toEqual([]);

@@ -19,13 +19,13 @@ import { getGameData } from '../../src/data';
 import { getHudLayout } from '../../src/battle/hudLayout';
 import { createBattle, issueCommand, issueApproach, setPaused, step } from '../../src/sim';
 
-function fixture() {
+function fixture(onQuit?: () => void) {
   const data = getGameData();
   const world = createBattle(data, { seed: 1, sides: [
     { generalId: 'paladin', formationId: 'line', squads: ['mixed', 'guard', 'fierce', 'mixed'].map((disposition, i) => ({ id: `s${i}`, name: `Squad ${i}`, disposition: disposition as 'mixed' | 'guard' | 'fierce', troops: [] })) },
     { generalId: 'dragon', formationId: 'line', squads: [] },
   ] });
-  const cb: HudCallbacks = { onSelectSquad: vi.fn(), onSelectAll: vi.fn(), onCommand: vi.fn(), onApproach: vi.fn(), onSpecial: vi.fn(), onPauseToggle: vi.fn(), onSpeedToggle: vi.fn() };
+  const cb: HudCallbacks = { onQuit, onSelectSquad: vi.fn(), onSelectAll: vi.fn(), onCommand: vi.fn(), onApproach: vi.fn(), onSpecial: vi.fn(), onPauseToggle: vi.fn(), onSpeedToggle: vi.fn() };
   const colors = { team: '#336699', squads: [] };
   const hud = new Hud(data, { player: 'Player', enemy: 'Enemy' }, [colors, colors], cb);
   hud.layout(800, 600);
@@ -44,6 +44,18 @@ function button(root: Container, label: string): Container {
 }
 
 describe('responsive HUD', () => {
+  it('redraws the MP ready color even when the final fill change is tiny', () => {
+    const { hud, world } = fixture();
+    world.phase = 'fight';
+    world.generals[0].mp = 99.9;
+    hud.update(world, 'all');
+    const bars = (hud as unknown as { generalMp: { fg: Graphics }[] }).generalMp;
+    const fill = vi.spyOn(bars[0]!.fg, 'fill');
+    world.generals[0].mp = 100;
+    hud.update(world, 'all');
+    expect(fill).toHaveBeenCalledWith({ color: 0x00ff66 });
+    hud.root.destroy({ children: true });
+  });
   it('ellipsizes very long squad names without compressing names or planning status', () => {
     const { hud, world } = fixture();
     const longName = 'W'.repeat(1000);
@@ -123,7 +135,7 @@ describe('responsive HUD', () => {
     }
   });
   it('uses the pure layout for every real pointer target after resizing', () => {
-    const { hud, world } = fixture();
+    const { hud, world } = fixture(vi.fn());
     for (const [width, height] of [[1280, 800], [1024, 768], [800, 600], [1280, 800]]) {
       hud.layout(width!, height!); hud.update(world, [0]);
       const layout = getHudLayout(width!, height!);
@@ -171,7 +183,7 @@ describe('responsive HUD', () => {
   it('retains mouse callbacks and modifier selection while paused', () => {
     const { hud, world, cb } = fixture();
     setPaused(world, true); hud.update(world, 'all');
-    for (const label of ['All', 'Advance', 'Hold', 'Fall Back', 'Direct', 'Far Flank', 'Near Flank', 'Pause', '1x', 'Special']) button(hud.root, label).emit('pointertap', new FederatedPointerEvent(new EventBoundary()));
+    for (const label of ['All', 'Advance', 'Hold', 'Fall Back', 'Direct', 'Far Flank', 'Near Flank', 'Pause', '1x', 'Recharge MP']) button(hud.root, label).emit('pointertap', new FederatedPointerEvent(new EventBoundary()));
     expect(cb.onSelectAll).toHaveBeenCalledOnce();
     expect(cb.onCommand).toHaveBeenNthCalledWith(3, 'fallBack');
     expect(cb.onApproach).toHaveBeenNthCalledWith(3, 'nearFlank');
@@ -183,4 +195,47 @@ describe('responsive HUD', () => {
     button(hud.root, 'Squad 0').emit('pointertap', event);
     expect(cb.onSelectSquad).toHaveBeenCalledWith(0, true);
   });
+});
+
+it('shows MP recharge and full state for both sides within their HUD cards', () => {
+  const { hud, world } = fixture();
+  world.phase = 'fight';
+  world.generals[0].maxMp = 75;
+  world.generals[0].mp = 37.5;
+  world.generals[1].maxMp = 240;
+  world.generals[1].mp = 240;
+  hud.update(world, []);
+  expect(texts(hud.root)).toContain('MP 37/75 · Recharging');
+  expect(texts(hud.root)).toContain('MP 240/240 · FULL');
+  expect(texts(hud.root)).toContain('Recharge MP');
+  for (const label of textNodes(hud.root).filter((t) => t.text.startsWith('MP '))) {
+    expect(Number(label.style.fontSize)).toBeGreaterThanOrEqual(11);
+    expect(label.x + label.width).toBeLessThanOrEqual(260);
+  }
+  world.generals[0].mp = 75;
+  hud.update(world, []);
+  expect(texts(hud.root)).toContain('Cast Special');
+  world.generals[0].mp = 0;
+  setPaused(world, true);
+  hud.update(world, []);
+  expect(texts(hud.root)).toContain('MP 0/75 · Paused');
+});
+
+it('shows Quit battle only with an opt-in callback and keeps its hit area responsive', () => {
+  const bare = fixture();
+  expect(texts(bare.hud.root)).not.toContain('Quit battle');
+  bare.hud.root.destroy({ children: true });
+  const onQuit = vi.fn();
+  const { hud } = fixture(onQuit);
+  for (const [w, h] of [[800, 600], [1024, 768], [1280, 800]]) {
+    hud.layout(w!, h!);
+    const quit = button(hud.root, 'Quit battle');
+    expect(quit.x).toBe(w! - 218);
+    expect(quit.hitArea!.contains(96, 40)).toBe(true);
+    expect(quit.hitArea!.contains(97, 40)).toBe(false);
+    expect(quit.hitArea!.contains(96, 41)).toBe(false);
+    quit.emit('pointertap', {} as FederatedPointerEvent);
+  }
+  expect(onQuit).toHaveBeenCalledTimes(3);
+  hud.root.destroy({ children: true });
 });

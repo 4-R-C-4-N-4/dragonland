@@ -1,5 +1,7 @@
+import legacyGenerals from '../fixtures/legacy-generals.json';
+import { createBattle } from '../../src/sim';
 import { describe, expect, it } from 'vitest';
-import { getGameData } from '../../src/data';
+import { getGameData, SpecialDefSchema } from '../../src/data';
 import { applyBattleResult, chooseEncounter, clearRun, getRunConfig, loadRun, newRun, RUN_KEY, saveRun, startBattle, type StorageLike } from '../../src/run';
 
 const data = getGameData();
@@ -77,4 +79,45 @@ describe('run storage', () => {
     store.setItem(RUN_KEY, JSON.stringify({ ...rest, version: 1, startClass: 'human' }));
     expect(loadRun(store, data).kind).toBe('corrupt');
   });
+});
+
+it('loads actual legacy v2 frozen general snapshots without recruiting or losing progress', () => {
+  let s = newRun(data, { seed: 4, generalId: 'paladin' });
+  s = chooseEncounter(s, s.offers[0]!.id);
+  s = startBattle(data, s, { formationId: 'line', squads: [{ name: 'A', disposition: 'mixed', troopIds: s.roster.slice(0, 4).map((t) => t.id) }] });
+  const legacy = JSON.parse(JSON.stringify(s));
+  // Use the old content shape in every persisted frozen definition, including offers.
+  const freeze = (side: typeof legacy.battle.setup.sides[number]) => {
+    const old = legacyGenerals.find((g) => g.id === side.generalId)!;
+    side.general = { ...old, hp: old.hp + 123, special: { ...old.special, power: 1.7 } };
+  };
+  legacy.battle.setup.sides.forEach(freeze);
+  freeze(legacy.encounter.side);
+  legacy.offers.forEach((offer: typeof legacy.encounter) => freeze(offer.side));
+  const store = memory();
+  const raw = JSON.stringify(legacy);
+  store.setItem(RUN_KEY, raw);
+  const loaded = loadRun(store, data);
+  expect(loaded.kind).toBe('ok');
+  if (loaded.kind !== 'ok') throw new Error('legacy snapshot rejected');
+  expect(loaded.state).toMatchObject({ version: 2, phase: 'battle', roster: s.roster, hero: s.hero, recruitOffers: s.recruitOffers, battleCounter: s.battleCounter, processedBattleIds: s.processedBattleIds });
+  for (const side of loaded.state.battle!.setup.sides) {
+    const old = legacyGenerals.find((g) => g.id === side.generalId)!;
+    expect(side.general).toMatchObject({ hp: old.hp + 123, special: { rechargeS: old.special.cooldownS, power: 1.7, effects: SpecialDefSchema.parse(old.special).effects } });
+    expect(side.general!.special).not.toHaveProperty('cooldownS');
+    expect(side.general!.special).not.toHaveProperty('mpCost');
+  }
+  const restarted = createBattle(data, loaded.state.battle!.setup);
+  expect(restarted.generals.map((g) => g.mp)).toEqual([0, 0]);
+  expect(restarted.generals[0].def).toEqual(loaded.state.battle!.setup.sides[0].general);
+  for (const encounter of [...loaded.state.offers, loaded.state.encounter!]) {
+    expect(encounter.side.general!.special).toHaveProperty('rechargeS');
+    expect(encounter.side.general!.special).not.toHaveProperty('cooldownS');
+  }
+  expect(store.getItem(RUN_KEY)).toBe(raw);
+  saveRun(store, loaded.state);
+  expect(loadRun(store, data)).toEqual(loaded);
+  legacy.battle.setup.sides[0].general.special.rechargeS = 0;
+  store.setItem(RUN_KEY, JSON.stringify(legacy));
+  expect(loadRun(store, data).kind).toBe('corrupt');
 });

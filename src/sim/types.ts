@@ -70,8 +70,6 @@ export interface GeneralState {
   special: SpecialDef;
   mp: number;
   maxMp: number;
-  meter: number; // 0..SPECIAL_METER_MAX
-  specialCooldown: number; // seconds remaining; MP restored when it reaches 0 (D2)
   startX: number;
   startY: number;
   /** Actual attackers, retained briefly after they stop focusing this general. */

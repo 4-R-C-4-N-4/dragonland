@@ -97,8 +97,10 @@ describe('field-wide specials (D24)', () => {
 
   it('emits one special event carrying the fx id, areas and affected entities', () => {
     const w = arena('dragon');
+    w.generals[0].mp = w.generals[0].maxMp;
     w.events.length = 0;
     doFireSpecial(w, data, 0);
+    expect(w.generals[0].mp).toBe(0);
     const ev = w.events.find((e) => e.type === 'special');
     expect(ev).toMatchObject({ type: 'special', side: 0, specialId: data.generalById.get('dragon')!.special.id, fx: data.generalById.get('dragon')!.special.fx });
     if (ev?.type === 'special') expect(ev.affected.length).toBeGreaterThan(0);

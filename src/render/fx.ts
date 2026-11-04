@@ -151,10 +151,15 @@ export function kindForArea(area: string): FxKind {
 }
 
 /** Explicit maximum extent in battlefield units, independent of source resolution. */
-export function fxSize(kind: FxKind, frameW: number, frameH: number): { width: number; height: number } {
-  const extent = { overlay: 96, wave: 110, strike: 64, aura: 60 }[kind];
+export function fxSize(kind: FxKind, frameW: number, frameH: number, fxId?: string | null): { width: number; height: number } {
+  const extent = kind === 'aura' && fxId === 'guiding-light' ? 90 : { overlay: 96, wave: 110, strike: 64, aura: 60 }[kind];
   const scale = extent / Math.max(1, frameW, frameH);
   return { width: frameW * scale, height: frameH * scale };
+}
+
+/** Give the narrow support beam time to read; does not alter simulation buff duration. */
+export function fxDurationScale(fxId?: string | null): number {
+  return fxId === 'guiding-light' ? 2 : 1;
 }
 
 /** Forward crossing, with starts spread over 0.7 seconds rather than simultaneous stamps. */

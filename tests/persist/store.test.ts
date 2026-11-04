@@ -21,6 +21,14 @@ describe('createStore roster', () => {
     expect(roster.length).toBe(data.constants.ROSTER_SIZE);
   });
 
+  it('preserves a valid empty roster across reads and store recreation', () => {
+    const storage = memoryStorage();
+    storage.setItem('dragonland.v1.roster', '[]');
+    expect(createStore(storage, data).getRoster()).toHaveLength(0);
+    expect(createStore(storage, data).getRoster()).toHaveLength(0);
+    expect(storage.getItem('dragonland.v1.roster')).toBe('[]');
+  });
+
   it('persists the roster across calls', () => {
     const storage = memoryStorage();
     const store = createStore(storage, data);

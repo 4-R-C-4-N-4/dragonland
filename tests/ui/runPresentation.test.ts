@@ -1,12 +1,36 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getGameData } from '../../src/data';
-import { chooseEncounter, loadRun, newRun, saveRun, type BattleSummary } from '../../src/run';
+import { chooseEncounter, loadRun, newRun, saveRun, RUN_KEY, type BattleSummary, type RunPhase } from '../../src/run';
 import { mountRun } from '../../src/ui/run';
-import { campaignHelpHtml, heroChoicesHtml, selectedHeroHtml, resultHtml } from '../../src/ui/run/presentation';
+import { campaignHelpHtml, depletedCompanyHtml, heroChoicesHtml, selectedHeroHtml, resultHtml } from '../../src/ui/run/presentation';
 
 const data = getGameData();
 
 describe('campaign presentation', () => {
+  it.each(['select', 'prepare'] as const)('offers explicit recovery for empty and one-troop companies in %s', (phase) => {
+    const run = newRun(data, { seed: 3, generalId: 'paladin' });
+    for (const count of [0, 1]) {
+      const html = depletedCompanyHtml(data, { ...run, phase, roster: run.roster.slice(0, count) });
+      expect(html).toContain('Company depleted');
+      expect(html).toContain(`At least ${data.constants.MIN_SQUAD} troops are needed to form a squad`);
+      expect(html).toContain('Starting over discards this run');
+      expect(html).toContain('Abandon run and start over');
+      expect(html.match(/id="dl-abandon"/g)).toHaveLength(1);
+    }
+  });
+  it('hides recovery for fieldable rosters and outside select/prepare', () => {
+    const run = newRun(data, { seed: 3, generalId: 'paladin' });
+    const phases: RunPhase[] = ['select', 'prepare', 'rewards', 'battle', 'won', 'lost'];
+    for (const phase of phases) {
+      for (const count of [data.constants.MIN_SQUAD, run.roster.length]) {
+        expect(depletedCompanyHtml(data, { ...run, phase, roster: run.roster.slice(0, count) })).toBe('');
+      }
+      if (phase === 'select' || phase === 'prepare') continue;
+      for (const count of [0, 1]) {
+        expect(depletedCompanyHtml(data, { ...run, phase, roster: run.roster.slice(0, count) })).toBe('');
+      }
+    }
+  });
   it('keeps all fifteen heroes selectable with explicit names and a checked default', () => {
     const html = heroChoicesHtml(data, 'paladin');
     expect(html.match(/data-testid="hero-card"/g)).toHaveLength(15);
@@ -150,7 +174,8 @@ class TestElement {
   addEventListener(event: string, fn: () => void): void { this.listeners.set(event, [...(this.listeners.get(event) ?? []), fn]); }
   dispatch(event: string): void { for (const fn of this.listeners.get(event) ?? []) fn(); }
   setAttribute(key: string, value: string): void { this.attrs[key] = value; }
-  focus(): void { /* Browser checks verify actual focus presentation. */ }
+  focused = false;
+  focus(): void { this.focused = true; /* Browser checks verify actual focus presentation. */ }
   remove(): void { /* No layout tree needed. */ }
 }
 
@@ -170,6 +195,7 @@ it('wires zero/invalid composition to a disabled Fight and restores it after aut
   const inputs = screen.querySelectorAll('[data-count]');
   for (const input of inputs) { input.value = '0'; input.dispatch('input'); }
   expect(fight.disabled).toBe(true);
+  expect(screen.querySelector('#dl-abandon')).toBeNull();
   expect(screen.querySelector('#dl-total')!.textContent).toBe('0');
   expect(screen.querySelector('#dl-benched')!.textContent).toBe('60');
   const first = inputs[0]!;
@@ -212,3 +238,46 @@ it('places Begin above all heroes and starts with the selected hero after a chan
   expect(screen.innerHTML).toContain('Choose your next battle');
   view.destroy();
 });
+
+for (const phase of ['select', 'prepare'] as const) {
+  it.each([0, 1])(`explicitly abandons a depleted ${phase} save with %i troops and waits for Begin`, (count) => {
+    vi.stubGlobal('document', { createElement: () => new TestElement() });
+    const values = new Map<string, string>([['test-origin', 'preserve me']]);
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+      removeItem: (key: string) => { values.delete(key); },
+    };
+    const run = newRun(data, { seed: 3, generalId: 'paladin' });
+    const depleted = { ...run, roster: run.roster.slice(0, count) };
+    saveRun(storage, phase === 'prepare' ? chooseEncounter(depleted, 'enc-0-0') : depleted);
+    const originalSave = values.get(RUN_KEY);
+    expect(loadRun(storage, data).kind).toBe('ok');
+    const root = new TestElement();
+    const view = mountRun(root as unknown as HTMLElement, { data, storage, onSandbox: () => {} });
+    const screen = root.children[0]!;
+    expect(values.get(RUN_KEY)).toBe(originalSave);
+    expect(screen.innerHTML).toContain('Company depleted');
+    expect(screen.innerHTML.indexOf('id="dl-abandon"')).toBeLessThan(screen.innerHTML.indexOf(phase === 'prepare' ? '<h2>Enemy' : '<h2>Choose your next battle'));
+    if (phase === 'prepare') expect(screen.querySelector('#dl-fight')!.disabled).toBe(true);
+    screen.querySelector('#dl-abandon')!.dispatch('click');
+    expect(loadRun(storage, data).kind).toBe('none');
+    expect(values.get('test-origin')).toBe('preserve me');
+    expect(screen.querySelectorAll('input[name=dl-gen]')).toHaveLength(15);
+    expect(screen.querySelector('#dl-new')!.focused).toBe(true);
+    expect(screen.querySelector('#dl-abandon')).toBeNull();
+    // Returning to the picker must not create or persist a replacement army.
+    expect(values.has(RUN_KEY)).toBe(false);
+    screen.querySelector('#dl-new')!.dispatch('click');
+    const fresh = loadRun(storage, data);
+    expect(fresh.kind).toBe('ok');
+    if (fresh.kind === 'ok') {
+      expect(fresh.state.phase).toBe('select');
+      expect(fresh.state.roster).toHaveLength(run.roster.length);
+    }
+    screen.querySelector('[data-enc]')!.dispatch('click');
+    expect(screen.querySelector('#dl-total')!.textContent).toBe(String(run.roster.length));
+    expect(screen.querySelector('#dl-fight')!.disabled).toBe(false);
+    view.destroy();
+  });
+}

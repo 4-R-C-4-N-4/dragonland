@@ -19,7 +19,7 @@ import { groundToScreen } from '../battle/camera';
 import { approachPreview, createProjection, depthScale, projectGround, type FieldProjection } from './projection';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
-import { discoverFx, FxTimeline, fxSize, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, timedWavePoints, type ParsedFx } from './fx';
+import { discoverFx, FxTimeline, fxSize, fxDurationScale, kindForArea, overlayPoints, overlayScatterCount, perEntityPoints, timedWavePoints, type ParsedFx } from './fx';
 import { getDebugState } from '../debug/state';
 import type { FrameObject } from 'pixi.js';
 
@@ -654,16 +654,17 @@ export class Battlefield {
       // Manual frame selection keeps playback on the same paused lifecycle as other FX.
       const sp = new Sprite(frames[0]!);
       sp.anchor.set(0.5, kind === 'overlay' || kind === 'wave' ? 0.8 : 0.5);
-      const size = fxSize(kind, sheet.frameW, sheet.frameH);
+      const size = fxSize(kind, sheet.frameW, sheet.frameH, fxId);
       sp.width = size.width;
       sp.height = size.height;
       sp.scale.set(sp.scale.x * scale, sp.scale.y * scale);
       sp.position.set(x, y);
       this.fx.addChild(sp);
       const durationMs = sheet.frames.reduce((sum, f) => sum + f.durationMs, 0);
-      this.fxTimeline.add(durationMs / 1000, (elapsed) => {
-        if (elapsed * 1000 >= durationMs) { sp.destroy(); return; }
-        let time = elapsed * 1000, index = 0;
+      const durationScale = fxDurationScale(fxId);
+      this.fxTimeline.add(durationMs * durationScale / 1000, (elapsed) => {
+        if (elapsed * 1000 >= durationMs * durationScale) { sp.destroy(); return; }
+        let time = elapsed * 1000 / durationScale, index = 0;
         while (index < frames.length - 1 && time >= sheet.frames[index]!.durationMs) time -= sheet.frames[index++]!.durationMs;
         sp.texture = frames[index]!;
       });

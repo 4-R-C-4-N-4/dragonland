@@ -12,8 +12,6 @@
       "name": "Holy Rally",
       "description": "A pillar of light washes over your whole army: every ally heals and takes less damage for a while.",
       "fx": "holy-rally",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "heal",
@@ -24,7 +22,8 @@
           "durationS": 10,
           "defenseMult": 0.8
         }
-      ]
+      ],
+      "rechargeS": 20
     }
   },
   {
@@ -40,8 +39,6 @@
       "name": "Arrow Storm",
       "description": "A sky-darkening volley rains on 30 enemy troops anywhere on the field.",
       "fx": "arrow-storm",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
@@ -49,7 +46,8 @@
           "amount": 40,
           "targets": 30
         }
-      ]
+      ],
+      "rechargeS": 20
     }
   },
   {
@@ -63,23 +61,22 @@
     "special": {
       "id": "shadow-mark",
       "name": "Shadow Mark",
-      "description": "Shadows strike the enemy general directly and cut down a dozen of their troops.",
+      "description": "Shadows strike the enemy general directly and cut through sixteen of their troops.",
       "fx": "shadow-mark",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "general",
-          "amount": 160
+          "amount": 300
         },
         {
           "type": "damage",
           "area": "random",
           "amount": 35,
-          "targets": 12
+          "targets": 16
         }
-      ]
+      ],
+      "rechargeS": 19
     }
   },
   {
@@ -95,17 +92,16 @@
       "name": "Dragon Breath",
       "description": "A river of fire roars across the whole battlefield toward the enemy general, burning everything in its path.",
       "fx": "dragon-breath",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "wave",
-          "amount": 50,
-          "width": 90,
+          "amount": 60,
+          "width": 110,
           "includeGeneral": true
         }
-      ]
+      ],
+      "rechargeS": 18
     }
   },
   {
@@ -121,8 +117,6 @@
       "name": "Tempest Dive",
       "description": "A storm of talons strikes 25 enemies and leaves the whole enemy army slowed.",
       "fx": "tempest-dive",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
@@ -135,7 +129,8 @@
           "durationS": 6,
           "speedMult": 0.7
         }
-      ]
+      ],
+      "rechargeS": 18
     }
   },
   {
@@ -151,16 +146,15 @@
       "name": "Pack Howl",
       "description": "A howl drives your entire army into a frenzy: faster and harder-hitting.",
       "fx": "pack-howl",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "buff",
-          "durationS": 12,
-          "damageMult": 1.3,
+          "durationS": 10,
+          "damageMult": 1.35,
           "speedMult": 1.25
         }
-      ]
+      ],
+      "rechargeS": 19
     }
   },
   {
@@ -176,16 +170,15 @@
       "name": "Meteor Fall",
       "description": "Meteors fall across the entire field, striking every enemy troop and their general.",
       "fx": "meteor-fall",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "field",
-          "amount": 25,
+          "amount": 30,
           "includeGeneral": true
         }
-      ]
+      ],
+      "rechargeS": 22
     }
   },
   {
@@ -201,17 +194,16 @@
       "name": "Hellfire Wave",
       "description": "A wall of hellfire surges across the battlefield and through the enemy general.",
       "fx": "hellfire-wave",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "wave",
-          "amount": 55,
-          "width": 110,
+          "amount": 45,
+          "width": 140,
           "includeGeneral": true
         }
-      ]
+      ],
+      "rechargeS": 18
     }
   },
   {
@@ -227,8 +219,6 @@
       "name": "Sanctuary",
       "description": "A holy seal covers the whole army: allies heal and are shielded from harm.",
       "fx": "sanctuary",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "heal",
@@ -237,9 +227,10 @@
         {
           "type": "buff",
           "durationS": 10,
-          "defenseMult": 0.75
+          "defenseMult": 0.7
         }
-      ]
+      ],
+      "rechargeS": 22
     }
   },
   {
@@ -255,8 +246,6 @@
       "name": "Inferno",
       "description": "The whole field ignites: every enemy is scorched and keeps burning.",
       "fx": "inferno",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
@@ -269,7 +258,8 @@
           "durationS": 6,
           "dotPerS": 3
         }
-      ]
+      ],
+      "rechargeS": 22
     }
   },
   {
@@ -285,19 +275,18 @@
       "name": "Guiding Light",
       "description": "A gentle light restores your army and quickens its steps.",
       "fx": "guiding-light",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "heal",
-          "fraction": 0.25
+          "fraction": 0.35
         },
         {
           "type": "buff",
           "durationS": 10,
           "speedMult": 1.3
         }
-      ]
+      ],
+      "rechargeS": 16
     }
   },
   {
@@ -313,17 +302,16 @@
       "name": "Judgement",
       "description": "A sweeping column of holy fire crosses the field and strikes the enemy general.",
       "fx": "judgement",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "wave",
-          "amount": 60,
-          "width": 70,
+          "amount": 85,
+          "width": 90,
           "includeGeneral": true
         }
-      ]
+      ],
+      "rechargeS": 18
     }
   },
   {
@@ -339,16 +327,15 @@
       "name": "Plague Cloud",
       "description": "A plague settles over the enemy army: they rot over time and strike weakly.",
       "fx": "plague-cloud",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "debuff",
-          "durationS": 10,
+          "durationS": 8,
           "dotPerS": 4,
           "damageMult": 0.85
         }
-      ]
+      ],
+      "rechargeS": 20
     }
   },
   {
@@ -364,20 +351,19 @@
       "name": "Earthquake",
       "description": "The ground splits under the whole enemy army, wounding and staggering every troop.",
       "fx": "earthquake",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "damage",
           "area": "field",
-          "amount": 20
+          "amount": 25
         },
         {
           "type": "debuff",
           "durationS": 6,
           "speedMult": 0.6
         }
-      ]
+      ],
+      "rechargeS": 20
     }
   },
   {
@@ -393,17 +379,16 @@
       "name": "Overclock",
       "description": "Your army surges with power: faster, stronger and sturdier for a time.",
       "fx": "overclock",
-      "mpCost": 40,
-      "cooldownS": 20,
       "effects": [
         {
           "type": "buff",
-          "durationS": 12,
+          "durationS": 10,
           "damageMult": 1.25,
           "speedMult": 1.2,
           "defenseMult": 0.85
         }
-      ]
+      ],
+      "rechargeS": 20
     }
   }
 ]

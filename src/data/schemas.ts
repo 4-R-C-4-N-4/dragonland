@@ -28,9 +28,6 @@ export const ConstantsSchema = z.object({
   LINE_TAKE_MOD: z.number(),
   MIN_DAMAGE_MULT: z.number().positive(),
   SKIRMISH_TIME_S: z.number().positive(),
-  SPECIAL_CHARGE_PER_S: z.number().nonnegative(),
-  SPECIAL_CHARGE_PER_HIT: z.number().nonnegative(),
-  SPECIAL_METER_MAX: z.number().positive(),
   STAGE2_STAT_MULT: z.number().positive(),
   /** Stage-3 species fielded as ordinary troops (MVP2). Generals use their own GeneralDef. */
   STAGE3_STAT_MULT: z.number().positive(),
@@ -117,19 +114,27 @@ export type SpecialEffect = z.infer<typeof SpecialEffectSchema>;
 export type SpecialEffectInput = z.input<typeof SpecialEffectSchema>;
 
 /** Dragon Force-style specials: field-wide, not local (D24). */
-export const SpecialDefSchema = z.object({
+const CurrentSpecialDefSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
   /** Effect art id: assets/fx/<fx>.{png,json}. */
   fx: z.string().regex(/^[a-z-]+$/),
-  mpCost: z.number().nonnegative(),
-  /** MP spent on a special is restored in full once this cooldown elapses (DECISIONS D2). */
-  cooldownS: z.number().nonnegative(),
+  /** Seconds to recharge from empty to full MP during combat. */
+  rechargeS: z.number().finite().positive(),
   /** Scales damage, heal and buff/debuff strength (general mastery upgrades). */
   power: z.number().positive().default(1),
   effects: z.array(SpecialEffectSchema).min(1),
 });
+// Legacy content and frozen v2 campaign snapshots share this normalization.
+// An explicitly supplied rechargeS must validate on its own, even if cooldownS exists.
+export const SpecialDefSchema = z.preprocess((input) => {
+  if (input && typeof input === 'object' && !Array.isArray(input) && !Object.hasOwn(input, 'rechargeS')) {
+    const legacy = input as Record<string, unknown>;
+    return { ...legacy, rechargeS: legacy.cooldownS };
+  }
+  return input;
+}, CurrentSpecialDefSchema);
 export type SpecialDef = z.infer<typeof SpecialDefSchema>;
 
 export const GeneralDefSchema = z.object({
@@ -224,7 +229,9 @@ export const DispositionBehaviorSchema = z.object({
   generalAggroMemoryS: z.number().positive(),
   separationWeight: z.number().nonnegative(),
   separationRadius: z.number().positive(),
+  /** Return-home speed only; pursuit must close on unmodified kiting attackers. */
   generalLeashSpeedFrac: z.number().positive(),
+  generalPursuitSpeedMult: z.number().gt(1),
   /** Hard body-overlap resolution passes per tick. */
   overlapIterations: z.number().int().nonnegative(),
 });

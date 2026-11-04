@@ -63,9 +63,6 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
   recordGeneralAggro(world, attacker, target);
   emitHit(world, attacker, target, dmg, aProfile.attackRange > data.constants.RANGED_THRESHOLD);
   ents.cooldown[attacker] = aProfile.attackCooldownS;
-  // Own troops' hits (and the general's own hits) charge that side's general meter. D2.
-  const g = world.generals[ents.side[attacker] as Side];
-  g.meter = Math.min(data.constants.SPECIAL_METER_MAX, g.meter + data.constants.SPECIAL_CHARGE_PER_HIT);
   if (ents.hp[target]! <= 0 && ents.alive[target] === 1) {
     ents.alive[target] = 0;
     ents.target[target] = -1;
@@ -141,6 +138,19 @@ function squadAnchor(world: World, squad: SquadState, general: GeneralState): { 
   }
 }
 
+/** Actual troop movement cap, shared with general pursuit so kiting uses the same rules. */
+function troopMoveSpeed(world: World, internal: WorldInternal, e: number): number {
+  const ents = world.ents;
+  const squad = world.squads[ents.squad[e]!]!;
+  const profile = profileFor(internal, e, ents);
+  return sideMods(world, ents.side[e] as Side).speedMult * (
+    squad.disposition === 'mixed' && internal.data.behaviors.mixed.slowestSpeed
+      ? internal.squadMinSpeed[squad.index]!
+      : squad.disposition === 'fierce'
+        ? profile.moveSpeed * internal.data.behaviors.fierce.speedMult
+        : profile.moveSpeed);
+}
+
 function moveTroop(
   world: World,
   data: GameData,
@@ -156,12 +166,7 @@ function moveTroop(
   const profile = profileFor(internal, e, ents);
   const target = ents.target[e]!;
   const ranged = profile.attackRange > data.constants.RANGED_THRESHOLD;
-  const speed = sideMods(world, side).speedMult * (
-    squad.disposition === 'mixed' && data.behaviors.mixed.slowestSpeed
-      ? internal.squadMinSpeed[squad.index]!
-      : squad.disposition === 'fierce'
-        ? profile.moveSpeed * data.behaviors.fierce.speedMult
-        : profile.moveSpeed);
+  const speed = troopMoveSpeed(world, internal, e);
 
   let vx = 0;
   let vy = 0;
@@ -280,12 +285,28 @@ function runGeneral(world: World, data: GameData, internal: WorldInternal, side:
   }
   const dt = 1 / data.constants.SIM_HZ;
   const remaining = Math.max(0, dist(ents.x[e]!, ents.y[e]!, toX, toY) - stopAt);
-  const speed = Math.min(profile.moveSpeed * data.behaviors.generalLeashSpeedFrac * sideMods(world, side).speedMult, remaining / dt);
+  const speedMult = sideMods(world, side).speedMult;
+  let maxSpeed = profile.moveSpeed * data.behaviors.generalLeashSpeedFrac * speedMult;
+  if (target >= 0) {
+    // A returning commander may walk; an engaged commander must not spend the
+    // whole battle trailing a full-speed kiter. Own slows/haste still apply.
+    const targetSpeed = ents.isGeneral[target] === 1
+      ? profileFor(internal, target, ents).moveSpeed * sideMods(world, enemySide(side)).speedMult
+      : troopMoveSpeed(world, internal, target);
+    maxSpeed = Math.max(profile.moveSpeed, targetSpeed) * data.behaviors.generalPursuitSpeedMult * speedMult;
+  }
+  const speed = Math.min(maxSpeed, remaining / dt);
   const [vx, vy] = normalizeTo(toX - ents.x[e]!, toY - ents.y[e]!, speed);
   ents.vx[e] = vx;
   ents.vy[e] = vy;
   ents.x[e] = Math.min(data.constants.FIELD_W, Math.max(0, ents.x[e]! + vx * dt));
   ents.y[e] = Math.min(data.constants.FIELD_H, Math.max(0, ents.y[e]! + vy * dt));
+  // Troops have already moved this tick. Strike when this movement reaches
+  // range, rather than waiting for a kiter to step away again next tick.
+  if (target >= 0 && ents.alive[target] === 1 && ents.cooldown[e]! <= 0
+    && dist(ents.x[e]!, ents.y[e]!, ents.x[target]!, ents.y[target]!) <= profile.attackRange + 1e-9) {
+    applyAttack(world, data, internal, e, target);
+  }
 }
 
 function rebuildGrid(world: World, internal: WorldInternal): void {

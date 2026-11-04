@@ -280,6 +280,30 @@ export function startBattle(data: GameData, state: RunState, army: PlayerArmy): 
   return { ...state, phase: 'battle', battle: { id, setup: { seed, sides: [player, enemy] } }, battleCounter: state.battleCounter + 1 };
 }
 
+/** Forfeit an active battle using only casualties already suffered; never grants battle rewards. */
+export function forfeitBattle(state: RunState, battleId: string, deadIds: readonly string[]): RunState {
+  if (state.processedBattleIds.includes(battleId)) return state;
+  requirePhase(state, 'battle');
+  if (!state.battle || state.battle.id !== battleId) throw new Error(`battle ${battleId} is not the active battle`);
+  const deployed = new Set(state.battle.setup.sides[0].squads.flatMap(q => q.troops.map(t => t.troopId)));
+  const actualDead = new Set(deadIds);
+  const dead = state.roster.filter(t => deployed.has(t.id) && actualDead.has(t.id));
+  const removed = new Set(dead.map(t => t.id));
+  const named = ({ id, name, unitId }: RunState['roster'][number]) => ({ id, name, unitId });
+  return {
+    ...state, phase: 'lost', battle: null, encounter: null, recruitOffers: [],
+    roster: state.roster.filter(t => !removed.has(t.id)),
+    processedBattleIds: [...state.processedBattleIds, battleId],
+    lastSummary: {
+      battleId, won: false, forfeited: true, boss: state.encounter?.boss ?? false,
+      dead: dead.map(named), recovered: [],
+      survived: state.roster.filter(t => deployed.has(t.id) && !removed.has(t.id)).map(named),
+      benched: state.roster.filter(t => !deployed.has(t.id)).length,
+      xpAwarded: 0, levelUps: 0, evolutions: [], heroLevelFrom: state.hero.level, heroLevelTo: state.hero.level,
+    },
+  };
+}
+
 /** Apply a finished battle exactly once (repeat calls with the same id return the state unchanged). */
 export function applyBattleResult(data: GameData, state: RunState, battleId: string, outcome: RunBattleOutcome, cfg: RunConfig = getRunConfig()): RunState {
   if (state.processedBattleIds.includes(battleId)) return state;

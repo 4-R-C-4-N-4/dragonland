@@ -27,3 +27,12 @@ describe('HUD screen layout', () => {
     expect(getHudLayout(1280, 800).compact).toBe(false);
   });
 });
+
+it('reserves a visible 96px Quit battle control in the bottom row', () => {
+  for (const [w, h] of [[800, 600], [1024, 768], [1280, 800]]) {
+    const { buttons: b } = getHudLayout(w!, h!);
+    expect(b.quit).toMatchObject({ x: w! - 218, width: 96, y: b.special.y });
+    expect(intersects(b.quit, b.nearFlank)).toBe(false);
+    expect(intersects(b.quit, b.special)).toBe(false);
+  }
+});

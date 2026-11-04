@@ -40,6 +40,7 @@ export type FlowEvent =
   | { type: 'chooseFormation'; formationId: string }
   | { type: 'fight'; setup: { seed: number; sides: [SideSetup, SideSetup] } }
   | { type: 'battleFinished'; world: World }
+  | { type: 'quitBattle' }
   | { type: 'backToBuilder' }
   | { type: 'backToBuilderFromResponse' };
 
@@ -61,6 +62,10 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
     case 'fight':
       if (state.screen !== 'playerResponse') throw new Error(`fight invalid in screen ${state.screen}`);
       return { ...state, screen: 'battle', battleSetup: event.setup, battleCount: state.battleCount + 1 };
+
+    case 'quitBattle':
+      if (state.screen !== 'battle') throw new Error(`quitBattle invalid in screen ${state.screen}`);
+      return { ...state, screen: 'builder', battleSetup: null, enemyCommit: null, result: null };
 
     case 'battleFinished':
       if (state.screen !== 'battle') throw new Error(`battleFinished invalid in screen ${state.screen}`);

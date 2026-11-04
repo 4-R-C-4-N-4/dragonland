@@ -1,5 +1,7 @@
 {
-  "scope": "parent-verified corrected perspective candidate, integration/re-review still pending",
+  "scope": "parent-verified perspective, corrected spec/quality re-reviews approved and integrated",
+  "integrationCommit": "3ccd37985fa32b7c7435948c919d55080fbd4747",
+  "codeReviews": { "spec": "PASS", "quality": "APPROVED" },
   "candidateGate": {
     "tests": 344,
     "build": "pass"

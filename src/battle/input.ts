@@ -7,6 +7,8 @@ import { updateDebugState, getDebugState } from '../debug/state';
 
 export interface InputCallbacks {
   onSpeedToggle(): void;
+  onQuit?(): void;
+  isBlocked?(): boolean;
 }
 
 /** Bindings: Space=pause, 1-4=select squad, A=select all, Q/W/E=Advance/Hold/FallBack,
@@ -36,7 +38,15 @@ export function attachInput(target: Document | HTMLElement, world: World, select
   };
 
   const onKeyDown = (e: KeyboardEvent): void => {
+    // Leave Escape's native dialog cancellation and focus navigation to the modal.
+    if (cb.isBlocked?.()) {
+      e.stopPropagation();
+      return;
+    }
     switch (e.key) {
+      case 'Escape':
+        if (cb.onQuit) { e.preventDefault(); cb.onQuit(); }
+        break;
       case ' ':
         e.preventDefault();
         setPaused(world, !world.paused);
@@ -80,6 +90,9 @@ export function attachInput(target: Document | HTMLElement, world: World, select
         fireSpecial(world, 0);
         break;
       case '`':
+        // One owner per press: the application-level listener would otherwise
+        // receive the bubbling event and toggle the overlay straight back.
+        e.stopPropagation();
         updateDebugState({ overlay: !getDebugState().overlay });
         break;
       case 'f':

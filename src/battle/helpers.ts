@@ -1,3 +1,5 @@
+import type { World } from '../sim';
+
 // Pure helpers used by the renderer/HUD — kept side-effect free for unit tests.
 
 /** Linear interpolation between a previous and current value by alpha in [0,1]. */
@@ -72,4 +74,14 @@ export function stepAnim(t: AnimTrack, i: AnimStepInput): { track: AnimTrack; re
   const walking = t.anim === 'walk' ? i.speedFrac > WALK_OFF : i.speedFrac > WALK_ON;
   const anim: AnimState = walking ? 'walk' : 'idle';
   return { track: { anim, lockMs: 0 }, restart: anim !== t.anim, rate: rate(anim) };
+}
+
+/** Actual deployed player casualties at the moment of quitting, independent of a BattleResult. */
+export function playerDeadIds(world: World): string[] {
+  const ids: string[] = [];
+  const e = world.ents;
+  for (let i = 0; i < e.count; i++) {
+    if (e.side[i] === 0 && !e.isGeneral[i] && !e.alive[i] && e.troopId[i]) ids.push(e.troopId[i]!);
+  }
+  return ids;
 }

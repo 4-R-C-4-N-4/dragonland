@@ -48,6 +48,8 @@ export const RecruitOfferSchema = z.object({
 export const BattleSummarySchema = z.object({
   battleId: z.string(),
   won: z.boolean(),
+  /** Optional for older v2 summaries. A forfeiture does not imply general death. */
+  forfeited: z.boolean().optional(),
   boss: z.boolean(),
   /** Actual deployed survivors, excluding recovered wounded and benched troops. Absent in older v2 summaries. */
   survived: z.array(z.object({ id: z.string(), name: z.string(), unitId: z.string() })).optional(),

@@ -27,5 +27,6 @@
   "separationWeight": 36,
   "separationRadius": 16,
   "generalLeashSpeedFrac": 0.6,
+  "generalPursuitSpeedMult": 1.25,
   "overlapIterations": 3
 }

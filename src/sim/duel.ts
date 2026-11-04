@@ -52,7 +52,7 @@ function exchangeBlow(world: World, data: GameData, internal: WorldInternal): vo
 
   for (const side of [0, 1] as const) {
     const g = world.generals[side];
-    if (canFireSpecialReal(data, g)) doFireSpecial(world, data, side);
+    if (canFireSpecialReal(g)) doFireSpecial(world, data, side);
   }
 
   const dead0 = world.ents.hp[g0.entity]! <= 0;

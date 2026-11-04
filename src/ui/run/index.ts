@@ -6,14 +6,15 @@ import './run.css';
 import type { ClassId, Disposition, GameData, GeneralId } from '../../data';
 import type { World } from '../../sim';
 import type { StartBattleView } from '../../battle/types';
+import { playerDeadIds } from '../../battle/helpers';
 import {
-  applyBattleResult, chooseEncounter, chooseHeroUpgrade, chooseRecruitOffer, clearRun, getRunConfig, loadRun, newRun,
+  applyBattleResult, forfeitBattle, chooseEncounter, chooseHeroUpgrade, chooseRecruitOffer, clearRun, getRunConfig, loadRun, newRun,
   saveRun, startBattle, type Encounter, type RunState, type StorageLike,
 } from '../../run';
 import { autoPlan, classEdge, classRelation, planIssues, planToArmy, speciesGroups, type ArmyPlan } from './logic';
 import { runHeadlessBattle } from '../flow/headlessBattle';
 import { discoverSheets } from '../../render/spriteSheets';
-import { campaignHelpHtml, esc, heroChoicesHtml, resultHtml, selectedHeroHtml } from './presentation';
+import { campaignHelpHtml, depletedCompanyHtml, esc, heroChoicesHtml, resultHtml, selectedHeroHtml } from './presentation';
 
 export interface MountRunOptions {
   data: GameData;
@@ -46,8 +47,8 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
 
   /** Persist then render: every transition is one atomic storage write. */
   function commit(next: RunState): void {
-    state = next;
     saveRun(storage, next);
+    state = next;
     render();
     const heading = screen.querySelector<HTMLElement>('h1');
     heading?.setAttribute('tabindex', '-1');
@@ -92,10 +93,18 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
     return `<a href="#" class="dl-mode-link" id="dl-sandbox">Sandbox mode</a>
       <h1 class="dl-title">Battle ${Math.min(s.depth + 1, cfg.battles)} of ${cfg.battles}</h1>
       <div class="dl-run-meta">${esc(g.name)} · Lv ${s.hero.level} (${s.hero.xp} XP) · ${s.roster.length} troops in your company roster</div>
-      <div class="dl-run-meta dl-dim">Unlocked classes: ${unlocked}</div>`;
+      <div class="dl-run-meta dl-dim">Unlocked classes: ${unlocked}</div>
+      ${depletedCompanyHtml(data, s)}`;
   }
 
   function wireHeader(): void {
+    screen.querySelector('#dl-abandon')?.addEventListener('click', () => {
+      clearRun(storage);
+      state = null;
+      plan = null;
+      render();
+      screen.querySelector<HTMLButtonElement>('#dl-new')?.focus();
+    });
     screen.querySelector('#dl-sandbox')?.addEventListener('click', (e) => {
       e.preventDefault();
       opts.onSandbox();
@@ -297,22 +306,36 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
   function renderBattle(s: RunState): void {
     const battle = s.battle!;
     screen.style.display = 'none';
-    battleRoot = document.createElement('div');
-    battleRoot.className = 'dl-battle-root';
-    root.appendChild(battleRoot);
+    const container = document.createElement('div');
+    battleRoot = container;
+    container.className = 'dl-battle-root';
+    root.appendChild(container);
+    const isActive = () => !destroyed && battleRoot === container && state?.phase === 'battle' && state.battle?.id === battle.id;
     const finish = (world: World) => {
-      if (destroyed || !world.result || state?.battle?.id !== battle.id) return;
+      if (!isActive() || !world.result) return;
       plan = null;
-      commit(applyBattleResult(data, state, battle.id, world.result));
+      commit(applyBattleResult(data, state!, battle.id, world.result));
+    };
+    const quit = (world: World) => {
+      if (!isActive() || world.result) return;
+      const next = forfeitBattle(state!, battle.id, playerDeadIds(world));
+      commit(next);
+      plan = null;
     };
     const labels = { player: data.generalById.get(s.hero.generalId)!.name, enemy: s.encounter!.name };
     void (async () => {
       try {
         const mod: { startBattleView: StartBattleView } = await import('../../battle/view');
-        const view = await mod.startBattleView(battleRoot!, { data, setup: battle.setup, labels, onFinished: finish });
-        if (destroyed || !battleRoot) view.destroy();
+        if (!isActive()) return;
+        const view = await mod.startBattleView(container, {
+          data, setup: battle.setup, labels, onFinished: finish, onQuit: quit,
+          quitMessage: 'Quitting forfeits this campaign run. Troops already fallen stay lost. No rewards will be earned.',
+          quitConfirmLabel: 'Forfeit run',
+        });
+        if (!isActive()) view.destroy();
         else battleView = view;
       } catch (err) {
+        if (!isActive()) return;
         console.error('Battle view failed to start; resolving headlessly.', err);
         finish(runHeadlessBattle(data, battle.setup));
       }
@@ -346,7 +369,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
   function renderEnd(s: RunState): void {
     const won = s.phase === 'won';
     screen.innerHTML = `${header(s)}
-      <h2>${won ? 'The campaign is won.' : 'Your general has fallen. The run is over.'}</h2>
+      <h2>${won ? 'The campaign is won.' : s.lastSummary?.forfeited ? 'You forfeited the run.' : 'Your general has fallen. The run is over.'}</h2>
       ${resultHtml(data, s)}
       <div class="dl-panel"><p>Company roster retained: ${s.roster.length} troops.</p>
         <button class="dl-primary" id="dl-again">New run</button></div>`;
@@ -364,7 +387,9 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
     destroy() {
       destroyed = true;
       battleView?.destroy();
+      battleView = null;
       battleRoot?.remove();
+      battleRoot = null;
       screen.remove();
     },
   };

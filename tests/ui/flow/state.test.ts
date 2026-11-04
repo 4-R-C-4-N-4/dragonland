@@ -66,3 +66,10 @@ describe('nextBattleSeed', () => {
     expect(nextBattleSeed(5)).toBe(6);
   });
 });
+
+it('quits only an active battle explicitly, clearing battle state without a fabricated result', () => {
+  const active: FlowState = { ...initialFlowState(4, 5), screen: 'battle', playerLoadout: loadout(), battleSetup: { seed: 5, sides: [sideSetup(), sideSetup()] } };
+  const next = flowReducer(active, { type: 'quitBattle' });
+  expect(next).toMatchObject({ screen: 'builder', battleSetup: null, result: null, enemyCommit: null, playerLoadout: active.playerLoadout, battleCount: 4 });
+  expect(() => flowReducer(next, { type: 'quitBattle' })).toThrow();
+});

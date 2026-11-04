@@ -8,7 +8,8 @@ import type { Store } from '../../persist/store';
 import type { Loadout } from '../../data/schemas';
 import type { World } from '../../sim';
 import { commitEnemy, type CommitResult } from '../../ai/commit';
-import type { StartBattleView } from '../../battle/types';
+import type { BattleView, StartBattleView } from '../../battle/types';
+import { playerDeadIds } from '../../battle/helpers';
 import { dataForBattle } from '../debug';
 import { getBattleCounter, bumpBattleCounter } from './battleCounter';
 import { flowReducer, initialFlowState, type FlowState } from './state';
@@ -33,6 +34,7 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
   let state: FlowState = initialFlowState(getBattleCounter(storage), getBattleCounter(storage));
   let builderHandle: { destroy(): void } | null = null;
   let battleContainer: HTMLElement | null = null;
+  let battleView: BattleView | null = null;
   let destroyed = false;
   const appliedResults = new WeakSet<World>();
 
@@ -50,6 +52,8 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
     if (destroyed) return;
     builderHandle?.destroy();
     builderHandle = null;
+    battleView?.destroy();
+    battleView = null;
     if (battleContainer) {
       battleContainer.remove();
       battleContainer = null;
@@ -239,27 +243,49 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
       return;
     }
     screenEl.style.display = 'none';
-    battleContainer = document.createElement('div');
-    battleContainer.className = 'dl-battle-root';
-    root.appendChild(battleContainer);
+    const container = document.createElement('div');
+    battleContainer = container;
+    container.className = 'dl-battle-root';
+    root.appendChild(container);
+    const battleId = state.battleCount;
+    const isActive = () => !destroyed && battleContainer === container && state.screen === 'battle' && state.battleCount === battleId;
 
     const battleData = dataForBattle(data);
     const labels = { player: loadout.name, enemy: commit.loadout.name };
 
     function finish(world: World): void {
-      if (destroyed) return;
+      if (!isActive() || !world.result) return;
       screenEl.style.display = 'block';
       dispatch({ type: 'battleFinished', world });
+    }
+
+    let quitCasualtiesApplied = false;
+    function quit(world: World): void {
+      if (!isActive() || world.result) return;
+      if (!quitCasualtiesApplied) {
+        store.applyBattleResult(playerDeadIds(world));
+        quitCasualtiesApplied = true;
+      }
+      const { loadout: sanitized } = sanitizeLoadout(loadout!, store.getRoster());
+      store.saveLoadout(sanitized);
+      state = { ...state, playerLoadout: sanitized };
+      dispatch({ type: 'quitBattle' });
     }
 
     void (async () => {
       try {
         // Lazy-loaded so Pixi only downloads when a battle starts.
         const mod: { startBattleView: StartBattleView } = await import('../../battle/view');
-        const view = await mod.startBattleView(battleContainer!, { data: battleData, setup, labels, onFinished: finish });
-        // Keep a destroy hook reachable in case the flow is torn down mid-battle.
-        (battleContainer as HTMLElement & { __view?: { destroy(): void } }).__view = view;
+        if (!isActive()) return;
+        const view = await mod.startBattleView(container, {
+          data: battleData, setup, labels, onFinished: finish, onQuit: quit,
+          quitMessage: 'Return to the builder? Troops already fallen stay lost. No rewards will be earned.',
+          quitConfirmLabel: 'Return to builder',
+        });
+        if (!isActive()) view.destroy();
+        else battleView = view;
       } catch (err) {
+        if (!isActive()) return;
         // The battle view failed to start (e.g. no WebGL). Resolve the battle headlessly so the
         // player's progress is not lost, but make the failure loud.
         console.error('Battle view failed to start; resolving headlessly.', err);
@@ -342,8 +368,11 @@ export function mountFlow(root: HTMLElement, opts: MountFlowOptions): MountedFlo
     destroy() {
       destroyed = true;
       builderHandle?.destroy();
+      battleView?.destroy();
+      battleView = null;
       screenEl.remove();
       battleContainer?.remove();
+      battleContainer = null;
     },
   };
 }

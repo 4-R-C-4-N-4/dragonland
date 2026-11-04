@@ -6,7 +6,7 @@ const unit = (id: string, stage: 1|2|3, evolvesTo?: string): UnitDef => ({ id, n
 const chain = { dog: unit('dog', 1, 'wolf'), wolf: unit('wolf', 2, 'warg'), warg: unit('warg', 3) };
 const troop: ProgressTroop = { id: 'a', name: 'Veteran', unitId: 'dog', xp: 0, level: 1 };
 const hero: HeroProgress = { generalId: 'paladin', xp: 0, level: 1, upgrades: { vitality: 0, might: 0, mastery: 0 }, claimedMilestones: [] };
-const base: GeneralDef = { id: 'paladin', unitId: 'paladin', name: 'Paladin', hp: 1500, attack: 3, mp: 100, level: 10, special: { id: 'rally', name: 'Rally', description: 'heal all', fx: 'holy-rally', mpCost: 40, cooldownS: 20, power: 1, effects: [{ type: 'heal', fraction: 0.3 }] } };
+const base: GeneralDef = { id: 'paladin', unitId: 'paladin', name: 'Paladin', hp: 1500, attack: 3, mp: 100, level: 10, special: { id: 'rally', name: 'Rally', description: 'heal all', fx: 'holy-rally', rechargeS: 20, power: 1, effects: [{ type: 'heal', fraction: 0.3 }] } };
 
 describe('pure progression', () => {
   it('validates JSON defaults and returns isolated config', () => {
@@ -68,7 +68,7 @@ describe('pure progression', () => {
     expect(result.hp).toBeCloseTo(1500 * 1.33 * 1.1 ** 2);
     expect(result.attack).toBeCloseTo(3 * 1.33 * 1.1);
     expect(result.special.power).toBeCloseTo(1.1 ** 2);
-    expect(result.mp).toBe(100); expect(result.special.cooldownS).toBe(20); expect(result.level).toBe(12);
+    expect(result.mp).toBe(100); expect(result.special.rechargeS).toBe(20); expect(result.level).toBe(12);
     expect(hero.xp).toBe(0); expect(grown.upgrades.vitality).toBe(0); expect(grown.claimedMilestones).toEqual([]);
     result.special.power = 0; expect(base.special.power).toBe(1);
   });

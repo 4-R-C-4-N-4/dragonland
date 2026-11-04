@@ -1,6 +1,6 @@
 // Fixed-step entry point (implementation.md §5 step.ts, §6).
 import { retargetAndMoveTroops, runGenerals, settleBodies } from './behavior';
-import { canFireSpecialReal, chargeMetersByTime, doFireSpecial, tickActiveEffects, tickSpecialCooldowns } from './specials';
+import { canFireSpecial, doFireSpecial, tickActiveEffects, rechargeMp } from './specials';
 import { checkFightEnd } from './skirmish';
 import { runDuelTick } from './duel';
 import type { Approach, Command } from '../data/schemas';
@@ -16,8 +16,7 @@ function applyPendingCommands(world: World): void {
     world.commandLog.push(rec);
     if (p.command === 'special') {
       const data = internal.data;
-      const g = world.generals[p.side];
-      if (canFireSpecialReal(data, g)) doFireSpecial(world, data, p.side);
+      if (canFireSpecial(world, p.side)) doFireSpecial(world, data, p.side);
       continue;
     }
     for (const squad of world.squads) {
@@ -65,13 +64,11 @@ export function step(world: World): void {
     retargetAndMoveTroops(world, dt);
     runGenerals(world);
     tickActiveEffects(world, dt);
-    chargeMetersByTime(world, dt);
-    tickSpecialCooldowns(world, dt);
+    rechargeMp(world, dt);
     world.fightTimeS += dt;
     checkFightEnd(world);
   } else if (world.phase === 'duel') {
-    chargeMetersByTime(world, dt);
-    tickSpecialCooldowns(world, dt);
+    rechargeMp(world, dt);
     runDuelTick(world, dt);
   }
 
@@ -108,7 +105,7 @@ export function issueApproach(world: World, side: Side, squadId: string | 'all',
 
 export function fireSpecial(world: World, side: Side): boolean {
   const internal = internalOf(world) as WorldInternal;
-  const can = canFireSpecialReal(internal.data, world.generals[side]!);
+  const can = canFireSpecial(world, side);
   internal.pending.push({ side, squadId: 'all', command: 'special' });
   return can;
 }

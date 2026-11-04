@@ -1,0 +1,17 @@
+{
+  "depletedRecovery": {
+    "recovered": true,
+    "heroesOffered": 15
+  },
+  "corruptSaveRecovery": {
+    "shown": true,
+    "savePreserved": true
+  },
+  "campaignBattle": {
+    "mp": 3.75,
+    "casts": 1,
+    "phase": "fight",
+    "time": 16.6500000000001
+  },
+  "errors": []
+}

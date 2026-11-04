@@ -9,6 +9,10 @@ export interface BattleViewOptions {
   labels: { player: string; enemy: string };
   /** Called once when world.result is set and the result has been shown on the field briefly. */
   onFinished: (world: World) => void;
+  /** Omit to keep bare battle/dev fixtures without a quit control. Called after confirmation. */
+  onQuit?: (world: World) => void;
+  quitMessage?: string;
+  quitConfirmLabel?: string;
 }
 
 export interface BattleView {
