@@ -7,6 +7,8 @@ export interface BattleViewOptions {
   setup: BattleSetup;
   /** Display labels for the HUD (e.g. general names / loadout names). */
   labels: { player: string; enemy: string };
+  /** Optional biome backdrop behind the field; decoration only. */
+  biome?: 'plains' | 'forest' | 'mountain' | 'swamp' | 'ruins' | 'settled';
   /** Called once when world.result is set and the result has been shown on the field briefly. */
   onFinished: (world: World) => void;
   /** Omit to keep bare battle/dev fixtures without a quit control. Called after confirmation. */

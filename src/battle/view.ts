@@ -1,7 +1,8 @@
 // Battle view entry point (implementation.md §2.9-2.11, contract in src/battle/types.ts).
-import { Application, Graphics } from 'pixi.js';
+import { Application, Graphics, Sprite } from 'pixi.js';
 import { createBattle, issueCommand, issueApproach, fireSpecial, setPaused } from '../sim';
 import type { BattleView, BattleViewOptions, StartBattleView } from './types';
+import { loadBiomePlate, fitPlate } from '../render/biomePlate';
 import { createAiController } from '../ai/policy';
 import { startLoop } from './loop';
 import { Battlefield } from '../render/battlefield';
@@ -58,6 +59,19 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   try {
     await app.init({ resizeTo: root, antialias: true, background: '#1a2a1a' });
     root.appendChild(app.canvas);
+
+    // Biome backdrop sits behind the field. Decoration only: failure is ignored.
+    let plate: Sprite | null = null;
+    if (opts.biome) {
+      const texture = await loadBiomePlate(opts.biome);
+      if (destroyed) throw new Error('Battle view destroyed during startup');
+      if (texture) {
+        plate = new Sprite(texture);
+        app.stage.addChild(plate);
+        fitPlate(plate, texture, app.renderer.width, app.renderer.height);
+        cleanups.push(() => { plate?.destroy(); plate = null; });
+      }
+    }
 
     const battlefield = new Battlefield(app.renderer, data, data.constants.FIELD_W, data.constants.FIELD_H, sideColors);
     cleanups.push(() => battlefield.destroy());
@@ -226,6 +240,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
         const vw = app.renderer.width;
         const vh = app.renderer.height;
         if (vw !== cameraViewportW || vh !== cameraViewportH) recomputeCamera();
+        if (plate) fitPlate(plate, plate.texture, vw, vh);
         redrawVignette(vw, vh);
         battlefield.render(w, cam, alpha, vw, vh, elapsedS, selection.selectedSlots());
         battlefield.world2screen.position.y += camYOffset;

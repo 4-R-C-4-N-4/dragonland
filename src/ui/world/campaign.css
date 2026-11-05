@@ -1,0 +1,68 @@
+.dl-campaign {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #141110;
+  color: #ecdfc9;
+}
+
+.dl-campaign__status {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-bottom: 1px solid #3a2f26;
+  background: #1b1612;
+}
+
+.dl-campaign__map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  padding: 10px;
+}
+
+/* The map widget is a grid; give it the whole row or its 1fr stage collapses. */
+.dl-campaign__map > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dl-campaign__battle {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.dl-campaign__panel {
+  margin: 24px auto;
+  max-width: 720px;
+  width: calc(100% - 32px);
+  padding: 18px 20px;
+}
+
+.dl-campaign__panel h1 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+
+.dl-campaign__panel h1:focus-visible {
+  outline: 2px solid #d5a33a;
+  outline-offset: 3px;
+}
+
+.dl-campaign__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.dl-campaign__choices button {
+  text-align: left;
+}
+
+.dl-campaign__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}

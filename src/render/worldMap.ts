@@ -1,14 +1,30 @@
-import { Application, Container, Graphics, Text } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { War, WorldNode } from '../world/types';
 import { visibleNodes } from '../ai/strategy';
+import mapUrl from '../../assets/backgrounds/worldmap.jpg';
 
 const colors: Record<WorldNode['kind'], number> = { castle: 0xd5a33a, town: 0x8fc06b, village: 0xc7b994, lair: 0x9d6ca8 };
+
+let parchment: Texture | null = null;
+/** Preload the map plate once; callers may ignore it and get a plain background. */
+export async function loadWorldMapArt(): Promise<void> {
+  if (!parchment) parchment = await Assets.load<Texture>(mapUrl);
+}
 
 /** Draws the authored world layout; callers own the Pixi application lifecycle. */
 export function drawWorldMap(stage: Container, war: War, factionId: string, onNode: (id: string) => void, width = 680, height = 460): void {
   stage.removeChildren().forEach(child => child.destroy({ children: true }));
   const root = new Container();
   stage.addChild(root);
+  // Parchment plate behind everything, cover-fitted so the terrain never stretches.
+  if (parchment) {
+    const plate = new Sprite(parchment);
+    const scale = Math.max(width / parchment.width, height / parchment.height);
+    plate.scale.set(scale);
+    plate.x = (width - parchment.width * scale) / 2;
+    plate.y = (height - parchment.height * scale) / 2;
+    root.addChild(plate);
+  }
   const bounds = war.nodes.reduce((b, n) => ({ minX: Math.min(b.minX, n.x), maxX: Math.max(b.maxX, n.x), minY: Math.min(b.minY, n.y), maxY: Math.max(b.maxY, n.y) }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
   const sx = (x: number) => 28 + (x - bounds.minX) / Math.max(1, bounds.maxX - bounds.minX) * Math.max(1, width - 56);
   const sy = (y: number) => 28 + (y - bounds.minY) / Math.max(1, bounds.maxY - bounds.minY) * Math.max(1, height - 56);

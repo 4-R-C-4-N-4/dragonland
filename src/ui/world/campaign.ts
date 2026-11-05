@@ -1,0 +1,380 @@
+// Campaign controller: joins the war setup screen, the overworld map, battles and admin
+// into one playable loop. All rules live in src/world (pure); this file renders, routes
+// intents and persists one snapshot per transition.
+import type { GameData } from '../../data';
+import type { StartBattleView } from '../../battle/types';
+import { snapshotBattleResult } from '../../world/sequence';
+import {
+  applyWildResult, buildWorldData, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
+  resolveTurn, resumeTurn, saveWar, wildBattleSetup,
+  type BuiltWorldData, type StorageLike, type War, type WorldOrder,
+} from '../../world';
+import {
+  applySkirmishResult, commitAttacker, commitDefender, retreatEncounter, sequenceEncounter,
+  type EncounterSequence,
+} from '../../world/sequence';
+import { planFactionOrders } from '../../ai/strategy';
+import { joinDivision, leaveAsGarrison } from '../../world/garrison';
+import { mountWorldMap } from './index';
+import { mountWarStart } from './start';
+import './campaign.css';
+
+export interface CampaignOptions {
+  data: GameData;
+  storage: StorageLike;
+  startBattleView: StartBattleView;
+  /** Seed for a brand new war; existing saves keep their own. */
+  seed?: number;
+  onExit?: () => void;
+}
+
+type Screen = 'title' | 'setup' | 'map' | 'battle' | 'admin' | 'over';
+
+export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destroy(): void } {
+  const { data, storage } = opts;
+  const world: BuiltWorldData = buildWorldData(rawWorldData);
+  const playerId = world.factions.find(f => f.isPlayer)!.id;
+
+  let war: War | null = null;
+  let corrupt: string | null = null;
+  let screen: Screen = 'title';
+  let sequence: EncounterSequence | null = null;
+  let destroyed = false;
+  let mapHandle: { update(w: War): void; destroy(): void } | null = null;
+  let childHandle: { destroy(): void } | null = null;
+  let battleRoot: HTMLElement | null = null;
+  let busy = false;
+
+  const shell = document.createElement('div');
+  shell.className = 'dl-campaign';
+  root.replaceChildren(shell);
+
+  const loaded = loadWar(storage, world, data);
+  if (loaded.kind === 'ok') { war = loaded.state; screen = screenFor(war); }
+  else if (loaded.kind === 'corrupt') corrupt = loaded.error;
+
+  function screenFor(w: War): Screen {
+    if (w.phase === 'won' || w.phase === 'lost') return 'over';
+    if (w.phase === 'battle') return 'battle';
+    if (w.phase === 'admin') return 'admin';
+    return 'map';
+  }
+
+  /** Persist then render: every transition is one atomic write. */
+  function commit(): void {
+    if (!war || destroyed) return;
+    saveWar(storage, war);
+    screen = screenFor(war);
+    render();
+  }
+
+  function teardownChildren(): void {
+    mapHandle?.destroy(); mapHandle = null;
+    childHandle?.destroy(); childHandle = null;
+    battleRoot?.remove(); battleRoot = null;
+  }
+
+  function button(label: string, onClick: () => void, primary = false): HTMLButtonElement {
+    const el = document.createElement('button');
+    el.type = 'button'; el.textContent = label;
+    if (primary) el.classList.add('dl-primary');
+    el.addEventListener('click', onClick);
+    return el;
+  }
+
+  function panel(title: string, lines: string[]): HTMLElement {
+    const box = document.createElement('section');
+    box.className = 'dl-campaign__panel dl-panel';
+    const h = document.createElement('h1'); h.textContent = title; h.tabIndex = -1; box.append(h);
+    for (const line of lines) { const p = document.createElement('p'); p.textContent = line; box.append(p); }
+    return box;
+  }
+
+  // ---- turn flow -------------------------------------------------------
+
+  /** Enemy factions commit their orders through the same queue the player uses. */
+  function queueEnemyOrders(): void {
+    if (!war) return;
+    for (const faction of war.factions.filter(f => !f.isPlayer)) {
+      for (const order of planFactionOrders(war, faction.id)) issueOrder(war, order);
+    }
+  }
+
+  function endTurn(): void {
+    if (!war || busy) return;
+    queueEnemyOrders();
+    resolveTurn(war);
+    afterEngineStep();
+  }
+
+  /** Continue an interrupted turn until the engine settles or asks for another battle. */
+  function afterEngineStep(): void {
+    if (!war) return;
+    if (war.phase === 'battle' && !war.pendingBattle) resumeTurn(war);
+    sequence = null;
+    commit();
+  }
+
+  // ---- screens ---------------------------------------------------------
+
+  function renderTitle(): void {
+    const lines = corrupt
+      ? ['A saved war could not be loaded, so it has been left untouched.', corrupt]
+      : ['Take a hero, three generals and a hundred troops, and win the war for Dragonland.'];
+    const box = panel('Dragonland: War', lines);
+    const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
+    actions.append(button('New war', () => { corrupt = null; screen = 'setup'; render(); }, true));
+    if (corrupt) actions.append(button('Discard the broken save', () => { clearWar(storage); corrupt = null; render(); }));
+    if (opts.onExit) actions.append(button('Back to menu', () => opts.onExit!()));
+    box.append(actions);
+    shell.replaceChildren(box);
+    box.querySelector('h1')?.focus();
+  }
+
+  function renderSetup(): void {
+    const host = document.createElement('div');
+    shell.replaceChildren(host);
+    childHandle = mountWarStart(host, {
+      data, worldData: world, seed: opts.seed ?? 1,
+      onBegin: next => { war = next; commit(); },
+      onBack: () => { screen = 'title'; render(); },
+    });
+  }
+
+  function renderMap(): void {
+    if (!war) return;
+    const host = document.createElement('div'); host.className = 'dl-campaign__map';
+    const status = document.createElement('div'); status.className = 'dl-campaign__status';
+    shell.replaceChildren(status, host);
+    renderStatus(status);
+    void mountWorldMap(host, {
+      war, factionId: playerId,
+      onOrder: (order: WorldOrder) => { if (war) { issueOrder(war, order); saveWar(storage, war); renderStatus(status); } },
+      onGarrison: intent => {
+        if (!war) return;
+        try {
+          if (intent.type === 'leave') leaveAsGarrison(war, intent.division, intent.general);
+          else joinDivision(war, intent.division, intent.general);
+          saveWar(storage, war);
+          mapHandle?.update(war);
+          renderStatus(status);
+        } catch (error) {
+          status.textContent = error instanceof Error ? error.message : String(error);
+        }
+      },
+      onEndTurn: endTurn,
+    }).then(handle => {
+      if (destroyed || screen !== 'map') { handle.destroy(); return; }
+      mapHandle = handle;
+    });
+  }
+
+  function renderStatus(host: HTMLElement): void {
+    if (!war) return;
+    const player = war.factions.find(f => f.id === playerId)!;
+    const castles = war.nodes.filter(n => n.kind === 'castle' && n.owner === playerId).length;
+    const hero = war.generals.find(g => g.isHero);
+    const troops = war.generals.filter(g => g.factionId === playerId).reduce((n, g) => n + g.troops.length, 0);
+    host.textContent = `Turn ${war.turn} · Week ${war.week} · ${player.gold} gold · ${castles} castle${castles === 1 ? '' : 's'} · ${troops} troops` + (hero ? ` · ${hero.name} ${Math.round(hero.hp)}/${hero.maxHp} HP` : '');
+  }
+
+  function renderBattle(): void {
+    if (!war?.pendingBattle) { afterEngineStep(); return; }
+    const pending = war.pendingBattle;
+    if (pending.cause === 'wild') return renderWildBattle();
+    try { sequence ??= sequenceEncounter(war, pending); } catch (error) {
+      // An encounter the sequencer refuses must not strand the campaign.
+      war.pendingBattle = null;
+      const box = panel('The encounter could not be fought', [error instanceof Error ? error.message : String(error)]);
+      box.append(button('Continue', () => afterEngineStep(), true));
+      shell.replaceChildren(box);
+      return;
+    }
+    if (sequence.status === 'resolved') { war.pendingBattle = null; afterEngineStep(); return; }
+    renderSkirmishChoice(sequence);
+  }
+
+  function renderSkirmishChoice(seq: EncounterSequence): void {
+    if (!war) return;
+    const node = world.nodeById.get(war.pendingBattle!.nodeId);
+    const attackerIsPlayer = war.divisions.find(d => d.id === war!.pendingBattle!.attacker)?.factionId === playerId;
+    const box = panel(`Battle at ${node?.name ?? war.pendingBattle!.nodeId}`, [
+      `${war.pendingBattle!.cause === 'assault' ? 'Castle assault' : war.pendingBattle!.cause === 'swap' ? 'Clash on the road' : 'Contact'} · you are the ${attackerIsPlayer ? 'attacker' : 'defender'}.`,
+      'The defender commits a general first, then the attacker answers.',
+    ]);
+    const side = seq.status === 'selecting-defender' ? 'defender' : 'attacker';
+    const ids = side === 'defender' ? seq.defenderGeneralIds : seq.attackerGeneralIds;
+    const available = ids.filter(id => !seq.defeatedGeneralIds.includes(id) && !seq.usedGeneralIds.includes(id));
+    const mine = war.generals.filter(g => available.includes(g.id) && g.factionId === playerId);
+    const list = document.createElement('div'); list.className = 'dl-campaign__choices';
+
+    if (mine.length) {
+      const prompt = document.createElement('p');
+      prompt.textContent = `Choose your ${side}:`;
+      list.append(prompt);
+      for (const g of mine) {
+        list.append(button(`${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`, () => chooseGeneral(seq, g.id, side)));
+      }
+    } else {
+      // The enemy owns this side: pick for them, deterministically, then re-render.
+      const pick = available[0];
+      if (pick) { chooseGeneral(seq, pick, side); return; }
+      war.pendingBattle = null; afterEngineStep(); return;
+    }
+    box.append(list);
+    const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
+    const own = war.divisions.find(d => d.factionId === playerId && (d.id === war!.pendingBattle!.attacker || d.id === war!.pendingBattle!.defender));
+    if (own && seq.status !== 'battling') {
+      actions.append(button('Retreat', () => {
+        try { retreatEncounter(war!, seq, own.id); sequence = null; afterEngineStep(); } catch (error) {
+          const p = document.createElement('p'); p.className = 'dl-error';
+          p.textContent = error instanceof Error ? error.message : String(error);
+          box.append(p);
+        }
+      }));
+    }
+    box.append(actions);
+    shell.replaceChildren(box);
+    box.querySelector('h1')?.focus();
+  }
+
+  function chooseGeneral(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker'): void {
+    if (!war) return;
+    if (side === 'defender') { commitDefender(war, seq, generalId); render(); return; }
+    const selection = commitAttacker(war, seq, generalId);
+    const defender = war.generals.find(g => g.id === selection.generalIds[0])!;
+    const attacker = war.generals.find(g => g.id === selection.generalIds[1])!;
+    runBattle(selection.setup, { player: defender.factionId === playerId ? defender.name : attacker.name, enemy: defender.factionId === playerId ? attacker.name : defender.name }, world => {
+      const snapshot = snapshotBattleResult(world);
+      applySkirmishResult(war!, seq, selection.id, snapshot);
+      if (seq.status === 'resolved') sequence = null;
+      afterEngineStep();
+    });
+  }
+
+  function renderWildBattle(): void {
+    if (!war?.pendingBattle) return;
+    const pending = war.pendingBattle;
+    const division = war.divisions.find(d => d.id === pending.attacker);
+    const node = world.nodeById.get(pending.nodeId);
+    const pack = pending.wild.map(w => `${w.count}x ${data.unitById.get(w.unitId)?.name ?? w.unitId}`).join(', ');
+    const box = panel(`Wild creatures at ${node?.name ?? pending.nodeId}`, [
+      `Your search disturbed ${pack}.`,
+      'Beat them and the survivors join the general who fought.',
+    ]);
+    const list = document.createElement('div'); list.className = 'dl-campaign__choices';
+    const fighters = war.generals.filter(g => division?.generals.includes(g.id) && g.hp > 0 && g.injuredTurns === 0);
+    for (const g of fighters) {
+      list.append(button(`${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops`, () => {
+        const selection = wildBattleSetup(war!, division!.id, g.id);
+        runBattle(selection.setup, { player: g.name, enemy: 'Wild pack' }, world => {
+          applyWildResult(war!, selection, snapshotBattleResult(world));
+          afterEngineStep();
+        });
+      }));
+    }
+    if (!fighters.length) {
+      box.append(button('Withdraw', () => { war!.pendingBattle = null; afterEngineStep(); }, true));
+    }
+    box.append(list);
+    shell.replaceChildren(box);
+    box.querySelector('h1')?.focus();
+  }
+
+  function runBattle(setup: Parameters<StartBattleView>[1]['setup'], labels: { player: string; enemy: string }, onDone: (world: Parameters<Parameters<StartBattleView>[1]['onFinished']>[0]) => void): void {
+    if (!war || busy) return;
+    busy = true;
+    const biome = war.pendingBattle ? world.nodeById.get(war.pendingBattle.nodeId)?.biome : undefined;
+    teardownChildren();
+    battleRoot = document.createElement('div');
+    battleRoot.className = 'dl-campaign__battle';
+    shell.replaceChildren(battleRoot);
+    void opts.startBattleView(battleRoot, {
+      data, setup, labels, biome,
+      onFinished: world => {
+        if (destroyed) return;
+        busy = false;
+        onDone(world);
+      },
+    }).then(view => {
+      if (destroyed) { view.destroy(); return; }
+      childHandle = view;
+    }).catch(error => {
+      busy = false;
+      const box = panel('The battle could not start', [error instanceof Error ? error.message : String(error)]);
+      box.append(button('Back to the map', () => { if (war) { war.pendingBattle = null; afterEngineStep(); } }, true));
+      shell.replaceChildren(box);
+    });
+  }
+
+  function renderAdmin(): void {
+    if (!war) return;
+    const player = war.factions.find(f => f.id === playerId)!;
+    const mine = war.generals.filter(g => g.factionId === playerId);
+    const box = panel(`Week ${war.week} muster`, [
+      `${player.gold} gold in the war chest.`,
+      'Admin costs no turn and the enemy does not move.',
+    ]);
+    const list = document.createElement('div'); list.className = 'dl-campaign__choices';
+    for (const g of mine) {
+      const row = document.createElement('p');
+      row.textContent = `${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops` + (g.injuredTurns ? ` · injured (${g.injuredTurns})` : '');
+      list.append(row);
+    }
+    if (player.captives.length) {
+      const captives = document.createElement('p');
+      captives.textContent = `Captives held: ${player.captives.map(id => war!.generals.find(g => g.id === id)?.name ?? id).join(', ')}`;
+      list.append(captives);
+    }
+    box.append(list);
+    const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
+    actions.append(button('Resume the war', () => { completeAdmin(war!); commit(); }, true));
+    box.append(actions);
+    shell.replaceChildren(box);
+    box.querySelector('h1')?.focus();
+  }
+
+  function renderOver(): void {
+    if (!war) return;
+    const won = war.phase === 'won';
+    const hero = war.generals.find(g => g.isHero);
+    const box = panel(won ? 'Dragonland is yours' : 'The war is lost', [
+      won
+        ? `Every enemy castle has fallen after ${war.turn - 1} turns.`
+        : hero && hero.hp <= 0 ? `${hero.name} fell after ${war.turn - 1} turns, and the war died with them.` : `You hold no castles after ${war.turn - 1} turns.`,
+    ]);
+    const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
+    actions.append(button('Start a new war', () => { clearWar(storage); war = null; sequence = null; screen = 'setup'; render(); }, true));
+    if (opts.onExit) actions.append(button('Back to menu', () => opts.onExit!()));
+    box.append(actions);
+    shell.replaceChildren(box);
+    box.querySelector('h1')?.focus();
+  }
+
+  function render(): void {
+    if (destroyed) return;
+    teardownChildren();
+    if (corrupt) return renderTitle();
+    // Setup is the one screen that runs before a war exists; check it before the war guard.
+    if (screen === 'setup') return renderSetup();
+    if (!war) return renderTitle();
+    switch (screen) {
+      case 'map': return renderMap();
+      case 'battle': return renderBattle();
+      case 'admin': return renderAdmin();
+      case 'over': return renderOver();
+      default: return renderTitle();
+    }
+  }
+
+  render();
+
+  return {
+    destroy(): void {
+      if (destroyed) return;
+      destroyed = true;
+      teardownChildren();
+      shell.remove();
+    },
+  };
+}

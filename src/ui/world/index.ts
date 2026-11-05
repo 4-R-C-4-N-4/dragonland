@@ -1,11 +1,12 @@
 import { Application } from 'pixi.js';
 import type { WorldOrder, War } from '../../world/types';
-import { drawWorldMap } from '../../render/worldMap';
+import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import { adjacentNodeIds, orderIntent } from './presentation';
 import { visibleNodes } from '../../ai/strategy';
 import './world.css';
 
-export interface WorldMapOptions { war: War; factionId: string; onOrder: (order: WorldOrder) => void; onEndTurn: () => void }
+export interface GarrisonIntent { type: 'leave' | 'join'; division: string; general: string }
+export interface WorldMapOptions { war: War; factionId: string; onOrder: (order: WorldOrder) => void; onEndTurn: () => void; onGarrison?: (intent: GarrisonIntent) => void }
 export interface WorldMapHandle { update(war: War): void; destroy(): void }
 
 /** Mounts the provisional map art and intent controls. This widget never changes the supplied War. */
@@ -35,6 +36,9 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
   try {
     await app.init({ resizeTo: canvasWrap, antialias: true, background: '#14100e' });
     if (destroyed) { app.destroy(true, { children: true }); return { update() {}, destroy }; }
+    // Map art is decoration: a failed load must not stop the campaign.
+    try { await loadWorldMapArt(); } catch { /* fall back to the plain plate */ }
+    if (destroyed) { app.destroy(true, { children: true }); return { update() {}, destroy }; }
     canvasWrap.appendChild(app.canvas);
     function selectNode(id: string): void {
       selectedNode = id;
@@ -53,7 +57,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (selectedDivision && !war.divisions.some(d => d.id === selectedDivision && d.factionId === options.factionId && d.generals.length)) selectedDivision = null;
       redraw();
       status.textContent = `Turn ${war.turn} · Week ${war.week} · ${war.phase}`;
-      const disclaimer = document.createElement('small'); disclaimer.textContent = 'Provisional map art · campaign flow is not connected';
+      const disclaimer = document.createElement('small'); disclaimer.textContent = 'Provisional map art';
       if (!side.querySelector('.dl-world-map__disclaimer')) { disclaimer.className = 'dl-world-map__disclaimer'; side.insertBefore(disclaimer, status); }
       nodesList.replaceChildren();
       for (const node of war.nodes) {
@@ -76,6 +80,32 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (division) for (const id of division.generals) {
         const g = war.generals.find(x => x.id === id); if (!g) continue;
         const row = document.createElement('p'); row.textContent = `${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`; info.appendChild(row);
+        const node = war.nodes.find(n => n.id === division.atNode);
+        const holdable = war.phase === 'orders' && node && node.owner === options.factionId && (node.kind === 'castle' || node.kind === 'town');
+        if (holdable && division.generals.length > 1) {
+          info.appendChild(button(`Leave ${g.name} to hold ${node!.name}`, false, () => {
+            try { options.onGarrison?.({ type: 'leave', division: division.id, general: g.id }); } catch { /* reported by the controller */ }
+          }));
+        }
+      }
+      // Generals already holding this node can rejoin a division standing here.
+      if (node && division) {
+        for (const g of war.generals.filter(x => x.factionId === options.factionId && x.nodeId === node.id && !war.divisions.some(d => d.generals.includes(x.id)))) {
+          const row = document.createElement('p');
+          row.textContent = `Holding ${node.name} — ${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`;
+          info.appendChild(row);
+          if (war.phase === 'orders') {
+            info.appendChild(button(`Take ${g.name} along`, false, () => {
+              try { options.onGarrison?.({ type: 'join', division: division.id, general: g.id }); } catch { /* reported by the controller */ }
+            }));
+          }
+        }
+      } else if (node) {
+        for (const g of war.generals.filter(x => x.factionId === options.factionId && x.nodeId === node.id && !war.divisions.some(d => d.generals.includes(x.id)))) {
+          const row = document.createElement('p');
+          row.textContent = `Holding ${node.name} — ${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`;
+          info.appendChild(row);
+        }
       }
       orders.replaceChildren();
       const legal = war.phase === 'orders' && !!division && division.factionId === options.factionId;
