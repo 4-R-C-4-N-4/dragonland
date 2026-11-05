@@ -4,7 +4,7 @@ import type { GeneralId } from '../data/schemas';
 import { uniqueName } from '../data/names';
 import type { ProgressTroop } from '../progression';
 import type { BuiltWorldData } from './data';
-import { nextId, pick, worldRng, type WorldInternal } from './rng';
+import { internal, nextId, pick, worldRng, type WorldInternal } from './rng';
 import type { GeneralRecord, War } from './types';
 export interface WarSetup { seed: number; heroId: GeneralId; heroName: string; split?: number[] }
 
@@ -52,6 +52,7 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
 
 /** Queue one copied order per division; replacement does not mutate any other state. */
 export function issueOrder(war: War, order: import('./types').WorldOrder): void {
+  if (war.phase !== 'orders' || internal(war).activeTurn) return;
   if (!war.divisions.some(d => d.id === order.division)) throw new Error(`Unknown division ${order.division}`);
   const { pending } = war._internal as WorldInternal;
   const index = pending.findIndex(o => o.division === order.division);

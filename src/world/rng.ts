@@ -12,5 +12,6 @@ export interface WorldInternal {
   pending: WorldOrder[];
   supply: Record<string, number>;
   paths: Record<string, string[]>;
+  activeTurn?: { turn: number; orders: WorldOrder[]; starts: Record<string, string>; resolved: string[]; ordinal: number; current: string | null };
 }
 export function internal(war: War): WorldInternal { return war._internal as WorldInternal; }
