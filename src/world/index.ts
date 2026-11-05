@@ -4,3 +4,5 @@ export { buildWorldData, rawWorldData, type BuiltWorldData, type RawWorldData } 
 export { createWar, issueOrder, hashWar, replayWar, type WarSetup } from './engine';
 export { resolveTurn, resumeTurn, completeAdmin } from './turn';
 export { retreatNode } from './movement';
+export { WAR_KEY, loadWar, saveWar, clearWar, validateWar, toSnapshot, fromSnapshot, type LoadedWar, type StorageLike } from './storage';
+export { WarSnapshotSchema, type WarSnapshot } from './schema';
