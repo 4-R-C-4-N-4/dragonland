@@ -1,0 +1,20 @@
+.dl-war-start { box-sizing: border-box; width: min(1180px, 100%); max-height: min(800px, calc(100vh - 24px)); min-height: 0; margin: 12px auto; padding: clamp(12px, 2vw, 24px); overflow: auto; color: var(--dl-text); font-family: var(--dl-font-ui); }
+.dl-war-start h1 { margin: 0 0 12px; font: 700 28px var(--dl-font); color: var(--dl-accent); }
+.dl-war-start__layout { display: grid; grid-template-columns: minmax(190px, .8fr) minmax(210px, 1fr) minmax(250px, 1fr); gap: 12px; align-items: start; }
+.dl-war-start__heroes, .dl-war-start__profile, .dl-war-start__allocation { min-width: 0; }
+.dl-war-start__heroes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: min(690px, calc(100vh - 100px)); overflow-y: auto; }
+.dl-war-start__hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 7px; padding: 8px; color: var(--dl-text); background: var(--dl-bg-panel); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); cursor: pointer; }
+.dl-war-start__hero input { grid-row: span 2; align-self: center; }
+.dl-war-start__hero span { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
+.dl-war-start__hero:has(input:checked) { border-color: var(--dl-accent); }
+.dl-war-start__profile, .dl-war-start__allocation { padding: 14px; }
+.dl-war-start__profile h2, .dl-war-start__allocation h2 { margin: 0 0 10px; }
+.dl-war-start__allocation form, .dl-war-start__allocation label { display: grid; gap: 8px; }
+.dl-war-start__allocation label { margin: 10px 0; }
+.dl-war-start__allocation input { box-sizing: border-box; width: 100%; min-height: 40px; padding: 6px 9px; color: var(--dl-text); background: var(--dl-bg); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
+.dl-war-start__remaining { font-weight: 700; }
+.dl-war-start__errors { min-height: 1.5em; }
+.dl-war-start__actions { display: flex; gap: 8px; justify-content: space-between; }
+.dl-war-start button:focus-visible, .dl-war-start input:focus-visible { outline: 3px solid var(--dl-accent); outline-offset: 2px; }
+@media (max-width: 850px) { .dl-war-start { max-height: none; } .dl-war-start__layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .dl-war-start__heroes { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); max-height: 30vh; } .dl-war-start__profile { grid-column: 1; } .dl-war-start__allocation { grid-column: 2; } }
+@media (max-width: 560px) { .dl-war-start__layout { grid-template-columns: minmax(0, 1fr); } .dl-war-start__heroes, .dl-war-start__profile, .dl-war-start__allocation { grid-column: 1; } .dl-war-start__heroes { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 34vh; } }
