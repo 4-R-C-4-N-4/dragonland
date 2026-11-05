@@ -81,6 +81,7 @@ export const WarSnapshotSchema = z.object({
       resolved: z.array(z.string()),
       ordinal: z.number().int().nonnegative(),
       current: z.string().nullable(),
+      applied: z.array(Id).default([]),
     }).optional(),
   }),
 });

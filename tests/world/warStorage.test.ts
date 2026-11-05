@@ -127,7 +127,7 @@ describe('war persistence', () => {
       ['captive that no general matches', w => { w.factions[0]!.captives = ['general-ghost']; }],
       ['supply for an unknown node', w => { internal(w).supply = { ...internal(w).supply, nowhere: 3 }; }],
       ['active frame naming a missing division', w => {
-        internal(w).activeTurn = { turn: w.turn, orders: [{ type: 'hold', division: 'division-ghost' }], starts: {}, resolved: [], ordinal: 0, current: null };
+        internal(w).activeTurn = { turn: w.turn, orders: [{ type: 'hold', division: 'division-ghost' }], starts: {}, resolved: [], ordinal: 0, current: null, applied: [] };
       }],
       ['no player hero', w => { for (const g of w.generals) g.isHero = false; }],
     ];

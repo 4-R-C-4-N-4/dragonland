@@ -1,5 +1,6 @@
 import { internal } from './rng';
 import { detectEncounters } from './encounter';
+import { searchOutcome, wildEncounter } from './search';
 import { applyRest, applyUpkeep, resetWeeklySupply } from './upkeep';
 import { canMarch, moveDivisions, captureUndefended } from './movement';
 import type { War, WorldOrder } from './types';
@@ -15,7 +16,7 @@ export function resolveTurn(war: War): void {
     return !order || (order.type === 'march' && !canMarch(war, d, order.toNode)) ? { type: 'hold', division: d.id } : { ...order };
   });
   const starts = new Map(war.divisions.map(d => [d.id, d.atNode]));
-  state.activeTurn = { turn: war.turn, orders: structuredClone(orders), starts: Object.fromEntries(starts), resolved: [], ordinal: 0, current: null };
+  state.activeTurn = { turn: war.turn, orders: structuredClone(orders), starts: Object.fromEntries(starts), resolved: [], ordinal: 0, current: null, applied: [] };
   moveDivisions(war, orders);
   // Capture safe arrivals immediately; keep every contested destination neutral until its encounter resolves.
   const safeStarts = new Map(starts);
@@ -37,8 +38,18 @@ function settleTurn(war: War): void {
   for (const order of frame.orders) {
     const division = divisions.find(d => d.id === order.division);
     if (!division || !division.generals.length) continue;
-    if (order.type === 'rest') applyRest(war, division);
-    if (order.type === 'search') war.events.push({ type: 'searchedNothing', division: division.id, nodeId: division.atNode });
+    if (order.type !== 'rest' && order.type !== 'search') continue;
+    // A node action runs once per committed turn, even if a wild fight suspends the turn mid-way.
+    if (frame.applied.includes(order.division)) continue;
+    frame.applied.push(order.division);
+    if (order.type === 'rest') { applyRest(war, division); continue; }
+    const outcome = searchOutcome(war, division.id);
+    if (outcome.kind === 'nothing') { war.events.push({ type: 'searchedNothing', division: division.id, nodeId: division.atNode }); continue; }
+    // A wild find suspends the turn exactly like a hostile encounter.
+    war.pendingBattle = wildEncounter(war, division.id, outcome.wild);
+    war.phase = 'battle';
+    war.events.push({ type: 'battleTriggered', battleId: war.pendingBattle.id, cause: 'wild' });
+    return;
   }
   applyUpkeep(war);
   war.turnLog.push({ turn: frame.turn, orders: structuredClone(frame.orders) });

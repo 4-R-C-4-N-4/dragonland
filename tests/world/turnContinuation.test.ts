@@ -84,7 +84,7 @@ describe('interrupted turn continuation', () => {
   });
   it('enters weekly admin once after a resumed turn seven and admin completion does not advance',()=>{
     const war=make(); war.turn=7; war.phase='battle';
-    internal(war).activeTurn={turn:7,orders:[],starts:{},resolved:[],ordinal:0,current:null};
+    internal(war).activeTurn={turn:7,orders:[],starts:{},resolved:[],ordinal:0,current:null,applied:[]};
     resumeTurn(war);
     expect(war.phase).toBe('admin'); expect(war.turn).toBe(8); expect(war.week).toBe(2);
     const admin=structuredClone(war); resumeTurn(war); expect(war).toEqual(admin);

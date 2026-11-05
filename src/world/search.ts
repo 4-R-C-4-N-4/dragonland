@@ -1,6 +1,8 @@
 import { getGameData } from '../data';
 import { uniqueName } from '../data/names';
-import type { ProgressTroop } from '../progression';
+import { deriveTroopStats, type ProgressTroop } from '../progression';
+import type { BattleSetup, BattleResult, SideSetup } from '../sim';
+import { retreatNode } from './movement';
 import { internal, nextFloat, nextId } from './rng';
 import type { Division, PendingBattle, War } from './types';
 
@@ -73,4 +75,140 @@ export function applyWildVictory(war: War, divisionId: string, generalId: string
     remaining -= count;
     if (remaining <= 0) break;
   }
+}
+
+export interface WildSelection {
+  encounterId: string;
+  divisionId: string;
+  generalId: string;
+  wild: { unitId: string; count: number }[];
+  setup: BattleSetup;
+}
+
+/**
+ * A wild pack is led by its own line's apex: walk the species' evolution chain and use the
+ * general profile for that stage-3 form. Nothing is invented, so a pack of dogs is led by
+ * the warg that dogs actually grow into.
+ */
+export function wildLeaderFor(unitId: string): { generalId: string; apexUnitId: string } {
+  const game = getGameData();
+  let unit = game.unitById.get(unitId);
+  if (!unit) throw new Error(`Unknown wild species ${unitId}`);
+  const seen = new Set<string>([unit.id]);
+  while (unit.evolvesTo) {
+    const next = game.unitById.get(unit.evolvesTo);
+    if (!next || seen.has(next.id)) break;
+    seen.add(next.id);
+    unit = next;
+  }
+  const leader = game.generals.find(g => g.unitId === unit!.id);
+  if (!leader) throw new Error(`No pack leader profile for ${unitId} (apex ${unit.id})`);
+  return { generalId: leader.id, apexUnitId: unit.id };
+}
+
+function wildSide(wild: { unitId: string; count: number }[]): SideSetup {
+  const game = getGameData();
+  const formationId = game.formations[0]?.id;
+  if (!formationId) throw new Error('No battle formation is available');
+  if (!wild.length) throw new Error('A wild encounter needs at least one pack');
+  const leader = wildLeaderFor(wild[0]!.unitId);
+  const profile = game.generalById.get(leader.generalId as Parameters<typeof game.generalById.get>[0])!;
+  const squads = wild.map((pack, index) => {
+    const unit = game.unitById.get(pack.unitId);
+    if (!unit) throw new Error(`Unknown wild species ${pack.unitId}`);
+    return {
+      id: `wild-squad${index}`,
+      name: unit.name,
+      disposition: 'mixed' as const,
+      troops: Array.from({ length: pack.count }, (_, i) => ({
+        troopId: `wild-${pack.unitId}-${index}-${i}`,
+        name: `Wild ${unit.name} ${i + 1}`,
+        unitId: pack.unitId,
+        statMult: deriveTroopStats(unit, 1).damageMultiplier,
+      })),
+    };
+  });
+  return { generalId: profile.id, formationId, general: profile, squads };
+}
+
+/** Freeze the wild fight: the pack defends (side 0), the searching general attacks (side 1). */
+export function wildBattleSetup(war: War, divisionId: string, generalId: string): WildSelection {
+  const pending = war.pendingBattle;
+  if (!pending || pending.cause !== 'wild' || pending.defender !== null) throw new Error('No wild encounter is pending');
+  if (pending.attacker !== divisionId) throw new Error(`Division ${divisionId} is not the searching division`);
+  const { division } = searchableDivision(war, divisionId);
+  if (!division.generals.includes(generalId)) throw new Error(`General ${generalId} is not in division ${divisionId}`);
+  const general = war.generals.find(g => g.id === generalId);
+  if (!general) throw new Error(`Unknown general ${generalId}`);
+  if (general.hp <= 0 || general.injuredTurns > 0) throw new Error(`General ${generalId} cannot fight`);
+  const game = getGameData();
+  const profile = game.generalById.get(general.generalId);
+  const formationId = game.formations[0]?.id;
+  if (!profile || !formationId) throw new Error('Missing general profile or formation');
+  const grouped = new Map<string, ProgressTroop[]>();
+  for (const troop of general.troops) (grouped.get(troop.unitId) ?? grouped.set(troop.unitId, []).get(troop.unitId)!).push(troop);
+  const ours: SideSetup = {
+    generalId: general.generalId,
+    formationId,
+    general: { ...profile, hp: Math.max(1, general.hp), level: general.level },
+    squads: [...grouped.entries()].map(([unitId, troops], index) => ({
+      id: `side1-${general.id}-squad${index}`,
+      name: game.unitById.get(unitId)!.name,
+      disposition: 'mixed' as const,
+      troops: troops.map(t => ({ troopId: t.id, name: t.name, unitId: t.unitId, statMult: deriveTroopStats(game.unitById.get(t.unitId)!, t.level).damageMultiplier })),
+    })),
+  };
+  return {
+    encounterId: pending.id,
+    divisionId,
+    generalId,
+    wild: pending.wild.map(w => ({ ...w })),
+    setup: { seed: (war.seed ^ hashText(pending.id)) >>> 0, sides: [wildSide(pending.wild), ours] },
+  };
+}
+
+function hashText(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
+  return hash >>> 0;
+}
+
+/**
+ * Apply a finished wild fight once. A win recruits the defeated pack up to capacity; a loss
+ * sends the division back along its own arrival path and recruits nothing.
+ */
+export function applyWildResult(war: War, selection: WildSelection, snapshot: { result: BattleResult; generalHp: [number, number] }): { applied: boolean; won: boolean } {
+  const pending = war.pendingBattle;
+  if (!pending || pending.id !== selection.encounterId) return { applied: false, won: false };
+  if (pending.processedSkirmishIds.includes(selection.encounterId)) return { applied: false, won: false };
+  const result = snapshot.result;
+  if (![0, 1].includes(result.winner)) throw new Error('Malformed wild battle result');
+  const general = war.generals.find(g => g.id === selection.generalId);
+  const division = war.divisions.find(d => d.id === selection.divisionId);
+  if (!general || !division) throw new Error('Wild encounter references a missing general or division');
+  const survivors = new Set(result.survivors[1] ?? []);
+  const frozen = new Set(selection.setup.sides[1].squads.flatMap(q => q.troops.map(t => t.troopId)));
+  for (const id of survivors) if (!frozen.has(id)) throw new Error('Wild battle result names a troop that did not fight');
+  if (!Number.isFinite(snapshot.generalHp[1]) || snapshot.generalHp[1] < 0 || snapshot.generalHp[1] > general.maxHp) throw new Error('Illegal terminal general HP');
+
+  // Validation is complete; now mutate.
+  general.troops = general.troops.filter(t => survivors.has(t.id));
+  general.hp = snapshot.generalHp[1];
+  const won = result.winner === 1;
+  if (won) applyWildVictory(war, selection.divisionId, selection.generalId, selection.wild);
+  else {
+    const fallback = retreatNode(war, division);
+    if (fallback) {
+      const from = division.atNode;
+      division.atNode = fallback;
+      division.previousNode = from;
+      (internal(war).paths[division.id] ??= []).push(from);
+      for (const g of war.generals.filter(x => division.generals.includes(x.id))) g.nodeId = fallback;
+      war.events.push({ type: 'retreated', division: division.id, toNode: fallback });
+    }
+  }
+  pending.processedSkirmishIds.push(selection.encounterId);
+  war.pendingBattle = null;
+  if (general.isHero && general.hp <= 0) war.phase = 'lost';
+  return { applied: true, won };
 }
