@@ -4,6 +4,7 @@
 import type { GameData } from '../../data';
 import type { StartBattleView } from '../../battle/types';
 import { snapshotBattleResult } from '../../world/sequence';
+import { campaignBattlePerspective } from './battlePerspective';
 import {
   applyWildResult, buildWorldData, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
   resolveTurn, resumeTurn, saveWar, wildBattleSetup,
@@ -120,7 +121,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
   function renderTitle(): void {
     const lines = corrupt
       ? ['A saved war could not be loaded, so it has been left untouched.', corrupt]
-      : ['Take a hero, three generals and a hundred troops, and win the war for Dragonland.'];
+      : ['Take a hero, two generals and a hundred troops, and win the war for Dragonland.'];
     const box = panel('Dragonland: War', lines);
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
     actions.append(button('New war', () => { corrupt = null; screen = 'setup'; render(); }, true));
@@ -244,8 +245,9 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     const selection = commitAttacker(war, seq, generalId);
     const defender = war.generals.find(g => g.id === selection.generalIds[0])!;
     const attacker = war.generals.find(g => g.id === selection.generalIds[1])!;
-    runBattle(selection.setup, { player: defender.factionId === playerId ? defender.name : attacker.name, enemy: defender.factionId === playerId ? attacker.name : defender.name }, world => {
-      const snapshot = snapshotBattleResult(world);
+    const perspective = campaignBattlePerspective(selection.setup, defender.factionId === playerId ? 0 : 1);
+    runBattle(perspective.setup, { player: defender.factionId === playerId ? defender.name : attacker.name, enemy: defender.factionId === playerId ? attacker.name : defender.name }, world => {
+      const snapshot = perspective.snapshot(world);
       applySkirmishResult(war!, seq, selection.id, snapshot);
       if (seq.status === 'resolved') sequence = null;
       afterEngineStep();

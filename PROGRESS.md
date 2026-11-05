@@ -10,7 +10,21 @@ Decided with Ivy: castle garrison 7 vs attacking division 5 (tighter than Dragon
 
 Opening decisions are locked: hero + two generals share **100 troops**, default 34/33/33, customizable within command capacity. Remaining defaults accepted; no blocking design questions.
 
-### Current integrated state
+### Demo status — `daa1103`
+
+The connected war campaign is now the default mode; `?mode=war` selects it explicitly. New war opens the 15-hero picker and a shared 100-troop allocation, then the overworld. Skirmish and Sandbox remain available.
+
+- Campaign controller connects setup, map orders, simultaneous enemy actions, battle selection, the real tactical battle view, weekly muster and terminal screens.
+- Garrison controls let an officer stay behind at a friendly castle/town or rejoin a division. Browser play verified that leaving a defender at Dawnkeep causes a real assault instead of an uncontested castle loss.
+- Fixed two browser-discovered integration defects: setup was hidden by the no-war guard, and the map collapsed inside the campaign flex layout.
+- Six generated plates are integrated: parchment overworld plus plains, forest, mountain, swamp and ruins battlefield backgrounds. Raw PNGs are retained in Git LFS; `tools/processBackgrounds.py` creates the web assets. Settled nodes use plains. Failed artwork loads retain a plain background.
+- Verification: `npm run check` passes 667 tests across 82 files; production build and whitespace checks pass. Build retains a large-chunk warning. Browser checks covered setup, map orders, AI advance, garrisoning, real battle launch with backdrop, and map save/reload with unchanged turn/gold.
+- Fixed campaign attacker-side control after the Warg/Dragon report: sequencing uses defender-first sides but the tactical view controls side 0. The campaign now presents the player's side first and maps winner, HP and both casualty partitions back before applying results. Browser fixture confirms an attacking Warg appears on the controlled left side against the enemy Dragon; real simulator-to-strategic application tests cover both orientations. Current gate: 670 tests/typecheck and production build pass.
+- Limits: browser battle completion and return to map are not yet verified (the browser session failed during the first attempt). A complete winning war, weekly muster and wild recruitment still need hands-on QA. Muster is currently read-only apart from resuming the war: promotion/captive-recruitment proposals are not exposed. Difficulty is not calibrated. The opaque tactical field also obscures much of the backdrop.
+
+Demo: run the Vite app and open `?mode=war`. Before marching away from Dawnkeep, select the division and leave one general to hold the castle. Each End turn resolves enemy orders too.
+
+### Historical integration milestones (superseded by demo status above)
 
 - Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.
 - Phase 2 headless turn core: `cebedd2`, war creation, order queue, simultaneous movement, encounters, rest/upkeep and completed-turn replay. Parent verified **575 tests**, production build, whitespace and purity checks. Independent probe verified 100 unique starting troops, custom allocation/rejections, order-submission invariance, same-seed equality and 30-turn replay.
