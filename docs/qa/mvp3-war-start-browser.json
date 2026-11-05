@@ -1,0 +1,30 @@
+{
+  "scope": "isolated new-war setup surface (mountWarStart); not connected to any campaign mode",
+  "base": "mvp3 after war persistence (90d548f)",
+  "server": "127.0.0.1:5189, started from the mvp3-war-start worktree, verified by fetching the real module, stopped after QA",
+  "gates": { "check": "642 tests", "build": "passed" },
+  "verified": [
+    "15 catalog heroes rendered as native radios; profile panel shows class, species, line, HP and the real special text",
+    "default allocation 34/33/33 with '0 troops remaining'; Begin disabled until a hero name is entered",
+    "hero name typed with real CDP keystrokes enables Begin",
+    "allocation rejection through the real inputs: 60 over the 50 capacity, 97 under, 120 over, 33.5 fractional, -5 negative, blank — each disables Begin with a specific message",
+    "legal 50/30/20 accepted",
+    "switching hero to Diabolist preserved the typed name and the 50/30/20 split",
+    "double-clicking Begin emitted exactly ONE war: hero 'Ivy', generalId diabolist, troops 50/30/20 totalling 100, turn 1, phase orders, seed 99",
+    "consumer callback throwing leaves Begin enabled and surfaces the error, and a retry then succeeds (1 accepted war, hero 'Rook')",
+    "Back fires its callback without creating a war",
+    "no horizontal overflow and 16px error text at 800x600, 1024x768, 1280x800",
+    "destroy() twice leaves zero children and raises no error"
+  ],
+  "errorsObserved": [],
+  "parentFixes": [
+    "the mounted form duplicated the allocation rules instead of calling validateWarStart; rewired so the form and the pure validator cannot drift",
+    "the default split was recomputed inline; now uses defaultStartingSplit"
+  ],
+  "limitations": [
+    "at 800x600 the Begin button sits below the fold and is reached by scrolling; horizontal bounds are clean",
+    "no independent spec/quality review has run on this slice",
+    "not wired into src/main.ts, no persistence, no campaign controller"
+  ],
+  "evidenceDir": "/home/ivy/.hermes/cache/scratch/mvp3-start-browser"
+}
