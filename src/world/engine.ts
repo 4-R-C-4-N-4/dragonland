@@ -23,7 +23,7 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
   if (!hero) throw new Error(`Unknown hero ${setup.heroId}`);
   const c = data.constants;
   const split = setup.split ?? Array.from({ length: c.STARTING_GENERALS }, (_, i) => Math.floor(c.STARTING_TROOPS / c.STARTING_GENERALS) + (i < c.STARTING_TROOPS % c.STARTING_GENERALS ? 1 : 0));
-  if (split.length !== c.STARTING_GENERALS || split.some(n => !Number.isInteger(n) || n < 0 || n > c.STARTING_CAPACITY) || split.reduce((a, b) => a + b, 0) !== c.STARTING_TROOPS) throw new Error('Invalid starting split: total and capacities must match');
+  if (split.length !== c.STARTING_GENERALS || split.some(n => !Number.isInteger(n) || n < 0 || n > c.PLAYER_STARTING_CAPACITY) || split.reduce((a, b) => a + b, 0) !== c.STARTING_TROOPS) throw new Error('Invalid starting split: total and capacities must match');
   const rng = worldRng(setup.seed);
   const state: WorldInternal = { data: structuredClone(data), rng, pending: [], supply: Object.fromEntries(data.nodes.map(n => [n.id, n.supplyPerWeek])), paths: {} };
   const war: War = { version: 1, id: nextId(rng, 'war'), seed: setup.seed, turn: 1, week: 1, phase: 'orders', factions: data.factions.map(f => ({ ...structuredClone(f), gold: c.STARTING_GOLD, captives: [] })), nodes: structuredClone(data.nodes), routes: structuredClone(data.routes), generals: [], divisions: [], pendingBattle: null, events: [], turnLog: [], _internal: state };
@@ -35,7 +35,7 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
     for (let i = 0; i < (faction.isPlayer ? c.STARTING_GENERALS : 6); i++) {
       const isHero = faction.isPlayer && i === 0;
       const profile = isHero ? hero : pick(rng, profiles);
-      const general: GeneralRecord = { id: nextId(rng, 'general'), name: isHero ? setup.heroName : uniqueName(rng, game.names, taken), generalId: profile.id, factionId: faction.id, isHero, level: 1, xp: 0, hp: profile.hp, maxHp: profile.hp, capacity: c.STARTING_CAPACITY, troops: [], injuredTurns: 0, nodeId: castle.id };
+      const general: GeneralRecord = { id: nextId(rng, 'general'), name: isHero ? setup.heroName : uniqueName(rng, game.names, taken), generalId: profile.id, factionId: faction.id, isHero, level: 1, xp: 0, hp: profile.hp, maxHp: profile.hp, capacity: faction.isPlayer ? c.PLAYER_STARTING_CAPACITY : c.STARTING_CAPACITY, troops: [], injuredTurns: 0, nodeId: castle.id };
       war.generals.push(general);
       general.troops = freshTroops(war, faction.classes, faction.isPlayer ? split[i]! : c.STARTING_CAPACITY);
       generals.push(general);

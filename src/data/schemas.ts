@@ -345,11 +345,14 @@ export const WorldConstantsSchema = z.object({
   STARTING_GOLD: z.number().int().nonnegative(),
   STARTING_TROOPS: z.number().int().nonnegative(),
   STARTING_GENERALS: z.number().int().positive(),
+  /** Troops each rival general starts with and can lead. */
   STARTING_CAPACITY: z.number().int().positive(),
+  /** Troops each player general can lead at war start; the opening split must fit under it. */
+  PLAYER_STARTING_CAPACITY: z.number().int().positive(),
 }).refine(c => Math.abs(c.CAPTURE_WEIGHT + c.INJURE_WEIGHT + c.KILL_WEIGHT - 1) <= 1e-9,
   'CAPTURE_WEIGHT, INJURE_WEIGHT and KILL_WEIGHT must sum to 1')
   .refine(c => c.GARRISON_CAP > c.MAX_DIVISION_GENERALS,
     'GARRISON_CAP must exceed MAX_DIVISION_GENERALS')
-  .refine(c => c.STARTING_GENERALS * c.STARTING_CAPACITY >= c.STARTING_TROOPS,
-    'STARTING_GENERALS * STARTING_CAPACITY must cover STARTING_TROOPS');
+  .refine(c => c.STARTING_GENERALS * c.PLAYER_STARTING_CAPACITY >= c.STARTING_TROOPS,
+    'STARTING_GENERALS * PLAYER_STARTING_CAPACITY must cover STARTING_TROOPS');
 export type WorldConstants = z.infer<typeof WorldConstantsSchema>;

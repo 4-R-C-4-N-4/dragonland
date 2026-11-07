@@ -12,7 +12,7 @@ describe('node actions and upkeep', () => {
     applyRest(war, d);
     expect(generals[0]!.hp).toBe(generals[0]!.maxHp);
     expect(generals[1]!.hp).toBe(generals[1]!.maxHp * .25);
-    expect(generals.map(g => g.troops.length)).toEqual([40, 39, 39]);
+    expect(generals.map(g => g.troops.length)).toEqual([56, 56, 56]);
     for (const g of generals) for (const troop of g.troops) {
       const unit = getGameData().unitById.get(troop.unitId)!;
       expect(unit.stage).toBe(1);
@@ -21,10 +21,10 @@ describe('node actions and upkeep', () => {
     expect(war.events).toContainEqual({ type: 'resupplied', general: generals[0]!.id, troops: 6 });
   });
   it('respects each capacity and the shared remaining weekly budget', () => {
-    const { war, d, generals } = force(); generals[0]!.capacity = 35;
-    applyRest(war, d); expect(generals[0]!.troops).toHaveLength(35);
+    const { war, d, generals } = force(); generals[0]!.capacity = 53;
+    applyRest(war, d); expect(generals[0]!.troops).toHaveLength(53);
     applyRest(war, d); applyRest(war, d);
-    expect(generals.reduce((sum, g) => sum + g.troops.length, 0)).toBe(120);
+    expect(generals.reduce((sum, g) => sum + g.troops.length, 0)).toBe(170);
     const before = generals.map(g => g.troops.length); applyRest(war, d);
     expect(generals.map(g => g.troops.length)).toEqual(before);
   });

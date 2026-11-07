@@ -47,7 +47,7 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
   const inputs: HTMLInputElement[] = [];
   for (let i = 0; i < split.length; i++) {
     const label = document.createElement('label'); label.textContent = i === 0 ? 'Hero' : `General ${i}`;
-    const input = document.createElement('input'); input.type = 'number'; input.inputMode = 'numeric'; input.min = '0'; input.max = String(worldData.constants.STARTING_CAPACITY); input.step = '1'; input.value = String(split[i]); input.setAttribute('aria-label', `${label.textContent} troop count`); input.required = true;
+    const input = document.createElement('input'); input.type = 'number'; input.inputMode = 'numeric'; input.min = '0'; input.max = String(worldData.constants.PLAYER_STARTING_CAPACITY); input.step = '1'; input.value = String(split[i]); input.setAttribute('aria-label', `${label.textContent} troop count`); input.required = true;
     input.addEventListener('input', () => refresh()); label.append(input); form.append(label); inputs.push(input);
   }
   const remaining = document.createElement('p'); remaining.className = 'dl-war-start__remaining'; remaining.setAttribute('aria-live', 'polite'); form.append(remaining);
