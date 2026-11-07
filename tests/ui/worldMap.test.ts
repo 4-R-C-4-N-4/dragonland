@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { buildWorldData, createWar, issueOrder, leaveAsGarrison, rawWorldData, resolveTurn } from '../../src/world';
 import { visibleNodes } from '../../src/ai/strategy';
 import {
-  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, nodeSummary, nodeTone, orderIntent, orderLabel,
+  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, garrisonStatus, nodeSummary, nodeTone, orderIntent, orderLabel,
   turnReport, undefendedCastles, visibleEnemyDivisions,
 } from '../../src/ui/world/presentation';
+import { hasGarrison } from '../../src/world/movement';
 
 const data = buildWorldData(rawWorldData);
 const makeWar = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
@@ -90,6 +91,22 @@ describe('overworld readability helpers', () => {
     expect(actionBlocker(war, d, 'rest')).toMatch(/own castles and towns/);
     d.atNode = 'eastgate';
     expect(actionBlocker(war, d, 'rest')).toMatch(/own castles and towns/);
+  });
+
+  it('does not count injured or town-stationed generals as defenders, matching capture rules', () => {
+    const war = makeWar(); const d = own(war);
+    const [, second, third] = d.generals;
+    leaveAsGarrison(war, d.id, third!);
+    expect(garrisonStatus(war, 'dawnkeep', 'player')).toEqual({ defenders: [third], idle: [] });
+    expect(hasGarrison(war, 'dawnkeep', 'player')).toBe(true);
+    war.generals.find(g => g.id === third)!.injuredTurns = 2;
+    expect(garrisonStatus(war, 'dawnkeep', 'player')).toEqual({ defenders: [], idle: [third] });
+    expect(hasGarrison(war, 'dawnkeep', 'player')).toBe(false);
+    // A town keeps a stationed general but never stops a capture.
+    d.atNode = 'westmere';
+    for (const id of d.generals) war.generals.find(g => g.id === id)!.nodeId = 'westmere';
+    leaveAsGarrison(war, d.id, second!);
+    expect(garrisonStatus(war, 'westmere', 'player')).toEqual({ defenders: [], idle: [second] });
   });
 
   it('flags a castle left without a garrison or a staying division', () => {

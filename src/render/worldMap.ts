@@ -1,8 +1,9 @@
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { War, WorldNode, WorldOrder } from '../world/types';
 import { visibleNodes } from '../ai/strategy';
+import { hasGarrison } from '../world/movement';
 import { garrisonAt } from '../world/garrison';
-import { nodeTone, type NodeTone } from '../ui/world/presentation';
+import { nodeTone, type NodeTone } from './worldTone';
 import mapUrl from '../../assets/backgrounds/worldmap.jpg';
 
 /** Colour is ownership; shape is kind (see the DOM legend in src/ui/world). */
@@ -99,9 +100,11 @@ export function drawWorldMap(stage: Container, war: War, view: WorldMapView, wid
     // Centred above the node: horizontal neighbours on one road never collide this way.
     const label = new Text({ text: node.name, style: { fontFamily: 'Georgia', fontSize: compact ? 11 : 13, fill: 0xf3e6cf, stroke: { color: 0x14100e, width: 4 } } });
     label.x = Math.max(2, Math.min(p.x - label.width / 2, width - label.width - 2)); label.y = p.y - 17 - label.height; root.addChild(label);
-    const held = node.owner === factionId ? garrisonAt(war, node.id, factionId).length : 0;
-    if (held) {
-      const g = new Text({ text: `+${held} held`, style: { fontSize: 10, fontWeight: '700', fill: 0xbfe8b0, stroke: { color: 0x14100e, width: 3 } } });
+    // Only say a castle is held when the engine would actually stop a capture there.
+    const stationed = node.owner === factionId ? garrisonAt(war, node.id, factionId).length : 0;
+    if (stationed) {
+      const defended = node.kind === 'castle' && hasGarrison(war, node.id, factionId);
+      const g = new Text({ text: defended ? `+${stationed} held` : `+${stationed} not defending`, style: { fontSize: 10, fontWeight: '700', fill: defended ? 0xbfe8b0 : 0xf0c050, stroke: { color: 0x14100e, width: 3 } } });
       g.x = Math.min(p.x + 16, width - g.width - 2); g.y = p.y - 6; root.addChild(g);
     }
   }

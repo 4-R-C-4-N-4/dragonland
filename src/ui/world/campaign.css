@@ -38,7 +38,7 @@
   min-height: 0;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 760px), (max-height: 520px) {
   .dl-campaign--fill { height: auto; min-height: 100vh; }
   .dl-campaign--fill .dl-world-map { height: auto; }
 }

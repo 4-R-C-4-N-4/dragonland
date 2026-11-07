@@ -1,5 +1,6 @@
 import { visibleNodes } from '../../ai/strategy';
 import { hasGarrison } from '../../world/movement';
+import { garrisonAt } from '../../world/garrison';
 import type { Division, War, WorldNode, WorldOrder } from '../../world/types';
 
 export function adjacentNodeIds(war: War, nodeId: string): string[] {
@@ -20,12 +21,7 @@ export function orderIntent(war: War, factionId: string, divisionId: string, act
   return { type: action, division: division.id };
 }
 
-export type NodeTone = 'own' | 'enemy' | 'neutral';
-
-/** Colour follows ownership; node kind is carried by shape. */
-export function nodeTone(node: WorldNode, factionId: string): NodeTone {
-  return node.owner === null ? 'neutral' : node.owner === factionId ? 'own' : 'enemy';
-}
+export { nodeTone, type NodeTone } from '../../render/worldTone';
 
 const nodeName = (war: War, id: string) => war.nodes.find(n => n.id === id)?.name ?? id;
 const generalName = (war: War, id: string | undefined) => (id ? war.generals.find(g => g.id === id)?.name : undefined);
@@ -73,6 +69,21 @@ export function actionBlocker(war: War, division: Division, action: 'search' | '
   if (!node) return 'Unknown location.';
   if (action === 'search') return node.biome === 'settled' ? 'Castles and towns have no wild troops to find.' : null;
   return node.owner === division.factionId && (node.kind === 'castle' || node.kind === 'town') ? null : 'Resting only works in your own castles and towns.';
+}
+
+/**
+ * Generals stationed at a node, split by whether they actually stop a capture. The engine only
+ * lets an uninjured castle garrison block an enemy (movement.ts hasGarrison); injured generals
+ * and generals left in towns stay put but do not defend, so the UI must not call them defenders.
+ */
+export function garrisonStatus(war: War, nodeId: string, factionId: string): { defenders: string[]; idle: string[] } {
+  const node = war.nodes.find(n => n.id === nodeId);
+  const defenders: string[] = [], idle: string[] = [];
+  for (const id of garrisonAt(war, nodeId, factionId)) {
+    const g = war.generals.find(x => x.id === id)!;
+    (node?.kind === 'castle' && g.injuredTurns === 0 ? defenders : idle).push(id);
+  }
+  return { defenders, idle };
 }
 
 /** Castles that end this turn with neither a garrison nor one of your divisions standing on them. */

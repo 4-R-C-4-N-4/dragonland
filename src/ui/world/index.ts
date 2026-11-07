@@ -1,10 +1,9 @@
 import { Application } from 'pixi.js';
 import type { Division, WorldOrder, War } from '../../world/types';
 import { queuedOrders } from '../../world/engine';
-import { garrisonAt } from '../../world/garrison';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import {
-  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, nodeSummary, orderIntent, orderLabel,
+  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, garrisonStatus, nodeSummary, orderIntent, orderLabel,
   turnReport, undefendedCastles,
 } from './presentation';
 import { visibleNodes } from '../../ai/strategy';
@@ -160,7 +159,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       }
       bar.append(button(`End turn ${war.turn}`, () => {
         if (!canOrder()) return;
-        if (undefendedCastles(war, factionId, ownOrders()).length) { confirmingEnd = true; render(); return; }
+        if (undefended.length) { confirmingEnd = true; render(); return; }
         options.onEndTurn();
       }, { key: 'end-turn', primary: true }));
       if (undefended.length) {
@@ -191,11 +190,13 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
         }));
       }
       if (!ownDivisions().length) s.append(el('p', 'dl-world-map__hint', 'You have no divisions in the field.'));
-      const held = war.nodes.filter(n => n.owner === factionId).map(n => ({ n, ids: garrisonAt(war, n.id, factionId) })).filter(x => x.ids.length);
-      for (const { n, ids } of held) {
-        s.append(button(`${n.name} garrison`, () => { selectedNode = n.id; selectedDivision = null; changed(); }, {
-          key: `garrison-${n.id}`, pressed: selectedNode === n.id && !selectedDivision,
-          detail: ids.map(id => war.generals.find(g => g.id === id)?.name ?? id).join(', '),
+      const nameOf = (id: string) => war.generals.find(g => g.id === id)?.name ?? id;
+      for (const n of war.nodes.filter(x => x.owner === factionId)) {
+        const { defenders, idle } = garrisonStatus(war, n.id, factionId);
+        if (!defenders.length && !idle.length) continue;
+        const parts = [defenders.length ? `defending: ${defenders.map(nameOf).join(', ')}` : '', idle.length ? `not defending: ${idle.map(nameOf).join(', ')}` : ''].filter(Boolean);
+        s.append(button(`${n.name} ${n.kind === 'castle' ? 'garrison' : 'stationed'}`, () => { selectedNode = n.id; selectedDivision = null; changed(); }, {
+          key: `garrison-${n.id}`, pressed: selectedNode === n.id && !selectedDivision, detail: parts.join(' · '),
         }));
       }
       return s;
@@ -245,21 +246,25 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const holdable = canOrder() && node && node.owner === factionId && (node.kind === 'castle' || node.kind === 'town');
       for (const id of d.generals) {
         const g = war.generals.find(x => x.id === id); if (!g) continue;
-        const leave = holdable && d.generals.length > 1 ? button('Leave here', () => {
+        const leave = holdable && d.generals.length > 1 ? button(node!.kind === 'castle' ? 'Leave to defend' : 'Leave here', () => {
           try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
         }, { key: `leave-${g.id}` }) : undefined;
-        leave?.setAttribute('aria-label', `Leave ${g.name} to defend ${node?.name ?? 'this node'}`);
+        leave?.setAttribute('aria-label', node?.kind === 'castle' ? `Leave ${g.name} to defend ${node.name}` : `Leave ${g.name} stationed in ${node?.name ?? 'this node'}`);
         const row = generalRow(id, undefined, leave); if (row) s.append(row);
       }
-      if (node) for (const id of garrisonAt(war, node.id, factionId)) {
+      const stationed = node ? garrisonStatus(war, node.id, factionId) : { defenders: [], idle: [] };
+      for (const id of [...stationed.defenders, ...stationed.idle]) {
         const g = war.generals.find(x => x.id === id)!;
         const join = canOrder() ? button('Take along', () => {
           try { options.onGarrison?.({ type: 'join', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
         }, { key: `join-${g.id}` }) : undefined;
         join?.setAttribute('aria-label', `Take ${g.name} along`);
-        const row = generalRow(id, 'garrison', join); if (row) s.append(row);
+        const row = generalRow(id, stationed.defenders.includes(id) ? 'garrison' : 'not defending', join); if (row) s.append(row);
       }
-      if (holdable && d.generals.length > 1) s.append(el('p', 'dl-world-map__hint', `A general left here defends ${node!.name} while the division marches on.`));
+      // Only castle garrisons fight: a town is taken by any enemy that walks in (movement.ts).
+      if (holdable && d.generals.length > 1) s.append(el('p', 'dl-world-map__hint', node!.kind === 'castle'
+        ? `A healthy general left here defends ${node!.name} while the division marches on.`
+        : `Generals left in a town stay there, but only castle garrisons fight: an enemy that walks into ${node!.name} still takes it.`));
       return s;
     }
 
@@ -272,8 +277,10 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
         if (d.factionId === factionId) s.append(button(`Select ${divisionName(war, d)}`, () => selectDivision(d.id), { key: `division-at-${d.id}` }));
         else if (seen) s.append(el('p', 'dl-world-map__enemy', `${war.factions.find(f => f.id === d.factionId)?.name ?? 'Enemy'}: ${divisionName(war, d)}, ${d.generals.length} general${d.generals.length === 1 ? '' : 's'}`));
       }
-      if (node.owner === factionId) for (const gid of garrisonAt(war, node.id, factionId)) {
-        const row = generalRow(gid, 'garrison'); if (row) s.append(row);
+      if (node.owner === factionId) {
+        const { defenders, idle } = garrisonStatus(war, node.id, factionId);
+        for (const gid of defenders) { const row = generalRow(gid, 'garrison'); if (row) s.append(row); }
+        for (const gid of idle) { const row = generalRow(gid, 'not defending'); if (row) s.append(row); }
       }
       if (!seen) s.append(el('p', 'dl-world-map__hint', 'Out of sight: you cannot see who is here.'));
       return s;
@@ -303,7 +310,10 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       side.replaceChildren(...[renderTurnBar(orders), renderReport(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
       if (focusKey) {
         const target = [...side.querySelectorAll<HTMLElement>('[data-key]')].find(x => x.dataset.key === focusKey);
-        (target && !(target as HTMLButtonElement).disabled ? target : side.querySelector<HTMLElement>('[data-key="end-turn"], [data-key="end-confirm"]'))?.focus();
+        // Never fall back onto End turn: one stray Enter there is irreversible.
+        const fallback = side.querySelector<HTMLElement>('[data-key="cancel-order"]')
+          ?? [...side.querySelectorAll<HTMLButtonElement>('button[data-key]')].find(b => !b.disabled && !b.dataset.key!.startsWith('end-'));
+        (target && !(target as HTMLButtonElement).disabled ? target : fallback)?.focus();
       }
     }
     render();
