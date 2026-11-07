@@ -24,6 +24,19 @@ The connected war campaign is now the default mode; `?mode=war` selects it expli
 
 Demo: run the Vite app and open `?mode=war`. Before marching away from Dawnkeep, select the division and leave one general to hold the castle. Each End turn resolves enemy orders too.
 
+### Overworld UX pass — `7e1c9f1` (plan `docs/plans/mvp3-overworld-ux.md`)
+
+Driven by hands-on play that found the map hard to read and slow to command (kind-coloured nodes, raw division ids, invisible orders, no turn report, silent empty-castle losses).
+
+- Nodes are coloured by owner and shaped by kind, with a legend under the map. The hero's division is selected by default; clicking a gold-ringed neighbour queues a march, drawn as an arrow, shown on the banner and in the sidebar with Cancel. Every map action also has a sidebar button (keyboard reachable). Search/Rest explain when they would be wasted instead of greying out silently.
+- End turn warns when a castle would end the turn with no garrison and no staying division, offers a one-click garrison, and asks to confirm. Towns are not guarded.
+- After each turn the sidebar lists what you saw: own moves, captures, searches, recovery, a new week, and enemy movement only where an endpoint is currently visible (moves into fog name the origin only). The report is in-memory; a reloaded save shows none.
+- Map size depends only on the viewport; the page does not scroll at 1280×800. Selection survives the remount after each turn.
+- Engine: `queuedOrders` (copies) and `cancelOrder` (same phase rules as `issueOrder`). `src/world` stays pure.
+- Verification: `npm run check` **692 tests**, typecheck, build and `git diff --check` pass. Real browser at 1280×800, 1024×768 and 800×600: default selection, map-click march + arrow, Cancel, keyboard march/cancel with focus kept, undefended confirm and one-click garrison, report after End turn (including an enemy sighting), selection kept across turns, no page overflow.
+- **Still unverified: battle completion → return to map.** In this agent browser the tab dies mid-battle in both War and Skirmish mode (Skirmish has an older passing smoke), so it looks environmental, not a campaign defect, but it is not proven either way. A headless probe drove the same controller sequence through a real simulated skirmish (1003 ticks) and the result applied cleanly. Needs a hands-on check on a real GPU.
+- Independent spec and quality reviews: dispatched, pending.
+
 ### Historical integration milestones (superseded by demo status above)
 
 - Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.
