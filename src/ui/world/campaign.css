@@ -26,6 +26,23 @@
   min-width: 0;
 }
 
+/* On the map screen the campaign is exactly one viewport tall: the page never scrolls,
+   the map keeps its size and only the order sidebar scrolls. */
+.dl-campaign--fill {
+  height: 100vh;
+  min-height: 0;
+}
+
+.dl-campaign--fill .dl-world-map {
+  height: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 760px) {
+  .dl-campaign--fill { height: auto; min-height: 100vh; }
+  .dl-campaign--fill .dl-world-map { height: auto; }
+}
+
 .dl-campaign__battle {
   flex: 1 1 auto;
   min-height: 0;

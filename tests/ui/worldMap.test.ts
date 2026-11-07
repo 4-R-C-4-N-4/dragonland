@@ -146,8 +146,9 @@ describe('overworld readability helpers', () => {
 });
 
 /** Browser smoke fixture: await createWorldMapBrowserFixture(document.querySelector('#fixture')!).
- * Then keyboard-tab through the node buttons, select a division, issue a legal order,
- * call handle.update(war), and finally handle.destroy(); verify the canvas and section disappear.
+ * The hero's division starts selected: click a gold-ringed node (or a "March to" button), check
+ * the arrow and "This turn" label, Cancel, then handle.update(war) and handle.destroy(); verify the
+ * canvas and section disappear.
  */
 export async function createWorldMapBrowserFixture(root: HTMLElement) {
   const war = makeWar();

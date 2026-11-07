@@ -6,7 +6,7 @@ import type { StartBattleView } from '../../battle/types';
 import { snapshotBattleResult } from '../../world/sequence';
 import { campaignBattlePerspective } from './battlePerspective';
 import {
-  applyWildResult, buildWorldData, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
+  applyWildResult, buildWorldData, cancelOrder, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
   resolveTurn, resumeTurn, saveWar, wildBattleSetup,
   type BuiltWorldData, type StorageLike, type War, type WorldOrder,
 } from '../../world';
@@ -16,7 +16,7 @@ import {
 } from '../../world/sequence';
 import { planFactionOrders } from '../../ai/strategy';
 import { joinDivision, leaveAsGarrison } from '../../world/garrison';
-import { mountWorldMap } from './index';
+import { mountWorldMap, type WorldMapSelection } from './index';
 import { mountWarStart } from './start';
 import './campaign.css';
 
@@ -45,6 +45,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
   let childHandle: { destroy(): void } | null = null;
   let battleRoot: HTMLElement | null = null;
   let busy = false;
+  // Map selection survives the remount that follows every turn.
+  let mapSelection: WorldMapSelection | undefined;
 
   const shell = document.createElement('div');
   shell.className = 'dl-campaign';
@@ -70,6 +72,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
   }
 
   function teardownChildren(): void {
+    shell.classList.remove('dl-campaign--fill');
     mapHandle?.destroy(); mapHandle = null;
     childHandle?.destroy(); childHandle = null;
     battleRoot?.remove(); battleRoot = null;
@@ -137,7 +140,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     shell.replaceChildren(host);
     childHandle = mountWarStart(host, {
       data, worldData: world, seed: opts.seed ?? 1,
-      onBegin: next => { war = next; commit(); },
+      onBegin: next => { war = next; mapSelection = undefined; commit(); },
       onBack: () => { screen = 'title'; render(); },
     });
   }
@@ -147,10 +150,14 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     const host = document.createElement('div'); host.className = 'dl-campaign__map';
     const status = document.createElement('div'); status.className = 'dl-campaign__status';
     shell.replaceChildren(status, host);
+    shell.classList.add('dl-campaign--fill');
     renderStatus(status);
     void mountWorldMap(host, {
       war, factionId: playerId,
+      selection: mapSelection,
+      onSelectionChange: next => { mapSelection = next; },
       onOrder: (order: WorldOrder) => { if (war) { issueOrder(war, order); saveWar(storage, war); renderStatus(status); } },
+      onCancelOrder: division => { if (war) { cancelOrder(war, division); saveWar(storage, war); renderStatus(status); } },
       onGarrison: intent => {
         if (!war) return;
         try {

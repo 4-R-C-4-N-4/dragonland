@@ -1,28 +1,62 @@
 import { Application } from 'pixi.js';
-import type { WorldOrder, War } from '../../world/types';
+import type { Division, WorldOrder, War } from '../../world/types';
+import { queuedOrders } from '../../world/engine';
+import { garrisonAt } from '../../world/garrison';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
-import { adjacentNodeIds, orderIntent } from './presentation';
+import {
+  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, nodeSummary, orderIntent, orderLabel,
+  turnReport, undefendedCastles,
+} from './presentation';
 import { visibleNodes } from '../../ai/strategy';
 import './world.css';
 
 export interface GarrisonIntent { type: 'leave' | 'join'; division: string; general: string }
-export interface WorldMapOptions { war: War; factionId: string; onOrder: (order: WorldOrder) => void; onEndTurn: () => void; onGarrison?: (intent: GarrisonIntent) => void }
+export interface WorldMapSelection { node: string | null; division: string | null }
+export interface WorldMapOptions {
+  war: War;
+  factionId: string;
+  onOrder: (order: WorldOrder) => void;
+  onEndTurn: () => void;
+  onGarrison?: (intent: GarrisonIntent) => void;
+  /** Withdraw a division's queued order; the controller owns the mutation. */
+  onCancelOrder?: (divisionId: string) => void;
+  /** Restores the previous selection after a remount (e.g. across turns). */
+  selection?: WorldMapSelection;
+  onSelectionChange?: (selection: WorldMapSelection) => void;
+}
 export interface WorldMapHandle { update(war: War): void; destroy(): void }
 
-/** Mounts the provisional map art and intent controls. This widget never changes the supplied War. */
+const ACTION_HELP: Record<'search' | 'rest' | 'hold', string> = {
+  search: 'Spend the turn hunting wild troops to recruit.',
+  rest: 'Heal generals and take on fresh troops.',
+  hold: 'Stay put and defend this node.',
+};
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+/**
+ * Mounts the overworld: a Pixi map plus a command sidebar. This widget never changes the
+ * supplied War; every change is an intent the controller applies before calling update().
+ */
 export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions): Promise<WorldMapHandle> {
-  let war = options.war, destroyed = false, selectedNode: string | null = null, selectedDivision: string | null = null;
+  const { factionId } = options;
+  let war = options.war, destroyed = false, confirmingEnd = false;
+  let selectedNode: string | null = options.selection?.node ?? null;
+  let selectedDivision: string | null = options.selection?.division ?? null;
   const cleanups: (() => void)[] = [];
   let failure: unknown;
-  const shell = document.createElement('section'); shell.className = 'dl-world-map';
-  const mapArea = document.createElement('div'); mapArea.className = 'dl-world-map__stage';
-  const side = document.createElement('aside'); side.className = 'dl-world-map__side dl-panel';
-  const canvasWrap = document.createElement('div'); canvasWrap.className = 'dl-world-map__canvas';
-  const info = document.createElement('div'); info.className = 'dl-world-map__info';
-  const nodesList = document.createElement('div'); nodesList.className = 'dl-world-map__nodes';
-  const status = document.createElement('div'); status.className = 'dl-world-map__status';
-  const orders = document.createElement('div'); orders.className = 'dl-world-map__orders';
-  shell.append(mapArea, side); mapArea.append(canvasWrap, info); side.append(status, nodesList, orders); root.appendChild(shell);
+  const shell = el('section', 'dl-world-map');
+  const stage = el('div', 'dl-world-map__stage');
+  const canvasWrap = el('div', 'dl-world-map__canvas');
+  const legend = buildLegend();
+  const side = el('aside', 'dl-world-map__side dl-panel');
+  side.setAttribute('aria-label', 'Orders');
+  shell.append(stage, side); stage.append(canvasWrap, legend); root.appendChild(shell);
   cleanups.push(() => { if (shell.parentElement) shell.remove(); });
   const app = new Application();
   cleanups.push(() => { const canvas = app.renderer ? app.canvas : undefined; try { if (app.renderer) app.destroy(true, { children: true }); else app.stage.destroy({ children: true }); } finally { canvas?.remove(); } });
@@ -40,90 +74,257 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     try { await loadWorldMapArt(); } catch { /* fall back to the plain plate */ }
     if (destroyed) { app.destroy(true, { children: true }); return { update() {}, destroy }; }
     canvasWrap.appendChild(app.canvas);
-    function selectNode(id: string): void {
-      selectedNode = id;
-      if (!war.divisions.some(d => d.id === selectedDivision && d.atNode === id && d.factionId === options.factionId)) selectedDivision = null;
+
+    const ownDivisions = () => war.divisions.filter(d => d.factionId === factionId && d.generals.length > 0).sort((a, b) => a.id.localeCompare(b.id));
+    const ownOrders = () => { const ids = new Set(ownDivisions().map(d => d.id)); return queuedOrders(war).filter(o => ids.has(o.division)); };
+    const currentDivision = () => ownDivisions().find(d => d.id === selectedDivision);
+    const canOrder = () => war.phase === 'orders';
+    const nodeName = (id: string) => war.nodes.find(n => n.id === id)?.name ?? id;
+    const targets = (): Set<string> => { const d = currentDivision(); return new Set(d && canOrder() ? adjacentNodeIds(war, d.atNode) : []); };
+
+    function settleSelection(): void {
+      if (selectedNode && !war.nodes.some(n => n.id === selectedNode)) selectedNode = null;
+      if (selectedDivision && !currentDivision()) selectedDivision = null;
+      const tracked = currentDivision(); if (tracked) selectedNode = tracked.atNode;
+      // Nothing chosen yet: start on the hero's division so the first click can be a march.
+      if (!selectedDivision && !selectedNode) {
+        const d = defaultDivision(war, factionId);
+        if (d) { selectedDivision = d.id; selectedNode = d.atNode; }
+      }
+    }
+    function changed(): void {
+      options.onSelectionChange?.({ node: selectedNode, division: selectedDivision });
       render();
     }
-    const redraw = () => drawWorldMap(app.stage, war, options.factionId, selectNode, app.renderer.width, app.renderer.height);
+    function selectDivision(id: string): void {
+      const d = ownDivisions().find(x => x.id === id); if (!d) return;
+      selectedDivision = d.id; selectedNode = d.atNode; changed();
+    }
+    function issue(intent: WorldOrder | null): void {
+      if (!intent) return;
+      confirmingEnd = false;
+      options.onOrder(intent);
+      render();
+    }
+    function clickNode(id: string): void {
+      const d = currentDivision();
+      if (d && targets().has(id)) { issue(orderIntent(war, factionId, d.id, 'march', id)); return; }
+      const here = ownDivisions().filter(x => x.atNode === id);
+      if (here.length) {
+        // Repeated clicks cycle through several of your divisions on one node.
+        const next = here[(here.findIndex(x => x.id === selectedDivision) + 1) % here.length]!;
+        selectDivision(next.id); return;
+      }
+      selectedNode = id; selectedDivision = null; changed();
+    }
+
+    const view = () => ({ factionId, selectedNode, selectedDivision, targets: targets(), orders: ownOrders(), onNode: clickNode, onDivision: selectDivision });
+    const redraw = () => drawWorldMap(app.stage, war, view(), app.renderer.width, app.renderer.height);
     const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => redraw()) : undefined;
     resize?.observe(canvasWrap); if (resize) cleanups.push(() => resize.disconnect());
-    function button(label: string, disabled: boolean, action: () => void, primary = false): HTMLButtonElement {
-      const el = document.createElement('button'); el.type = 'button'; el.textContent = label; el.disabled = disabled; if (primary) el.classList.add('dl-primary'); el.addEventListener('click', action); return el;
+
+    function button(label: string, action: () => void, opts: { key: string; disabled?: boolean; primary?: boolean; pressed?: boolean; detail?: string } ): HTMLButtonElement {
+      const b = el('button');
+      b.type = 'button'; b.dataset.key = opts.key; b.disabled = !!opts.disabled;
+      if (opts.primary) b.classList.add('dl-primary');
+      if (opts.pressed !== undefined) b.setAttribute('aria-pressed', String(opts.pressed));
+      b.append(el('span', 'dl-world-map__btn-label', label));
+      if (opts.detail) b.append(el('small', 'dl-world-map__btn-detail', opts.detail));
+      b.addEventListener('click', action);
+      return b;
     }
-    function render(): void {
-      if (destroyed) return;
-      if (selectedNode && !war.nodes.some(n => n.id === selectedNode)) selectedNode = null;
-      if (selectedDivision && !war.divisions.some(d => d.id === selectedDivision && d.factionId === options.factionId && d.generals.length)) selectedDivision = null;
-      redraw();
-      status.textContent = `Turn ${war.turn} · Week ${war.week} · ${war.phase}`;
-      const disclaimer = document.createElement('small'); disclaimer.textContent = 'Provisional map art';
-      if (!side.querySelector('.dl-world-map__disclaimer')) { disclaimer.className = 'dl-world-map__disclaimer'; side.insertBefore(disclaimer, status); }
-      nodesList.replaceChildren();
-      for (const node of war.nodes) {
-        const b = button(`${node.name} · ${node.kind} · ${node.biome} · ${war.factions.find(f => f.id === node.owner)?.name ?? 'Unclaimed'}`, false, () => selectNode(node.id));
-        b.setAttribute('aria-pressed', String(selectedNode === node.id)); nodesList.appendChild(b);
+    function section(title: string, className: string): HTMLElement {
+      const s = el('section', `dl-world-map__section ${className}`);
+      s.append(el('h3', undefined, title));
+      return s;
+    }
+
+    function renderTurnBar(orders: WorldOrder[]): HTMLElement {
+      const bar = el('div', 'dl-world-map__turn');
+      const undefended = undefendedCastles(war, factionId, orders);
+      if (!canOrder()) {
+        bar.append(el('p', 'dl-world-map__hint', 'Orders are closed while the turn resolves.'));
+        return bar;
       }
-      info.replaceChildren();
-      const node = war.nodes.find(n => n.id === selectedNode);
-      if (node) {
-        const heading = document.createElement('h2'); heading.textContent = `${node.name} · ${node.kind}`; info.append(heading);
-        const detail = document.createElement('p'); detail.textContent = `${node.biome} · ${war.factions.find(f => f.id === node.owner)?.name ?? 'Unclaimed'}`; info.append(detail);
-        const seen = visibleNodes(war, options.factionId);
-        const divisions = war.divisions.filter(d => d.atNode === node.id && (d.factionId === options.factionId || (seen.has(node.id) && d.generals.length > 0)));
-        for (const division of divisions) {
-          const own = division.factionId === options.factionId;
-          const b = button(own ? `Select division ${division.id}` : 'Enemy division present', !own, () => { selectedDivision = division.id; render(); }); info.appendChild(b);
+      if (confirmingEnd && undefended.length) {
+        const box = el('div', 'dl-world-map__confirm');
+        box.setAttribute('role', 'alertdialog'); box.setAttribute('aria-label', 'Confirm end turn');
+        box.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will have no defenders. Any enemy that walks in takes it, and losing every castle loses the war.`));
+        const actions = el('div', 'dl-world-map__row');
+        actions.append(
+          button('End turn anyway', () => { confirmingEnd = false; options.onEndTurn(); }, { key: 'end-confirm', primary: true }),
+          button('Keep giving orders', () => { confirmingEnd = false; render(); }, { key: 'end-cancel' }),
+        );
+        box.append(actions); bar.append(box);
+        return bar;
+      }
+      bar.append(button(`End turn ${war.turn}`, () => {
+        if (!canOrder()) return;
+        if (undefendedCastles(war, factionId, ownOrders()).length) { confirmingEnd = true; render(); return; }
+        options.onEndTurn();
+      }, { key: 'end-turn', primary: true }));
+      if (undefended.length) {
+        const warn = el('div', 'dl-world-map__warning');
+        warn.setAttribute('role', 'status');
+        warn.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will be left undefended. Leave a general to hold it, or keep a division there.`));
+        // One-click fix: detach the last non-hero general of a division still standing on the castle.
+        for (const castle of undefended) {
+          const d = ownDivisions().find(x => x.atNode === castle.id && x.generals.length > 1);
+          const gid = d && [...d.generals].reverse().find(id => !war.generals.find(g => g.id === id)?.isHero);
+          const g = gid && war.generals.find(x => x.id === gid);
+          if (d && g && options.onGarrison) warn.append(button(`Leave ${g.name} to hold ${castle.name}`, () => {
+            try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
+          }, { key: `quick-leave-${castle.id}` }));
         }
+        bar.append(warn);
       }
-      const division = war.divisions.find(d => d.id === selectedDivision);
-      if (division) for (const id of division.generals) {
-        const g = war.generals.find(x => x.id === id); if (!g) continue;
-        const row = document.createElement('p'); row.textContent = `${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`; info.appendChild(row);
-        const node = war.nodes.find(n => n.id === division.atNode);
-        const holdable = war.phase === 'orders' && node && node.owner === options.factionId && (node.kind === 'castle' || node.kind === 'town');
-        if (holdable && division.generals.length > 1) {
-          info.appendChild(button(`Leave ${g.name} to hold ${node!.name}`, false, () => {
-            try { options.onGarrison?.({ type: 'leave', division: division.id, general: g.id }); } catch { /* reported by the controller */ }
+      return bar;
+    }
+
+    function renderDivisionList(orders: WorldOrder[]): HTMLElement {
+      const s = section('Your divisions', 'dl-world-map__divisions');
+      for (const d of ownDivisions()) {
+        const troops = d.generals.reduce((n, id) => n + (war.generals.find(g => g.id === id)?.troops.length ?? 0), 0);
+        s.append(button(divisionName(war, d), () => selectDivision(d.id), {
+          key: `division-${d.id}`, pressed: d.id === selectedDivision,
+          detail: `${nodeName(d.atNode)} · ${d.generals.length} general${d.generals.length === 1 ? '' : 's'} · ${troops} troops — ${orderLabel(war, orders.find(o => o.division === d.id))}`,
+        }));
+      }
+      if (!ownDivisions().length) s.append(el('p', 'dl-world-map__hint', 'You have no divisions in the field.'));
+      const held = war.nodes.filter(n => n.owner === factionId).map(n => ({ n, ids: garrisonAt(war, n.id, factionId) })).filter(x => x.ids.length);
+      for (const { n, ids } of held) {
+        s.append(button(`${n.name} garrison`, () => { selectedNode = n.id; selectedDivision = null; changed(); }, {
+          key: `garrison-${n.id}`, pressed: selectedNode === n.id && !selectedDivision,
+          detail: ids.map(id => war.generals.find(g => g.id === id)?.name ?? id).join(', '),
+        }));
+      }
+      return s;
+    }
+
+    /** A general's stats with an optional compact action on the same line. */
+    function generalRow(id: string, tag?: string, action?: HTMLButtonElement): HTMLElement | null {
+      const g = war.generals.find(x => x.id === id); if (!g) return null;
+      const row = el('div', 'dl-world-map__general');
+      const text = el('span');
+      if (tag) text.append(el('span', 'dl-world-map__tag', tag));
+      text.append(el('strong', undefined, g.name + (g.isHero ? ' (hero)' : '')));
+      text.append(document.createTextNode(` · HP ${Math.round(g.hp)}/${g.maxHp} · ${g.troops.length}/${g.capacity} troops${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
+      row.append(text);
+      if (action) { action.classList.add('dl-world-map__small'); row.append(action); }
+      return row;
+    }
+
+    function renderDivisionDetail(d: Division, orders: WorldOrder[]): HTMLElement {
+      const node = war.nodes.find(n => n.id === d.atNode);
+      const s = section(divisionName(war, d), 'dl-world-map__detail');
+      if (node) s.append(el('p', 'dl-world-map__hint', `At ${node.name} — ${nodeSummary(war, node, factionId)}`));
+
+      const order = orders.find(o => o.division === d.id);
+      const current = el('div', 'dl-world-map__current');
+      current.append(el('span', undefined, `This turn: ${orderLabel(war, order)}`));
+      if (order && canOrder() && options.onCancelOrder) current.append(button('Cancel', () => { confirmingEnd = false; options.onCancelOrder!(d.id); render(); }, { key: 'cancel-order' }));
+      s.append(current);
+
+      if (canOrder()) {
+        s.append(el('p', 'dl-world-map__hint', 'Click a gold-ringed node on the map to march there, or choose below.'));
+        for (const id of adjacentNodeIds(war, d.atNode)) {
+          const target = war.nodes.find(n => n.id === id); if (!target) continue;
+          s.append(button(`March to ${target.name}`, () => issue(orderIntent(war, factionId, d.id, 'march', id)), {
+            key: `march-${id}`, pressed: order?.type === 'march' && order.toNode === id, detail: nodeSummary(war, target, factionId),
+          }));
+        }
+        for (const type of ['search', 'rest', 'hold'] as const) {
+          const blocker = type === 'hold' ? null : actionBlocker(war, d, type);
+          s.append(button(type[0]!.toUpperCase() + type.slice(1), () => issue(orderIntent(war, factionId, d.id, type)), {
+            key: `action-${type}`, disabled: !!blocker, pressed: order?.type === type, detail: blocker ?? ACTION_HELP[type],
           }));
         }
       }
-      // Generals already holding this node can rejoin a division standing here.
-      if (node && division) {
-        for (const g of war.generals.filter(x => x.factionId === options.factionId && x.nodeId === node.id && !war.divisions.some(d => d.generals.includes(x.id)))) {
-          const row = document.createElement('p');
-          row.textContent = `Holding ${node.name} — ${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`;
-          info.appendChild(row);
-          if (war.phase === 'orders') {
-            info.appendChild(button(`Take ${g.name} along`, false, () => {
-              try { options.onGarrison?.({ type: 'join', division: division.id, general: g.id }); } catch { /* reported by the controller */ }
-            }));
-          }
-        }
-      } else if (node) {
-        for (const g of war.generals.filter(x => x.factionId === options.factionId && x.nodeId === node.id && !war.divisions.some(d => d.generals.includes(x.id)))) {
-          const row = document.createElement('p');
-          row.textContent = `Holding ${node.name} — ${g.name}: HP ${g.hp}/${g.maxHp}, troops ${g.troops.length}/${g.capacity}`;
-          info.appendChild(row);
-        }
+
+      s.append(el('h4', undefined, 'Generals'));
+      const holdable = canOrder() && node && node.owner === factionId && (node.kind === 'castle' || node.kind === 'town');
+      for (const id of d.generals) {
+        const g = war.generals.find(x => x.id === id); if (!g) continue;
+        const leave = holdable && d.generals.length > 1 ? button('Leave here', () => {
+          try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
+        }, { key: `leave-${g.id}` }) : undefined;
+        leave?.setAttribute('aria-label', `Leave ${g.name} to defend ${node?.name ?? 'this node'}`);
+        const row = generalRow(id, undefined, leave); if (row) s.append(row);
       }
-      orders.replaceChildren();
-      const legal = war.phase === 'orders' && !!division && division.factionId === options.factionId;
-      const destinations = division ? adjacentNodeIds(war, division.atNode) : [];
-      const select = document.createElement('select'); select.setAttribute('aria-label', 'Adjacent march target');
-      const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Choose adjacent node'; select.append(placeholder);
-      for (const id of destinations) { const n = war.nodes.find(x => x.id === id); const option = document.createElement('option'); option.value = id; option.textContent = n?.name ?? id; select.append(option); }
-      select.disabled = !legal || !destinations.length; orders.appendChild(select);
-      orders.appendChild(button('March', !legal || !select.value, () => { const intent = division && orderIntent(war, options.factionId, division.id, 'march', select.value); if (intent) options.onOrder(intent); }));
-      select.addEventListener('change', () => { const march = orders.querySelector('button'); if (march) march.disabled = !legal || !select.value; });
-      for (const type of ['search', 'rest', 'hold'] as const) orders.appendChild(button(type[0]!.toUpperCase() + type.slice(1), !legal, () => { const intent = division && selectedDivision === division.id ? orderIntent(war, options.factionId, division.id, type) : null; if (intent) options.onOrder(intent); }));
-      orders.appendChild(button('End turn', war.phase !== 'orders', () => { if (war.phase === 'orders') options.onEndTurn(); }, true));
+      if (node) for (const id of garrisonAt(war, node.id, factionId)) {
+        const g = war.generals.find(x => x.id === id)!;
+        const join = canOrder() ? button('Take along', () => {
+          try { options.onGarrison?.({ type: 'join', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
+        }, { key: `join-${g.id}` }) : undefined;
+        join?.setAttribute('aria-label', `Take ${g.name} along`);
+        const row = generalRow(id, 'garrison', join); if (row) s.append(row);
+      }
+      if (holdable && d.generals.length > 1) s.append(el('p', 'dl-world-map__hint', `A general left here defends ${node!.name} while the division marches on.`));
+      return s;
     }
-    redraw(); render();
-    return { update(next) { if (destroyed) return; war = next; render(); }, destroy };
+
+    function renderNodeDetail(id: string): HTMLElement | null {
+      const node = war.nodes.find(n => n.id === id); if (!node) return null;
+      const s = section(node.name, 'dl-world-map__detail');
+      s.append(el('p', 'dl-world-map__hint', nodeSummary(war, node, factionId)));
+      const seen = visibleNodes(war, factionId).has(node.id);
+      for (const d of war.divisions.filter(x => x.atNode === node.id && x.generals.length > 0)) {
+        if (d.factionId === factionId) s.append(button(`Select ${divisionName(war, d)}`, () => selectDivision(d.id), { key: `division-at-${d.id}` }));
+        else if (seen) s.append(el('p', 'dl-world-map__enemy', `${war.factions.find(f => f.id === d.factionId)?.name ?? 'Enemy'}: ${divisionName(war, d)}, ${d.generals.length} general${d.generals.length === 1 ? '' : 's'}`));
+      }
+      if (node.owner === factionId) for (const gid of garrisonAt(war, node.id, factionId)) {
+        const row = generalRow(gid, 'garrison'); if (row) s.append(row);
+      }
+      if (!seen) s.append(el('p', 'dl-world-map__hint', 'Out of sight: you cannot see who is here.'));
+      return s;
+    }
+
+    /** Shown after a resolved turn; a reloaded save carries no events, so it shows nothing rather than a false "quiet turn". */
+    function renderReport(): HTMLElement | null {
+      if (war.turn <= 1 || !war.events.length) return null;
+      const s = section(`Turn ${war.turn - 1} report`, 'dl-world-map__report');
+      const lines = turnReport(war, factionId);
+      if (!lines.length) { s.append(el('p', 'dl-world-map__hint', 'Nothing you could see happened.')); return s; }
+      const list = el('ul');
+      for (const line of lines) list.append(el('li', undefined, line));
+      s.append(list);
+      return s;
+    }
+
+    function render(): void {
+      if (destroyed) return;
+      settleSelection();
+      // Keep keyboard focus on the same control across re-renders.
+      const focusKey = (document.activeElement instanceof HTMLElement && side.contains(document.activeElement)) ? document.activeElement.dataset.key : undefined;
+      redraw();
+      const orders = ownOrders();
+      const d = currentDivision();
+      const detail = d ? renderDivisionDetail(d, orders) : selectedNode ? renderNodeDetail(selectedNode) : null;
+      side.replaceChildren(...[renderTurnBar(orders), renderReport(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
+      if (focusKey) {
+        const target = [...side.querySelectorAll<HTMLElement>('[data-key]')].find(x => x.dataset.key === focusKey);
+        (target && !(target as HTMLButtonElement).disabled ? target : side.querySelector<HTMLElement>('[data-key="end-turn"], [data-key="end-confirm"]'))?.focus();
+      }
+    }
+    render();
+    return { update(next) { if (destroyed) return; war = next; confirmingEnd = false; render(); }, destroy };
   } catch (error) {
     failure = error;
     try { destroy(); } catch { /* preserve initialization error */ }
     throw failure;
   }
+}
+
+function buildLegend(): HTMLElement {
+  const legend = el('div', 'dl-world-map__legend');
+  legend.setAttribute('aria-label', 'Map legend');
+  const item = (cls: string, label: string) => { const s = el('span', 'dl-world-map__legend-item'); s.append(el('i', cls), document.createTextNode(label)); return s; };
+  legend.append(
+    item('lg-shape lg-castle', 'Castle'), item('lg-shape lg-town', 'Town'), item('lg-shape lg-village', 'Village'), item('lg-shape lg-lair', 'Lair'),
+    item('lg-swatch lg-own', 'Yours'), item('lg-swatch lg-enemy', 'Enemy'), item('lg-swatch lg-neutral', 'Unclaimed'),
+    item('lg-banner lg-own', 'Your division'), item('lg-banner lg-enemy', 'Enemy division'),
+    item('lg-arrow', 'Queued march'), item('lg-ring', 'Can march here'),
+  );
+  legend.append(el('small', 'dl-world-map__disclaimer', 'Provisional map art'));
+  return legend;
 }
