@@ -38,6 +38,12 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Independent spec review PASS. Quality review REQUEST_CHANGES, all confirmed by probe and fixed: the map badge and sidebar called injured garrison generals defenders although the engine lets an enemy walk past them (now `garrisonStatus` splits defenders from "not defending", matching `hasGarrison`); render imported from ui (`nodeTone` moved to `src/render/worldTone.ts`); focus fallback could land on End turn; no escape for short wide windows. 693 tests/build pass.
 - **Engine finding, not changed here:** generals left in a *town* never fight. `captureUndefended` and `detectEncounters` only consider castle garrisons, so an enemy walking into a town takes it and the stationed general stays in an enemy-owned town. The UI now says so instead of promising a defence. Needs a design call (towns defend like castles, or towns cannot hold generals).
 
+### Opening force — `dddab7d`
+
+- 150 starting troops (was 100); each player general leads up to 70 (`PLAYER_STARTING_CAPACITY`), rivals keep 50. Default split 50/50/50.
+- Headless first-skirmish probe, 5 heroes × 8 seeds, AI on both sides: hero wins 0/40 at the old 34 troops, 4/40 at an even 50, 40/40 with 70.
+- **Open, not fixed:** at equal troops the player still loses most fights, and which sim side you are on matters: the same fights won 4/40 from side 1 and 12/40 from side 0. That conflicts with the rule that tie-breaks must not favour a side and needs its own investigation. Campaign skirmishes also make one squad per species (up to 9) while the HUD and `MAX_SQUADS` assume 4.
+
 ### Historical integration milestones (superseded by demo status above)
 
 - Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.
