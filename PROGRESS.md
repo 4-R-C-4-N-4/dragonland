@@ -42,7 +42,17 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 
 - 150 starting troops (was 100); each player general leads up to 70 (`PLAYER_STARTING_CAPACITY`), rivals keep 50. Default split 50/50/50.
 - Headless first-skirmish probe, 5 heroes × 8 seeds, AI on both sides: hero wins 0/40 at the old 34 troops, 4/40 at an even 50, 40/40 with 70.
-- **Open, not fixed:** at equal troops the player still loses most fights, and which sim side you are on matters: the same fights won 4/40 from side 1 and 12/40 from side 0. That conflicts with the rule that tie-breaks must not favour a side and needs its own investigation. Campaign skirmishes also make one squad per species (up to 9) while the HUD and `MAX_SQUADS` assume 4.
+- Side bias and squad overflow: resolved in the next section.
+
+### Battle fairness — side bias and squad limit
+
+- **Squad limit.** Campaign and wild fights made one squad per species (up to 9) while formations have 4 slots; extra squads wrapped onto occupied slots and stacked. `src/world/squads.ts` now builds at most `MAX_SQUADS` squads (species kept together, extras joining the same line, undersized squads folded), and `createBattle` rejects any side with more squads than formation slots.
+- **Side bias in the core sim**, found with exact-mirror fights (identical army on both sides, 200 seeds). Before: the stock `even` loadout gave side 0 73%. Causes fixed: troops were packed toward +x on both sides, so a squad's first-listed units stood at the back on side 0 and the front on side 1; deaths applied mid-tick, so whoever was processed first won even trades (now applied together at end of tick); body-overlap resolution always swept side 0 first (now alternates); same-tick general deaths always went to side 1 and duel ties used `seed % 2` (both now a seeded draw, DECISIONS D13). Retarget phase was tested and had no effect, so it is unchanged.
+- After: stock mirrors 55.5 / 51 / 51.5 / 49.5 / 49.5 / 52.5% side 0 (`even`, `mixed-host`, `human-legion`, `beast-horde`, `beast-wall`, `human-skirmish`; 200 runs each, both sides AI). Campaign-army mirrors over 80 distinct wars: 40/80 and 45/80.
+- Opening fight, 80 distinct wars: hero with 50 troops wins 22/80 attacking and 20/80 with the sim sides swapped (side-neutral now). With 70 troops it wins 80/80. The 50-vs-50 deficit is matchup and numbers, not bias.
+- An earlier probe reported campaign mirrors at 5/40; that probe reused 8 battles 5 times (the rival army and battle seed depend only on the war seed). Disregard those numbers.
+- **Committed balance reports are now historical:** `docs/qa/mp-special-balance.md`, `special-balance-*.json`, `release-diagnostics.*` and `field-distance-baseline.json` were generated on the pre-fix engine. Regenerate before using them for tuning.
+- Gate: 708 tests, typecheck, build, `git diff --check`. Browser: a campaign skirmish launches with 4 squads and 4 control cards.
 
 ### Historical integration milestones (superseded by demo status above)
 

@@ -3,7 +3,7 @@
 import type { GameData, UnitDef } from '../data';
 import type { Approach, Command } from '../data/schemas';
 import { createRng, nextRange, type Rng } from './rng';
-import { generalPosition, packAroundSlot, slotPosition } from './formations';
+import { generalPosition, packAroundSlot, sideDir, slotPosition } from './formations';
 import { SpatialGrid } from './spatialGrid';
 import type { BattleSetup, Entities, GeneralState, Side, SquadState, World } from './types';
 
@@ -56,6 +56,8 @@ export interface WorldInternal {
   /** Per-entity deploy offset from its squad slot center; Mixed squads steer to centroid + offset to hold formation. */
   formOffX: Float64Array;
   formOffY: Float64Array;
+  /** Entities killed this tick; removed together at the end of the tick. */
+  dying: Set<number>;
 }
 
 export function internalOf(world: World): WorldInternal {
@@ -114,6 +116,9 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     const sideSetup = setup.sides[side]!;
     const formation = data.formationById.get(sideSetup.formationId);
     if (!formation) throw new Error(`unknown formation ${sideSetup.formationId}`);
+    // One squad per formation slot: extra squads would wrap onto occupied slots and stack.
+    const squadLimit = Math.min(data.constants.MAX_SQUADS, formation.slots.length);
+    if (sideSetup.squads.length > squadLimit) throw new Error(`side ${side} has ${sideSetup.squads.length} squads; at most ${squadLimit} squads fit the formation`);
     const generalDef = sideSetup.general ?? data.generalById.get(sideSetup.generalId);
     if (!generalDef) throw new Error(`unknown general ${sideSetup.generalId}`);
     if (generalDef.id !== sideSetup.generalId) throw new Error(`general override ${generalDef.id} does not match ${sideSetup.generalId}`);
@@ -172,7 +177,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
       let maxBody = 0;
       for (const t of sq.troops) maxBody = Math.max(maxBody, data.unitById.get(t.unitId)?.bodyRadius ?? 0);
       const spacing = Math.max(data.constants.TROOP_SPACING, 2 * maxBody + 1);
-      const positions = packAroundSlot(slotPos, sq.troops.length, spacing);
+      const positions = packAroundSlot(slotPos, sq.troops.length, spacing, sideDir(side));
       const members: number[] = [];
       let minSpeed = Infinity;
       sq.troops.forEach((troop, i) => {
@@ -245,6 +250,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     duelRound: 0,
     formOffX,
     formOffY,
+    dying: new Set(),
   };
 
   const world: World = {

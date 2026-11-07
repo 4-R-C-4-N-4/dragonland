@@ -63,11 +63,23 @@ function applyAttack(world: World, data: GameData, internal: WorldInternal, atta
   recordGeneralAggro(world, attacker, target);
   emitHit(world, attacker, target, dmg, aProfile.attackRange > data.constants.RANGED_THRESHOLD);
   ents.cooldown[attacker] = aProfile.attackCooldownS;
-  if (ents.hp[target]! <= 0 && ents.alive[target] === 1) {
-    ents.alive[target] = 0;
-    ents.target[target] = -1;
-    emitDeath(world, target);
+  // Deaths land at the end of the tick (flushDeaths), so a troop killed this tick still strikes
+  // this tick. Removing it immediately let whichever side was processed first win even trades.
+  if (ents.hp[target]! <= 0 && ents.alive[target] === 1) internal.dying.add(target);
+}
+
+/** Apply every death queued this tick, in ascending entity order. */
+export function flushDeaths(world: World): void {
+  const internal = internalOf(world);
+  if (!internal.dying.size) return;
+  const ents = world.ents;
+  for (const e of [...internal.dying].sort((a, b) => a - b)) {
+    if (ents.alive[e] === 0) continue;
+    ents.alive[e] = 0;
+    ents.target[e] = -1;
+    emitDeath(world, e);
   }
+  internal.dying.clear();
 }
 
 /**
@@ -318,7 +330,8 @@ function rebuildGrid(world: World, internal: WorldInternal): void {
 /**
  * Hard body-overlap resolution: no two bodies in the same domain (ground/flying) may overlap.
  * Steering separation alone loses to seek forces once velocities are clamped, which let whole
- * squads collapse onto one point. Fixed ascending order keeps it deterministic. Generals are
+ * squads collapse onto one point. Sweep direction alternates by tick and iteration (still a pure
+ * function of tick) so side 0's lower entity indices are not always settled first. Generals are
  * immovable anchors; troops are pushed off them.
  */
 function resolveOverlaps(world: World, data: GameData, internal: WorldInternal, flying: Uint8Array): void {
@@ -327,12 +340,14 @@ function resolveOverlaps(world: World, data: GameData, internal: WorldInternal, 
   const iterations = data.behaviors.overlapIterations;
   for (let it = 0; it < iterations; it++) {
     rebuildGrid(world, internal);
-    for (let e = 0; e < ents.count; e++) {
+    const fwd = (world.tick + it) % 2 === 0;
+    for (let e = fwd ? 0 : ents.count - 1; fwd ? e < ents.count : e >= 0; e += fwd ? 1 : -1) {
       if (ents.alive[e] === 0) continue;
       const re = profileFor(internal, e, ents).bodyRadius;
       internal.grid.queryNeighborhood(ents.x[e]!, ents.y[e]!, buf);
       for (const o of buf) {
-        if (o <= e || ents.alive[o] === 0 || flying[o] !== flying[e]) continue;
+        // Each pair once, from whichever end the sweep reaches first.
+        if ((fwd ? o <= e : o >= e) || ents.alive[o] === 0 || flying[o] !== flying[e]) continue;
         const minD = re + profileFor(internal, o, ents).bodyRadius;
         let dx = ents.x[o]! - ents.x[e]!;
         let dy = ents.y[o]! - ents.y[e]!;

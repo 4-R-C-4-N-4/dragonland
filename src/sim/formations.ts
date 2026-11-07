@@ -34,8 +34,12 @@ export function slotPosition(data: GameData, side: Side, formation: FormationDef
   return { x, y };
 }
 
-/** Deterministic square-ish packing of `count` troop positions around a slot center. */
-export function packAroundSlot(center: Vec2, count: number, spacing: number): Vec2[] {
+/**
+ * Deterministic square-ish packing of `count` troop positions around a slot center. Pass the
+ * side's facing so troop order maps to the same front/back position on both sides; packing
+ * every side toward +x put side 0's first troops at the back and side 1's at the front.
+ */
+export function packAroundSlot(center: Vec2, count: number, spacing: number, dir: 1 | -1 = 1): Vec2[] {
   const out: Vec2[] = [];
   const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
   const rows = Math.ceil(count / cols);
@@ -44,7 +48,7 @@ export function packAroundSlot(center: Vec2, count: number, spacing: number): Ve
     for (let c = 0; c < cols && i < count; c++) {
       const ox = (c - (cols - 1) / 2) * spacing;
       const oy = (r - (rows - 1) / 2) * spacing;
-      out.push({ x: center.x + ox, y: center.y + oy });
+      out.push({ x: center.x + dir * ox, y: center.y + oy });
       i++;
     }
   }

@@ -1,5 +1,6 @@
 // Skirmish end conditions and result construction (implementation.md §2.10).
 import type { BattleResult, Side, World } from './types';
+import { nextFloat, type Rng } from './rng';
 
 export function buildResult(world: World, winner: Side, reason: BattleResult['reason']): BattleResult {
   const ents = world.ents;
@@ -27,6 +28,15 @@ export function checkFightEnd(world: World): void {
   const g0 = world.generals[0];
   const g1 = world.generals[1];
 
+  if (ents.alive[g0.entity] === 0 && ents.alive[g1.entity] === 0) {
+    // Both commanders fell in the same tick (deaths resolve together): a seeded coin decides,
+    // never a fixed side.
+    const winner: Side = nextFloat((world._internal as { rng: Rng }).rng) < 0.5 ? 0 : 1;
+    world.result = buildResult(world, winner, 'generalDefeated');
+    world.phase = 'result';
+    world.events.push({ type: 'phase', phase: 'result' });
+    return;
+  }
   if (ents.alive[g0.entity] === 0) {
     world.result = buildResult(world, 1, 'generalDefeated');
     world.phase = 'result';

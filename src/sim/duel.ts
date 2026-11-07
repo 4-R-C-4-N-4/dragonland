@@ -5,6 +5,7 @@ import { canFireSpecialReal, doFireSpecial } from './specials';
 import { buildResult } from './skirmish';
 import type { Side, World } from './types';
 import { internalOf, type WorldInternal } from './world';
+import { nextFloat } from './rng';
 
 interface DuelTimerHolder extends WorldInternal {
   duelTimer?: number;
@@ -14,10 +15,11 @@ function enemySide(side: Side): Side {
   return side === 0 ? 1 : 0;
 }
 
-/** Deterministic tie-break when both generals hit 0 HP on the same blow: alternates by seed
- * parity so it doesn't silently favor one side across an ensemble of battles. DECISIONS D13. */
+/** Deterministic tie-break when both generals hit 0 HP on the same blow (or tie on HP
+ * fraction): a draw from the battle's seeded RNG. Seed parity was used before, which handed
+ * every tie to one side whenever a caller's seeds shared a low bit. DECISIONS D13. */
 function tieBreakWinner(world: World): Side {
-  return world.setup.seed % 2 === 0 ? 0 : 1;
+  return nextFloat(internalOf(world).rng) < 0.5 ? 0 : 1;
 }
 
 export function runDuelTick(world: World, dt: number): void {

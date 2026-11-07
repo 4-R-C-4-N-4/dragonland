@@ -1,4 +1,5 @@
 import { getGameData } from '../data';
+import { companySquads } from './squads';
 import { uniqueName } from '../data/names';
 import { deriveTroopStats, type ProgressTroop } from '../progression';
 import type { BattleSetup, BattleResult, SideSetup } from '../sim';
@@ -145,18 +146,11 @@ export function wildBattleSetup(war: War, divisionId: string, generalId: string)
   const profile = game.generalById.get(general.generalId);
   const formationId = game.formations[0]?.id;
   if (!profile || !formationId) throw new Error('Missing general profile or formation');
-  const grouped = new Map<string, ProgressTroop[]>();
-  for (const troop of general.troops) (grouped.get(troop.unitId) ?? grouped.set(troop.unitId, []).get(troop.unitId)!).push(troop);
   const ours: SideSetup = {
     generalId: general.generalId,
     formationId,
     general: { ...profile, hp: Math.max(1, general.hp), level: general.level },
-    squads: [...grouped.entries()].map(([unitId, troops], index) => ({
-      id: `side1-${general.id}-squad${index}`,
-      name: game.unitById.get(unitId)!.name,
-      disposition: 'mixed' as const,
-      troops: troops.map(t => ({ troopId: t.id, name: t.name, unitId: t.unitId, statMult: deriveTroopStats(game.unitById.get(t.unitId)!, t.level).damageMultiplier })),
-    })),
+    squads: companySquads(general.troops, `side1-${general.id}`),
   };
   return {
     encounterId: pending.id,

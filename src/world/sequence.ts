@@ -6,6 +6,7 @@ import { internal } from './rng';
 import { nextFloat } from './rng';
 import type { BattleSetup, SideSetup } from '../sim';
 import { retreatNode } from './movement';
+import { companySquads } from './squads';
 import type { Division, GeneralRecord, PendingBattle, War } from './types';
 
 export interface BattleSelection {
@@ -122,12 +123,7 @@ function buildSide(g: GeneralRecord, sideIndex: 0 | 1): SideSetup {
   const profile = game.generalById.get(g.generalId);
   const formationId = game.formations[0]?.id;
   if (!profile || !formationId) throw new Error(!profile ? `Missing general profile ${g.generalId}` : 'No battle formation is available');
-  const grouped = new Map<string, typeof g.troops>();
-  for (const troop of g.troops) (grouped.get(troop.unitId) ?? grouped.set(troop.unitId, []).get(troop.unitId)!).push(troop);
-  const squads = [...grouped.entries()].map(([unitId, troops], index) => ({
-    id: `side${sideIndex}-${g.id}-squad${index}`, name: game.unitById.get(unitId)!.name, disposition: 'mixed' as const,
-    troops: troops.map(t => ({ troopId: t.id, name: t.name, unitId: t.unitId, statMult: deriveTroopStats(game.unitById.get(t.unitId)!, t.level).damageMultiplier })),
-  }));
+  const squads = companySquads(g.troops, `side${sideIndex}-${g.id}`);
   return { generalId: g.generalId, formationId, general: { ...profile, hp: Math.max(1, g.hp), level: g.level }, squads };
 }
 function makeSkirmish(war: War, defender: GeneralRecord, attacker: GeneralRecord): BattleSelection {
