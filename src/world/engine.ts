@@ -60,6 +60,18 @@ export function issueOrder(war: War, order: import('./types').WorldOrder): void 
   else pending[index] = { ...order };
 }
 
+/** Read-only view of this turn's queued orders; the copies never alias the queue. */
+export function queuedOrders(war: War): import('./types').WorldOrder[] {
+  return internal(war).pending.map(order => ({ ...order }));
+}
+
+/** Withdraw a division's queued order so it holds by default; same phase rules as issueOrder. */
+export function cancelOrder(war: War, divisionId: string): void {
+  if (war.phase !== 'orders' || internal(war).activeTurn) return;
+  const state = internal(war);
+  state.pending = state.pending.filter(o => o.division !== divisionId);
+}
+
 /** FNV-style dual integer mix, matching the battle hash; canonical ids remove array-order bias. */
 export function hashWar(war: War): string {
   let h1 = 0x811c9dc5; let h2 = 0x1000193;
