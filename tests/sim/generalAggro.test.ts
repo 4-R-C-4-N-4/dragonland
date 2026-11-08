@@ -50,15 +50,20 @@ describe('general retaliation and return home', () => {
 
   it('returns exactly to its original stable position when the attacker dies', () => {
     const { w, g, e } = arena();
-    advance(w, 8);
+    // Stop on the tick the imp dies: from the next tick the duel walks the generals together.
+    for (let t = 0; t < 8 * data.constants.SIM_HZ && w.phase !== 'duel'; t++) step(w);
+    expect(w.phase).toBe('duel');
     // Exercise the movement AI independently: a double wipe otherwise enters
     // the duel immediately, where normal battlefield movement is suspended.
     for (let t = 0; t < 8 * data.constants.SIM_HZ; t++) { runGenerals(w); w.tick++; }
     expect(w.ents.x[e]).toBeCloseTo(g.startX, 8);
     expect(w.ents.y[e]).toBeCloseTo(g.startY, 8);
     expect(w.ents.target[e]).toBe(-1);
+    // With both companies gone the battle enters the duel, where the generals walk out to
+    // meet each other rather than standing at home (duel approach).
     advance(w, 2);
-    expect(w.ents.x[e]).toBeCloseTo(g.startX, 8);
+    expect(w.phase).toBe('duel');
+    expect(w.ents.x[e]).toBeGreaterThan(g.startX);
   });
 
   it('follows a known attacker outside its acquisition radius rather than dropping aggro', () => {

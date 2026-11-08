@@ -44,9 +44,11 @@
 }
 
 .dl-campaign__battle {
-  flex: 1 1 auto;
-  min-height: 0;
-  position: relative;
+  /* Fill the viewport exactly, like Skirmish's .dl-battle-root: as a flex child the box grew to
+     its canvas plus line-height, the page outgrew the window and both scrollbars appeared. */
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
 
 .dl-campaign__panel {

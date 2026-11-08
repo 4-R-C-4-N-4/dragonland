@@ -1,6 +1,7 @@
 // Dev-only entry: starts a battle directly without the builder (for testing src/battle/view.ts).
 // URL params let a designer reproduce a specific matchup/colour pairing for a readability check,
 // e.g. ?a=lean-beast&b=lean-beast&ca=%23e0b030&cb=%238a4fd8 (same composition, custom colours).
+// ?duel=1 skips the troops and opens on the general duel.
 import { getGameData } from '../data';
 import { buildSideSetupFromLoadout } from '../ai/commit';
 import { createRng } from '../sim/rng';
@@ -31,6 +32,9 @@ async function main(): Promise<void> {
   const playerSide = { ...buildSideSetupFromLoadout(data, playerLoadout, rng), color: colorA };
   const enemySide = { ...buildSideSetupFromLoadout(data, enemyLoadout, rng), color: colorB };
 
+  // ?duel=1: no troops on either side, so the battle opens straight into a general duel with the
+  // generals at their deploy positions, far apart (the case that once rendered an empty screen).
+  if (params.get('duel')) { playerSide.squads = []; enemySide.squads = []; }
   const setup: BattleSetup = { seed, sides: [playerSide, enemySide] };
 
   await startBattleView(root, {

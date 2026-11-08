@@ -54,6 +54,12 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - **Committed balance reports are now historical:** `docs/qa/mp-special-balance.md`, `special-balance-*.json`, `release-diagnostics.*` and `field-distance-baseline.json` were generated on the pre-fix engine. Regenerate before using them for tuning.
 - Gate: 708 tests, typecheck, build, `git diff --check`. Browser: a campaign skirmish launches with 4 squads and 4 control cards.
 
+### Duel and battle layout
+
+- Duels open with the generals wherever the fight left them, often 900-1300 apart on a 1600 field (9 of 30 opening fights). The sim never moved them and the camera zoomed 2x on the empty midpoint, so the duel screen looked blank. Generals now walk together at `DUEL_APPROACH_SPEED_MULT` x move speed (cap `DUEL_APPROACH_MAX_S`) before blows start, and `duelCamera` frames both until they meet. The blow sequence is unchanged; only its start is delayed.
+- Campaign battles overflowed the window (inline canvas line-height inside a flex child), giving both scrollbars. The battle host is now fixed to the viewport like Skirmish's, and the battle canvas is `display: block` for every host.
+- `battle.html?duel=1` opens straight into a duel for visual checks. Browser: generals visible from duel start and fighting in the middle; no page overflow at 1280x800, 1024x768, 800x600. Gate: 716 tests, build.
+
 ### Historical integration milestones (superseded by demo status above)
 
 - Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clampCamera, clampZoom, fitCamera, worldToScreen, screenToWorld, groundToScreen, screenToGround } from '../../src/battle/camera';
+import { clampCamera, clampZoom, duelCamera, fitCamera, worldToScreen, screenToWorld, groundToScreen, screenToGround } from '../../src/battle/camera';
 import { createProjection, projectedBounds } from '../../src/render/projection';
 
 const opts = { fieldW: 1600, fieldH: 600, viewportW: 800, viewportH: 400, minZoom: 0.3, maxZoom: 3 };
@@ -85,5 +85,24 @@ describe('world/screen conversion round-trip', () => {
     const [wx, wy] = screenToWorld(sx, sy, cam, 800, 400);
     expect(wx).toBeCloseTo(500, 5);
     expect(wy).toBeCloseTo(200, 5);
+  });
+});
+
+describe('duelCamera', () => {
+  const onScreen = (cam: ReturnType<typeof duelCamera>, p: [number, number]) => {
+    const [sx, sy] = worldToScreen(p[0], p[1], cam, opts.viewportW, opts.viewportH);
+    return sx >= 0 && sx <= opts.viewportW && sy >= 0 && sy <= opts.viewportH;
+  };
+  // The old duel camera zoomed 2x on the midpoint, which left far-apart generals off screen.
+  it('keeps both generals in view when they are far apart', () => {
+    const a: [number, number] = [100, 300], b: [number, number] = [1400, 280];
+    const cam = duelCamera(a, b, opts);
+    expect(onScreen(cam, a)).toBe(true);
+    expect(onScreen(cam, b)).toBe(true);
+  });
+  it('closes in to 2x once they meet', () => {
+    const cam = duelCamera([790, 300], [810, 300], opts);
+    expect(cam.zoom).toBe(2);
+    expect(onScreen(cam, [790, 300])).toBe(true);
   });
 });

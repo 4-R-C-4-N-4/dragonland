@@ -12,7 +12,7 @@ import { Selection } from './selection';
 import { bindDragEvents } from './pointerInput';
 import { attachInput } from './input';
 import { createQuitDialog } from './quitDialog';
-import { fitCamera, clampCamera, clampZoom } from './camera';
+import { fitCamera, clampCamera, clampZoom, duelCamera } from './camera';
 import type { Camera } from './camera';
 import { resolveBattleColors } from '../render/colorUi';
 import { DEFAULT_PLAYER_COLOR, DEFAULT_ENEMY_COLOR } from '../data/colors';
@@ -58,6 +58,8 @@ export const startBattleView: StartBattleView = async (root, opts) => {
   });
   try {
     await app.init({ resizeTo: root, antialias: true, background: '#1a2a1a' });
+    // Block, not inline: an inline canvas adds line-height below itself and overflows its host.
+    app.canvas.style.display = 'block';
     root.appendChild(app.canvas);
 
     // Biome backdrop sits behind the field. Decoration only: failure is ignored.
@@ -252,9 +254,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
           const gR = w.ents.x[w.generals[1].entity]!;
           const left = projectGround(battlefield.projection, gL, w.ents.y[w.generals[0].entity]!);
           const right = projectGround(battlefield.projection, gR, w.ents.y[w.generals[1].entity]!);
-          const midX = (left[0] + right[0]) / 2;
-          const midY = (left[1] + right[1]) / 2;
-          cam = clampCamera({ x: midX, y: midY, zoom: Math.min(2, camOpts().maxZoom) }, camOpts());
+          cam = duelCamera([left[0], left[1]], [right[0], right[1]], camOpts());
         }
 
         if (w.result && resultShownAt === null) {

@@ -51,6 +51,10 @@ export const ConstantsSchema = z.object({
   DEPLOY_COUNTDOWN_S: z.number().nonnegative(),
   DUEL_CADENCE_S: z.number().positive(),
   DUEL_MAX_ROUNDS: z.number().int().positive(),
+  /** Longest the generals walk toward each other before duel blows start regardless. */
+  DUEL_APPROACH_MAX_S: z.number().nonnegative(),
+  /** Generals close for a duel at this multiple of their move speed, so it starts within seconds. */
+  DUEL_APPROACH_SPEED_MULT: z.number().positive(),
   ROSTER_SIZE: z.number().int().positive(),
   /** Demo/testing: 1 = the builder recruits fresh named troops whenever a composition needs more than the roster has. 0 = scarce roster. */
   ROSTER_AUTO_RECRUIT: z.number().int().min(0).max(1),

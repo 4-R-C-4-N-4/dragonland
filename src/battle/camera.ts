@@ -44,6 +44,17 @@ export function fitCamera(opts: CameraClampOpts): Camera {
   return clampCamera({ x: opts.fieldW / 2, y: opts.fieldH / 2, zoom }, opts);
 }
 
+/**
+ * Duel framing in projected space: centre between the two generals and zoom in up to 2x, but
+ * never so far that either leaves the view (half-viewport margin around their gap).
+ */
+export function duelCamera(a: [number, number], b: [number, number], opts: CameraClampOpts): Camera {
+  const dx = Math.abs(a[0] - b[0]), dy = Math.abs(a[1] - b[1]);
+  const fit = Math.min(dx > 0 ? (opts.viewportW * 0.6) / dx : Infinity, dy > 0 ? (opts.viewportH * 0.6) / dy : Infinity);
+  const zoom = clampZoom(Math.min(2, fit), opts);
+  return clampCamera({ x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2, zoom }, opts);
+}
+
 /** World-space point -> screen-space point for a given camera + viewport. */
 export function worldToScreen(wx: number, wy: number, cam: Camera, viewportW: number, viewportH: number): [number, number] {
   return [(wx - cam.x) * cam.zoom + viewportW / 2, (wy - cam.y) * cam.zoom + viewportH / 2];
