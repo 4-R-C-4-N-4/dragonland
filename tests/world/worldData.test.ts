@@ -8,7 +8,7 @@ import { buildWorldData, rawWorldData } from '../../src/world/data';
 import type { ProgressTroop } from '../../src/progression';
 import type {
   BattleCause, Biome, Division, Faction, GeneralRecord, NodeKind,
-  PendingBattle, RecordedWorldTurn, War, WorldNode, WorldOrder,
+  PendingBattle, RecordedWorldTurn, War, WarAction, WorldNode, WorldOrder,
 } from '../../src/world/types';
 
 describe('world type contract', () => {
@@ -42,7 +42,7 @@ describe('world type contract', () => {
       id: string; cause: BattleCause; nodeId: string; attacker: string; defender: string | null;
       wild: { unitId: string; count: number }[]; processedSkirmishIds: string[];
     }>();
-    expectTypeOf<RecordedWorldTurn>().toEqualTypeOf<{ turn: number; orders: WorldOrder[] }>();
+    expectTypeOf<RecordedWorldTurn>().toEqualTypeOf<{ turn: number; orders: WorldOrder[]; actions?: WarAction[] }>();
     expectTypeOf<War['version']>().toEqualTypeOf<1>();
     expectTypeOf<War['turnLog']>().toEqualTypeOf<RecordedWorldTurn[]>();
     expectTypeOf<War['_internal']>().toEqualTypeOf<unknown>();

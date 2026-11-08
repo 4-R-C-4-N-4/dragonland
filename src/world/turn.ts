@@ -52,7 +52,9 @@ function settleTurn(war: War): void {
     return;
   }
   applyUpkeep(war);
-  war.turnLog.push({ turn: frame.turn, orders: structuredClone(frame.orders) });
+  const actions = state.actions ?? [];
+  war.turnLog.push({ turn: frame.turn, orders: structuredClone(frame.orders), ...(actions.length ? { actions: structuredClone(actions) } : {}) });
+  state.actions = [];
   state.pending = [];
   state.activeTurn = undefined;
   war.turn++;

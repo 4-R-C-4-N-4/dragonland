@@ -29,10 +29,11 @@ export function toSnapshot(war: War): WarSnapshot {
     generals: war.generals.map(g => ({ ...g, troops: g.troops.map(t => ({ ...t })) })),
     divisions: war.divisions.map(d => ({ ...d, generals: [...d.generals] })),
     pendingBattle: war.pendingBattle ? { ...war.pendingBattle, wild: war.pendingBattle.wild.map(w => ({ ...w })), processedSkirmishIds: [...war.pendingBattle.processedSkirmishIds] } : null,
-    turnLog: war.turnLog.map(r => ({ turn: r.turn, orders: r.orders.map(o => ({ ...o })) })),
+    turnLog: war.turnLog.map(r => ({ turn: r.turn, orders: r.orders.map(o => ({ ...o })), ...(r.actions ? { actions: r.actions.map(a => ({ ...a })) } : {}) })),
     internal: {
       rngState: state.rng.state,
       pending: state.pending.map(o => ({ ...o })),
+      actions: (state.actions ?? []).map(a => ({ ...a })),
       supply: { ...state.supply },
       paths: Object.fromEntries(Object.entries(state.paths).map(([k, v]) => [k, [...v]])),
       ...(state.activeTurn ? { activeTurn: { ...state.activeTurn, orders: state.activeTurn.orders.map(o => ({ ...o })), starts: { ...state.activeTurn.starts }, resolved: [...state.activeTurn.resolved] } } : {}),
@@ -47,6 +48,7 @@ export function fromSnapshot(data: BuiltWorldData, snapshot: WarSnapshot): War {
     data: structuredClone(data),
     rng: createRng(snapshot.internal.rngState),
     pending: snapshot.internal.pending.map(o => ({ ...o })),
+    actions: (snapshot.internal.actions ?? []).map(a => ({ ...a })),
     supply: { ...snapshot.internal.supply },
     paths: Object.fromEntries(Object.entries(snapshot.internal.paths).map(([k, v]) => [k, [...v]])),
     ...(snapshot.internal.activeTurn ? { activeTurn: { ...snapshot.internal.activeTurn, orders: snapshot.internal.activeTurn.orders.map(o => ({ ...o })) } } : {}),
@@ -66,7 +68,7 @@ export function fromSnapshot(data: BuiltWorldData, snapshot: WarSnapshot): War {
     divisions: snapshot.divisions.map(d => ({ ...d, generals: [...d.generals] })),
     pendingBattle: snapshot.pendingBattle ? { ...snapshot.pendingBattle } : null,
     events: [],
-    turnLog: snapshot.turnLog.map(r => ({ turn: r.turn, orders: r.orders.map(o => ({ ...o })) })),
+    turnLog: snapshot.turnLog.map(r => ({ turn: r.turn, orders: r.orders.map(o => ({ ...o })), ...(r.actions ? { actions: r.actions.map(a => ({ ...a })) } : {}) })),
     _internal: state,
   };
 }

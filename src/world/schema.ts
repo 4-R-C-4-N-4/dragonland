@@ -13,6 +13,11 @@ export const WorldOrderSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('rest'), division: Id }),
   z.object({ type: z.literal('hold'), division: Id }),
 ]);
+const WarActionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('leaveGarrison'), division: Id, general: Id }),
+  z.object({ type: z.literal('joinDivision'), division: Id, general: Id }),
+  z.object({ type: z.literal('adopt'), faction: Id, captive: Id, division: Id }),
+]);
 
 export const GeneralRecordSchema = z.object({
   id: Id,
@@ -68,10 +73,11 @@ export const WarSnapshotSchema = z.object({
   generals: z.array(GeneralRecordSchema),
   divisions: z.array(DivisionSchema),
   pendingBattle: PendingBattleSchema.nullable(),
-  turnLog: z.array(z.object({ turn: z.number().int().positive(), orders: z.array(WorldOrderSchema) })),
+  turnLog: z.array(z.object({ turn: z.number().int().positive(), orders: z.array(WorldOrderSchema), actions: z.array(WarActionSchema).optional() })),
   internal: z.object({
     rngState: z.number().int().nonnegative(),
     pending: z.array(WorldOrderSchema),
+    actions: z.array(WarActionSchema).optional(),
     supply: z.record(Id, z.number().int().nonnegative()),
     paths: z.record(Id, z.array(Id)),
     activeTurn: z.object({

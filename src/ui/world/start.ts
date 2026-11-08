@@ -160,7 +160,7 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
       relation('nemesis', rel.nemesis, `They deal ${pct}% more to you, and take ${pct}% less.`),
       relation('ally', rel.ally, 'Neutral to you; half your starting army.'),
     );
-    const start = startingArmySummary(data, run, selectedId);
+    const start = startingArmySummary(selectedId);
     army.textContent = `You start alone with ${start.troops} troops: ${start.classes.map(className).join(' and ')}, ${start.perKind} of each kind. Beaten rival generals can be adopted into your army.`;
     refresh();
   }

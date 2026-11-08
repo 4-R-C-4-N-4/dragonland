@@ -68,6 +68,8 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Measured (AI both sides): hero alone vs one rival general won 59/60 opening encounters, capturing in 35/60; against the old 2-general stack it won 0/60, which is why the rival opens in singles.
 - Mechanics tests that need the old shape use `tests/helpers/war.ts` `legacyOpening`; the shipped opening is covered by `createWar.test.ts`.
 - Browser: picker at 1280x800, 1024x768 (no overlaps, no overflow) and 800x600 (stacks, vertical scroll); keyboard selection; war start with a solo hero; Prisoners panel and Adopt (persisted across reload, using a save edited to hold a captive, since live battles crash the test browser). Gate: 724 tests, build.
+- Review (APPROVED) found replay drift: garrison changes and adoptions happened outside the turn log, so `replayWar` silently rebuilt a different war. They are now recorded per turn (`RecordedWorldTurn.actions`, persisted) and replayed; an adoption whose capture came from a battle makes replay throw instead of diverging, since battles are not re-fought. The start screen and `createWar` now share `startingArmyPlan`. Opening figures are reproducible with `tools/warOpening.ts`. Gate: 727 tests, build.
+- Known gaps: a player general captured by the rival has no way back (no rescue/exchange), and nothing yet lets a captive found a new division.
 - Open: rivals never send garrison generals back into the field (no AI composition yet), so after the opening singles the rival mostly sits in Nightspire; the war start is very easy now and the difficulty curve after week 1 is unmeasured.
 
 ### Historical integration milestones (superseded by demo status above)

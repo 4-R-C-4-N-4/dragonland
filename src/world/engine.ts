@@ -1,5 +1,7 @@
 import { getGameData } from '../data';
 import { resolveTurn } from './turn';
+import { joinDivision, leaveAsGarrison } from './garrison';
+import { adoptCaptive } from './adopt';
 import type { ClassId, GeneralId } from '../data/schemas';
 import { getRunConfig } from '../run/config';
 import { uniqueName } from '../data/names';
@@ -13,21 +15,28 @@ export interface WarSetup { seed: number; heroId: GeneralId; heroName: string }
  * The hero's opening army: the Skirmish demo's starting roster (hero class plus its configured
  * partner, startingTroopsPerLine of each stage-1 line).
  */
-function startingArmy(war: War, heroClass: ClassId): { classes: ClassId[]; troops: ProgressTroop[] } {
-  const { rng } = war._internal as WorldInternal;
+/** What a hero starts with, without drawing anything: shared by createWar and the start screen. */
+export function startingArmyPlan(heroId: GeneralId): { classes: ClassId[]; units: string[]; perKind: number } {
   const game = getGameData();
   const run = getRunConfig();
+  const heroClass = game.unitById.get(game.generalById.get(heroId)!.unitId)!.classId;
   const partner = run.startingPartners[heroClass];
   if (!partner) throw new Error(`class ${heroClass} has no starting partner`);
+  const classes: ClassId[] = [heroClass, partner];
+  const units = classes.flatMap(c => game.units.filter(u => u.stage === 1 && u.classId === c).sort((a, b) => a.line.localeCompare(b.line)).map(u => u.id));
+  return { classes, units, perKind: run.startingTroopsPerLine };
+}
+
+function startingArmy(war: War, heroId: GeneralId): { classes: ClassId[]; troops: ProgressTroop[] } {
+  const { rng } = war._internal as WorldInternal;
+  const game = getGameData();
+  const plan = startingArmyPlan(heroId);
   const taken = new Set(war.generals.flatMap(g => g.troops.map(t => t.name)));
   const troops: ProgressTroop[] = [];
-  for (const classId of [heroClass, partner]) {
-    const lines = game.units.filter(u => u.stage === 1 && u.classId === classId).sort((a, b) => a.line.localeCompare(b.line));
-    for (const unit of lines) for (let i = 0; i < run.startingTroopsPerLine; i++) {
-      troops.push({ id: nextId(rng, 'troop'), name: uniqueName(rng, game.names, taken), unitId: unit.id, xp: 0, level: 1 });
-    }
+  for (const unitId of plan.units) for (let i = 0; i < plan.perKind; i++) {
+    troops.push({ id: nextId(rng, 'troop'), name: uniqueName(rng, game.names, taken), unitId, xp: 0, level: 1 });
   }
-  return { classes: [heroClass, partner], troops };
+  return { classes: plan.classes, troops };
 }
 
 /** Fresh level-one troops from the faction's unlocked classes. */
@@ -53,7 +62,7 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
     const generals: GeneralRecord[] = [];
     if (faction.isPlayer) {
       // The hero starts alone; more generals come from adopting beaten rivals and promotion.
-      const army = startingArmy(war, game.unitById.get(hero.unitId)!.classId);
+      const army = startingArmy(war, hero.id);
       if (army.troops.length > c.PLAYER_STARTING_CAPACITY) throw new Error('Starting army exceeds PLAYER_STARTING_CAPACITY');
       faction.classes = army.classes;
       const general: GeneralRecord = { id: nextId(rng, 'general'), name: setup.heroName, generalId: hero.id, factionId: faction.id, isHero: true, level: 1, xp: 0, hp: hero.hp, maxHp: hero.hp, capacity: c.PLAYER_STARTING_CAPACITY, troops: army.troops, injuredTurns: 0, nodeId: castle.id };
@@ -131,12 +140,22 @@ export function hashWar(war: War): string {
 /** Replay completed turn records. maxTurns caps the number of records applied.
  * Admin is cleared only when another record follows; battles require Phase 3 results.
  */
-export function replayWar(data: BuiltWorldData, setup: WarSetup, turnLog: import('./types').RecordedWorldTurn[], maxTurns = turnLog.length): War {
-  const war = createWar(data, setup);
+/**
+ * Rebuild a war from its seed and log. Battles are not re-fought, so replay stops at a battle;
+ * an action that depends on one (adopting its captive) throws instead of silently diverging.
+ * `prepare` lets tests reshape the fresh war exactly as the original was reshaped.
+ */
+export function replayWar(data: BuiltWorldData, setup: WarSetup, turnLog: import('./types').RecordedWorldTurn[], maxTurns = turnLog.length, prepare: (war: War) => War = w => w): War {
+  const war = prepare(createWar(data, setup));
   for (const record of turnLog.slice(0, Math.max(0, maxTurns))) {
     if (war.phase === 'battle' || war.phase === 'won' || war.phase === 'lost') break;
     if (record.turn !== war.turn) throw new Error(`Replay turn ${record.turn}: expected ${war.turn}`);
     if (war.phase === 'admin') war.phase = 'orders';
+    for (const action of record.actions ?? []) {
+      if (action.type === 'leaveGarrison') leaveAsGarrison(war, action.division, action.general);
+      else if (action.type === 'joinDivision') joinDivision(war, action.division, action.general);
+      else adoptCaptive(war, action.faction, action.captive, action.division);
+    }
     for (const order of record.orders) issueOrder(war, order);
     resolveTurn(war);
   }

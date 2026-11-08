@@ -26,4 +26,5 @@ export function adoptCaptive(war: War, factionId: string, captiveId: string, div
   // Beaten generals come back hurt; one still standing keeps what it had.
   captive.hp = Math.max(captive.hp, Math.ceil(captive.maxHp * hpFrac));
   division.generals.push(captiveId);
+  (internal(war).actions ??= []).push({ type: 'adopt', faction: factionId, captive: captiveId, division: divisionId });
 }

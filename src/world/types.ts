@@ -117,9 +117,17 @@ export type WorldEvent =
   /** A beaten general's fate; `by` is the winning faction. Captured generals can be adopted. */
   | { type: 'generalDefeated'; general: GeneralRecordId; by: FactionId; outcome: 'captured' | 'injured' | 'killed' };
 
+/** A change made outside turn orders (orders or muster phase); recorded so replay reproduces it. */
+export type WarAction =
+  | { type: 'leaveGarrison'; division: DivisionId; general: GeneralRecordId }
+  | { type: 'joinDivision'; division: DivisionId; general: GeneralRecordId }
+  | { type: 'adopt'; faction: FactionId; captive: GeneralRecordId; division: DivisionId };
+
 export interface RecordedWorldTurn {
   turn: number;
   orders: WorldOrder[];
+  /** Actions taken since the previous turn settled, applied before these orders. */
+  actions?: WarAction[];
 }
 
 export interface War {

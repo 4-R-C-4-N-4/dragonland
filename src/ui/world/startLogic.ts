@@ -1,5 +1,6 @@
 import type { ClassId, GameData, GeneralId } from '../../data';
 import type { RunConfig } from '../../run/config';
+import { startingArmyPlan } from '../../world/engine';
 
 /**
  * Classes around a pentagon so the authored counter cycle draws the star: each class's quarry
@@ -26,12 +27,10 @@ export function vertex(i: number, n: number, cx: number, cy: number, r: number):
   return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
 }
 
-/** The army a war starts with; mirrors createWar's starting army. */
-export function startingArmySummary(data: GameData, run: RunConfig, heroId: GeneralId): { classes: ClassId[]; troops: number; perKind: number } {
-  const heroClass = data.unitById.get(data.generalById.get(heroId)!.unitId)!.classId;
-  const classes = [heroClass, run.startingPartners[heroClass]!];
-  const kinds = classes.reduce((n, c) => n + data.units.filter(u => u.stage === 1 && u.classId === c).length, 0);
-  return { classes, troops: kinds * run.startingTroopsPerLine, perKind: run.startingTroopsPerLine };
+/** The army a war starts with, from the same plan createWar uses. */
+export function startingArmySummary(heroId: GeneralId): { classes: ClassId[]; troops: number; perKind: number } {
+  const plan = startingArmyPlan(heroId);
+  return { classes: plan.classes, troops: plan.units.length * plan.perKind, perKind: plan.perKind };
 }
 
 export interface WarStartValidation { valid: boolean; errors: string[] }

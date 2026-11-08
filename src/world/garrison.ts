@@ -25,6 +25,7 @@ export function leaveAsGarrison(war: War, divisionId: string, generalId: string)
   if (standing.length >= cap) throw new Error(`This node already holds ${cap} generals`);
   division.generals = division.generals.filter(id => id !== generalId);
   general.nodeId = division.atNode;
+  (internal(war).actions ??= []).push({ type: 'leaveGarrison', division: divisionId, general: generalId });
 }
 
 /** Take a standing general back into a division sitting on the same node. */
@@ -40,6 +41,7 @@ export function joinDivision(war: War, divisionId: string, generalId: string): v
   const cap = internal(war).data.constants.MAX_DIVISION_GENERALS;
   if (division.generals.length >= cap) throw new Error(`A division leads at most ${cap} generals`);
   division.generals.push(generalId);
+  (internal(war).actions ??= []).push({ type: 'joinDivision', division: divisionId, general: generalId });
 }
 
 /** Generals holding a node for a faction: alive, uninjured and in no division. */
