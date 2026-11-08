@@ -132,6 +132,9 @@ function wildSide(wild: { unitId: string; count: number }[]): SideSetup {
   return { generalId: profile.id, formationId, general: profile, squads };
 }
 
+/** Sim side of the searching general in a wild fight; the pack is the other side. */
+export const WILD_SEARCHER_SIDE = 1 as const;
+
 /** Freeze the wild fight: the pack defends (side 0), the searching general attacks (side 1). */
 export function wildBattleSetup(war: War, divisionId: string, generalId: string): WildSelection {
   const pending = war.pendingBattle;

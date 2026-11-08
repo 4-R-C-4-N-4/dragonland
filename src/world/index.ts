@@ -4,7 +4,7 @@ export { buildWorldData, rawWorldData, type BuiltWorldData, type RawWorldData } 
 export { createWar, issueOrder, queuedOrders, cancelOrder, hashWar, replayWar, type WarSetup } from './engine';
 export { resolveTurn, resumeTurn, completeAdmin } from './turn';
 export { retreatNode } from './movement';
-export { searchOutcome, wildEncounter, applyWildVictory, wildBattleSetup, applyWildResult, wildLeaderFor, type SearchOutcome, type WildSelection } from './search';
+export { searchOutcome, wildEncounter, applyWildVictory, wildBattleSetup, applyWildResult, wildLeaderFor, WILD_SEARCHER_SIDE, type SearchOutcome, type WildSelection } from './search';
 export { leaveAsGarrison, joinDivision, garrisonAt } from './garrison';
 export { WAR_KEY, loadWar, saveWar, clearWar, validateWar, toSnapshot, fromSnapshot, type LoadedWar, type StorageLike } from './storage';
 export { WarSnapshotSchema, type WarSnapshot } from './schema';

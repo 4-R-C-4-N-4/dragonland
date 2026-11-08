@@ -3,17 +3,17 @@
 // intents and persists one snapshot per transition.
 import type { GameData } from '../../data';
 import type { StartBattleView } from '../../battle/types';
-import { snapshotBattleResult } from '../../world/sequence';
-import { campaignBattlePerspective } from './battlePerspective';
+import { campaignBattlePerspective, playerSideOf } from './battlePerspective';
 import {
   applyWildResult, buildWorldData, cancelOrder, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
-  resolveTurn, resumeTurn, saveWar, wildBattleSetup,
+  resolveTurn, resumeTurn, saveWar, wildBattleSetup, WILD_SEARCHER_SIDE,
   type BuiltWorldData, type StorageLike, type War, type WorldOrder,
 } from '../../world';
 import {
   applySkirmishResult, commitAttacker, commitDefender, retreatEncounter, sequenceEncounter,
-  type EncounterSequence,
+  type EncounterSequence, type TerminalBattleSnapshot,
 } from '../../world/sequence';
+import type { BattleSetup } from '../../sim';
 import { planFactionOrders } from '../../ai/strategy';
 import { joinDivision, leaveAsGarrison } from '../../world/garrison';
 import { mountWorldMap, type WorldMapSelection } from './index';
@@ -252,9 +252,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     const selection = commitAttacker(war, seq, generalId);
     const defender = war.generals.find(g => g.id === selection.generalIds[0])!;
     const attacker = war.generals.find(g => g.id === selection.generalIds[1])!;
-    const perspective = campaignBattlePerspective(selection.setup, defender.factionId === playerId ? 0 : 1);
-    runBattle(perspective.setup, { player: defender.factionId === playerId ? defender.name : attacker.name, enemy: defender.factionId === playerId ? attacker.name : defender.name }, world => {
-      const snapshot = perspective.snapshot(world);
+    const playerDefends = defender.factionId === playerId;
+    runBattle(selection.setup, playerDefends ? 0 : 1, { player: playerDefends ? defender.name : attacker.name, enemy: playerDefends ? attacker.name : defender.name }, snapshot => {
       applySkirmishResult(war!, seq, selection.id, snapshot);
       if (seq.status === 'resolved') sequence = null;
       afterEngineStep();
@@ -276,8 +275,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     for (const g of fighters) {
       list.append(button(`${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops`, () => {
         const selection = wildBattleSetup(war!, division!.id, g.id);
-        runBattle(selection.setup, { player: g.name, enemy: 'Wild pack' }, world => {
-          applyWildResult(war!, selection, snapshotBattleResult(world));
+        runBattle(selection.setup, WILD_SEARCHER_SIDE, { player: g.name, enemy: 'Wild pack' }, snapshot => {
+          applyWildResult(war!, selection, snapshot);
           afterEngineStep();
         });
       }));
@@ -290,9 +289,21 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     box.querySelector('h1')?.focus();
   }
 
-  function runBattle(setup: Parameters<StartBattleView>[1]['setup'], labels: { player: string; enemy: string }, onDone: (world: Parameters<Parameters<StartBattleView>[1]['onFinished']>[0]) => void): void {
+  /**
+   * Launch the tactical view on a strategic setup. The view always gives the human side 0, so the
+   * caller states which strategic side is the player's and receives the result mapped back to
+   * strategic sides. Passing a raw setup put the player in charge of the enemy twice.
+   */
+  function runBattle(strategic: BattleSetup, playerSide: 0 | 1, labels: { player: string; enemy: string }, onDone: (snapshot: TerminalBattleSnapshot) => void): void {
     if (!war || busy) return;
     busy = true;
+    // Cross-check the caller against the troops actually deployed; a wrong side here hands the
+    // player the enemy army, which has happened twice.
+    const playerTroops = new Set(war.generals.filter(g => g.factionId === playerId).flatMap(g => g.troops.map(t => t.id)));
+    const side = playerSideOf(strategic, playerTroops, playerSide);
+    if (side !== playerSide) console.warn('Campaign battle: caller claimed player side', playerSide, 'but the player\'s troops are on side', side, { battle: war.pendingBattle?.id, generals: strategic.sides.map(s => s.generalId) });
+    const perspective = campaignBattlePerspective(strategic, side);
+    const setup = perspective.setup;
     const biome = war.pendingBattle ? world.nodeById.get(war.pendingBattle.nodeId)?.biome : undefined;
     teardownChildren();
     battleRoot = document.createElement('div');
@@ -303,7 +314,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
       onFinished: world => {
         if (destroyed) return;
         busy = false;
-        onDone(world);
+        onDone(perspective.snapshot(world));
       },
     }).then(view => {
       if (destroyed) { view.destroy(); return; }
