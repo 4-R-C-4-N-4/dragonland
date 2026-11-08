@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { getGameData } from '../../src/data';
 import { deriveTroopStats } from '../../src/progression';
 import { createBattle, step } from '../../src/sim';
@@ -8,7 +9,7 @@ import { internal } from '../../src/world/rng';
 
 const data = buildWorldData(rawWorldData);
 const game = getGameData();
-const makeWar = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+const makeWar = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 function contact(war: ReturnType<typeof makeWar>) {
   const [attacker, defender] = war.divisions;
   war.pendingBattle = { id: 'battle-sequence', cause: 'contact', nodeId: attacker!.atNode, attacker: attacker!.id, defender: defender!.id, wild: [], processedSkirmishIds: [] };
@@ -206,6 +207,8 @@ describe('battle sequencing', () => {
       expect(war.divisions.some(d => d.factionId === captors.id && d.generals.includes(loserId))).toBe(false);
     } else expect(loser.injuredTurns).toBe(weight === 'INJURE_WEIGHT' ? forced.INJURY_TURNS : 0);
     expect(loser.hp).toBe(0);
+    const outcome = weight === 'CAPTURE_WEIGHT' ? 'captured' : weight === 'INJURE_WEIGHT' ? 'injured' : 'killed';
+    expect(war.events).toContainEqual({ type: 'generalDefeated', general: loserId, by: captors.id, outcome });
   });
 
   it('explicitly resolves player hero death as lost and clears pending battle', () => {

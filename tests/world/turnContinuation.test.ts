@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { buildWorldData, rawWorldData, createWar, issueOrder, resolveTurn, resumeTurn, completeAdmin, hashWar, replayWar } from '../../src/world';
 import { sequenceEncounter, commitDefender, commitAttacker, applySkirmishResult, snapshotBattleResult } from '../../src/world/sequence';
 import { createBattle, step } from '../../src/sim';
 import { getGameData } from '../../src/data';
 import { internal } from '../../src/world/rng';
-const data = buildWorldData(rawWorldData);
-const make = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+// These continuation cases were written against the castle-loss rule; keep it switched on here
+// (shipped default is hero-only defeat, covered by defeat.test.ts).
+const authored = buildWorldData(rawWorldData);
+const data = { ...authored, constants: { ...authored.constants, LOSE_WITHOUT_CASTLES: true } };
+const make = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 // Reassign existing authored records only; the hero stays safely unassigned at home.
 function contactFixture(nodes: string[]) {
   const war = make();
@@ -192,7 +196,8 @@ describe('interrupted turn continuation', () => {
     expect(war.turn).toBe(1);
   });
   it('replays completed no battle turns to the same world hash',()=>{
-    const war=make();
+    // Replay rebuilds from the seed, so use the real opening, not the test-only legacy one.
+    const war=createWar(data,{seed:17,heroId:'paladin',heroName:'Ivy'});
     for(let n=0;n<6;n++){ for(const d of war.divisions) issueOrder(war,{type:'hold',division:d.id}); resolveTurn(war); }
     const replay=replayWar(data,{seed:17,heroId:'paladin',heroName:'Ivy'},war.turnLog);
     expect(hashWar(replay)).toBe(hashWar(war));

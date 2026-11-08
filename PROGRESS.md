@@ -60,6 +60,16 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Campaign battles overflowed the window (inline canvas line-height inside a flex child), giving both scrollbars. The battle host is now fixed to the viewport like Skirmish's, and the battle canvas is `display: block` for every host.
 - `battle.html?duel=1` opens straight into a duel for visual checks. Browser: generals visible from duel start and fighting in the middle; no page overflow at 1280x800, 1024x768, 800x600. Gate: 716 tests, build.
 
+### Solo-hero start, adoption and the hunt-star picker (plan `docs/plans/mvp3-solo-start.md`)
+
+- War opens with the hero alone and the demo's starting army (hero class + partner, 60 troops); no split screen. Rival: 6 generals of 50, opening field force in single-general divisions, the rest garrisoning Nightspire. Defeat is hero death only by default (D30-D32).
+- Captured rivals appear under **Prisoners** on the map sidebar and in the weekly muster, with Adopt (joins the selected division, else the first with room; keeps surviving troops; returns at 25% HP). The turn report names who you captured. Battle choice screen shows who the enemy sent or still has.
+- New-war screen: the hunt star. Classes on a pentagon ordered so each quarry is two points away (star lines) and each starting ally adjacent (ring); selecting a hero lights quarry (green), nemesis (red) and ally (gold) and states the 25% effect, starting army and special. Arrow keys move between heroes, Enter goes to the name field.
+- Measured (AI both sides): hero alone vs one rival general won 59/60 opening encounters, capturing in 35/60; against the old 2-general stack it won 0/60, which is why the rival opens in singles.
+- Mechanics tests that need the old shape use `tests/helpers/war.ts` `legacyOpening`; the shipped opening is covered by `createWar.test.ts`.
+- Browser: picker at 1280x800, 1024x768 (no overlaps, no overflow) and 800x600 (stacks, vertical scroll); keyboard selection; war start with a solo hero; Prisoners panel and Adopt (persisted across reload, using a save edited to hold a captive, since live battles crash the test browser). Gate: 724 tests, build.
+- Open: rivals never send garrison generals back into the field (no AI composition yet), so after the opening singles the rival mostly sits in Nightspire; the war start is very easy now and the difficulty curve after week 1 is unmeasured.
+
 ### Historical integration milestones (superseded by demo status above)
 
 - Phase 1 data contract: `0e2c72a`, authored 12-node map, 14 routes, validated biome tables and constants; 527 tests at that milestone.

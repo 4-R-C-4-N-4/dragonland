@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { getGameData } from '../../src/data';
 import { buildWorldData, rawWorldData } from '../../src/world/data';
 import { createWar, issueOrder, resolveTurn } from '../../src/world';
@@ -8,7 +9,7 @@ import type { War } from '../../src/world/types';
 
 const data = buildWorldData(rawWorldData);
 const game = getGameData();
-const make = () => createWar(data, { seed: 23, heroId: 'paladin', heroName: 'Ivy' });
+const make = () => legacyOpening(createWar(data, { seed: 23, heroId: 'paladin', heroName: 'Ivy' }));
 const playerDivision = (war: War) => war.divisions.find(d => d.factionId === 'player' && d.generals.length)!;
 
 describe('garrisons', () => {

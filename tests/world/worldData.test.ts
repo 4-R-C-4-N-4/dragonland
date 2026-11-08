@@ -153,12 +153,12 @@ describe('buildWorldData', () => {
 });
 
 describe('world constants', () => {
-  it('requires enough player command capacity for every starting troop', () => {
-    expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, PLAYER_STARTING_CAPACITY: 49 }).success).toBe(false);
-    expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, PLAYER_STARTING_CAPACITY: 50 }).success).toBe(true);
-    expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, STARTING_TROOPS: 211 }).success).toBe(false);
-    // Rival capacity is independent of the player's opening troops.
-    expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, STARTING_CAPACITY: 20 }).success).toBe(true);
+  it('keeps the rival opening field inside the rival roster and one division', () => {
+    const field = (aggressive: number) => ({ ...worldConstantsJson, RIVAL_OPENING_FIELD: { ...worldConstantsJson.RIVAL_OPENING_FIELD, aggressive } });
+    expect(WorldConstantsSchema.safeParse(field(5)).success).toBe(true);
+    expect(WorldConstantsSchema.safeParse(field(6)).success).toBe(false);
+    expect(WorldConstantsSchema.safeParse({ ...field(5), RIVAL_GENERALS: 4 }).success).toBe(false);
+    expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, ADOPTED_HP_FRAC: 0 }).success).toBe(false);
   });
   it('requires the garrison capacity to exceed division capacity', () => {
     for (const GARRISON_CAP of [4, 5]) {
@@ -171,8 +171,8 @@ describe('world constants', () => {
     expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, CAPTURE_WEIGHT: 0.1, INJURE_WEIGHT: 0.2, KILL_WEIGHT: 0.7 }).success).toBe(true);
   });
   it('rejects invalid numeric ranges while allowing tuning', () => {
-    const positiveIntegers = ['TURNS_PER_WEEK', 'GARRISON_CAP', 'MAX_DIVISION_GENERALS', 'STARTING_GENERALS', 'STARTING_CAPACITY', 'PLAYER_STARTING_CAPACITY'] as const;
-    const nonnegativeIntegers = ['RESUPPLY_TROOPS_PER_REST', 'INJURY_TURNS', 'STARTING_GOLD', 'STARTING_TROOPS'] as const;
+    const positiveIntegers = ['TURNS_PER_WEEK', 'GARRISON_CAP', 'MAX_DIVISION_GENERALS', 'STARTING_CAPACITY', 'PLAYER_STARTING_CAPACITY', 'RIVAL_GENERALS'] as const;
+    const nonnegativeIntegers = ['RESUPPLY_TROOPS_PER_REST', 'INJURY_TURNS', 'STARTING_GOLD'] as const;
     const fractions = ['HEAL_HP_PER_REST_FRAC', 'CAPTURE_WEIGHT', 'INJURE_WEIGHT', 'KILL_WEIGHT', 'SEARCH_CHANCE_LAIR', 'SEARCH_CHANCE_WILD'] as const;
     for (const key of positiveIntegers) {
       for (const value of [0, -1, 1.5]) expect(WorldConstantsSchema.safeParse({ ...worldConstantsJson, [key]: value }).success, `${key}=${value}`).toBe(false);
@@ -191,14 +191,14 @@ describe('world constants', () => {
       TURNS_PER_WEEK: 7, HEAL_HP_PER_REST_FRAC: 0.25, RESUPPLY_TROOPS_PER_REST: 6,
       CAPTURE_WEIGHT: 0.6, INJURE_WEIGHT: 0.3, KILL_WEIGHT: 0.1, GARRISON_CAP: 7,
       MAX_DIVISION_GENERALS: 5, SEARCH_CHANCE_LAIR: 0.5, SEARCH_CHANCE_WILD: 0.2,
-      INJURY_TURNS: 3, STARTING_GOLD: 100, STARTING_TROOPS: 150,
-      STARTING_GENERALS: 3, STARTING_CAPACITY: 50, PLAYER_STARTING_CAPACITY: 70,
+      INJURY_TURNS: 3, STARTING_GOLD: 100, STARTING_CAPACITY: 50, PLAYER_STARTING_CAPACITY: 100,
+      RIVAL_GENERALS: 6, RIVAL_OPENING_FIELD: { aggressive: 2, opportunist: 2, defensive: 1 },
+      RIVAL_OPENING_DIVISION_SIZE: 1, LOSE_WITHOUT_CASTLES: false, ADOPTED_HP_FRAC: 0.25,
     });
     expect(constants.CAPTURE_WEIGHT + constants.INJURE_WEIGHT + constants.KILL_WEIGHT).toBeCloseTo(1);
     expect(Number.isInteger(constants.TURNS_PER_WEEK) && constants.TURNS_PER_WEEK > 0).toBe(true);
     expect(Number.isInteger(constants.MAX_DIVISION_GENERALS) && constants.MAX_DIVISION_GENERALS > 0).toBe(true);
     expect(constants.GARRISON_CAP).toBeGreaterThan(constants.MAX_DIVISION_GENERALS);
-    expect(constants.STARTING_GENERALS * constants.PLAYER_STARTING_CAPACITY).toBeGreaterThanOrEqual(constants.STARTING_TROOPS);
   });
 });
 

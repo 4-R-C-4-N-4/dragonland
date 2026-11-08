@@ -3,10 +3,11 @@ import type { Division, WorldOrder, War } from '../../world/types';
 import { queuedOrders } from '../../world/engine';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import {
-  actionBlocker, adjacentNodeIds, defaultDivision, divisionName, garrisonStatus, nodeSummary, orderIntent, orderLabel,
+  actionBlocker, adjacentNodeIds, adoptionTarget, castleLossEndsWar, defaultDivision, divisionName, garrisonStatus, nodeSummary, orderIntent, orderLabel,
   turnReport, undefendedCastles,
 } from './presentation';
 import { visibleNodes } from '../../ai/strategy';
+import { getGameData } from '../../data';
 import './world.css';
 
 export interface GarrisonIntent { type: 'leave' | 'join'; division: string; general: string }
@@ -19,6 +20,8 @@ export interface WorldMapOptions {
   onGarrison?: (intent: GarrisonIntent) => void;
   /** Withdraw a division's queued order; the controller owns the mutation. */
   onCancelOrder?: (divisionId: string) => void;
+  /** Adopt a captive into a division; the controller owns the mutation. */
+  onAdopt?: (captiveId: string, divisionId: string) => void;
   /** Restores the previous selection after a remount (e.g. across turns). */
   selection?: WorldMapSelection;
   onSelectionChange?: (selection: WorldMapSelection) => void;
@@ -148,7 +151,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (confirmingEnd && undefended.length) {
         const box = el('div', 'dl-world-map__confirm');
         box.setAttribute('role', 'alertdialog'); box.setAttribute('aria-label', 'Confirm end turn');
-        box.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will have no defenders. Any enemy that walks in takes it, and losing every castle loses the war.`));
+        box.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will have no defenders. Any enemy that walks in takes it, and holding no castle loses the war.`));
         const actions = el('div', 'dl-world-map__row');
         actions.append(
           button('End turn anyway', () => { confirmingEnd = false; options.onEndTurn(); }, { key: 'end-confirm', primary: true }),
@@ -159,13 +162,14 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       }
       bar.append(button(`End turn ${war.turn}`, () => {
         if (!canOrder()) return;
-        if (undefended.length) { confirmingEnd = true; render(); return; }
+        // Ask only when an empty castle can actually end the war; otherwise the warning is enough.
+        if (undefended.length && castleLossEndsWar(war)) { confirmingEnd = true; render(); return; }
         options.onEndTurn();
       }, { key: 'end-turn', primary: true }));
       if (undefended.length) {
         const warn = el('div', 'dl-world-map__warning');
         warn.setAttribute('role', 'status');
-        warn.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will be left undefended. Leave a general to hold it, or keep a division there.`));
+        warn.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will be left empty: an enemy that walks in takes it${castleLossEndsWar(war) ? ', and holding no castle loses the war' : ' and its resupply'}. Leave a general to hold it, or keep a division there.`));
         // One-click fix: detach the last non-hero general of a division still standing on the castle.
         for (const castle of undefended) {
           const d = ownDivisions().find(x => x.atNode === castle.id && x.generals.length > 1);
@@ -286,6 +290,28 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       return s;
     }
 
+    /** Captured rivals, each with an Adopt button into the selected (or first open) division. */
+    function renderPrisoners(): HTMLElement | null {
+      const me = war.factions.find(f => f.id === factionId);
+      if (!me?.captives.length) return null;
+      const s = section('Prisoners', 'dl-world-map__prisoners');
+      const target = adoptionTarget(war, factionId, selectedDivision);
+      const canAdopt = (war.phase === 'orders' || war.phase === 'admin') && !!options.onAdopt;
+      for (const id of me.captives) {
+        const g = war.generals.find(x => x.id === id); if (!g) continue;
+        const profile = getGameData().generalById.get(g.generalId);
+        const row = generalRow(id, profile?.name ?? g.generalId);
+        if (row) s.append(row);
+        const into = target.division ? war.divisions.find(d => d.id === target.division) : undefined;
+        s.append(button(`Adopt ${g.name}`, () => {
+          if (!target.division) return;
+          try { options.onAdopt?.(id, target.division); } catch { /* reported by the controller */ }
+          render();
+        }, { key: `adopt-${id}`, disabled: !canAdopt || !target.division, detail: target.division === null ? target.reason : `Joins ${divisionName(war, into!)} with ${g.troops.length} troops of their own` }));
+      }
+      return s;
+    }
+
     /** Shown after a resolved turn; a reloaded save carries no events, so it shows nothing rather than a false "quiet turn". */
     function renderReport(): HTMLElement | null {
       if (war.turn <= 1 || !war.events.length) return null;
@@ -307,7 +333,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const orders = ownOrders();
       const d = currentDivision();
       const detail = d ? renderDivisionDetail(d, orders) : selectedNode ? renderNodeDetail(selectedNode) : null;
-      side.replaceChildren(...[renderTurnBar(orders), renderReport(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
+      side.replaceChildren(...[renderTurnBar(orders), renderReport(), renderPrisoners(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
       if (focusKey) {
         const target = [...side.querySelectorAll<HTMLElement>('[data-key]')].find(x => x.dataset.key === focusKey);
         // Never fall back onto End turn: one stray Enter there is irreversible.

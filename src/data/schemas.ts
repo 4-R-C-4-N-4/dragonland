@@ -347,16 +347,24 @@ export const WorldConstantsSchema = z.object({
   SEARCH_CHANCE_WILD: z.number().min(0).max(1),
   INJURY_TURNS: z.number().int().nonnegative(),
   STARTING_GOLD: z.number().int().nonnegative(),
-  STARTING_TROOPS: z.number().int().nonnegative(),
-  STARTING_GENERALS: z.number().int().positive(),
   /** Troops each rival general starts with and can lead. */
   STARTING_CAPACITY: z.number().int().positive(),
-  /** Troops each player general can lead at war start; the opening split must fit under it. */
+  /** Troops the hero can lead; the Skirmish starting army (data/run.json) must fit under it. */
   PLAYER_STARTING_CAPACITY: z.number().int().positive(),
+  /** Generals the rival faction starts with. */
+  RIVAL_GENERALS: z.number().int().positive(),
+  /** Rival generals sent into the field on turn 1, by personality; the rest garrison the castle. */
+  RIVAL_OPENING_FIELD: z.object({ aggressive: z.number().int().nonnegative(), opportunist: z.number().int().nonnegative(), defensive: z.number().int().nonnegative() }),
+  /** Rival opening field generals march in divisions of this size, so a solo hero meets them one at a time. */
+  RIVAL_OPENING_DIVISION_SIZE: z.number().int().positive(),
+  /** When false the war is lost only when the hero falls; a solo hero cannot garrison a castle. */
+  LOSE_WITHOUT_CASTLES: z.boolean(),
+  /** HP fraction an adopted (formerly captured) general returns with. */
+  ADOPTED_HP_FRAC: z.number().gt(0).max(1),
 }).refine(c => Math.abs(c.CAPTURE_WEIGHT + c.INJURE_WEIGHT + c.KILL_WEIGHT - 1) <= 1e-9,
   'CAPTURE_WEIGHT, INJURE_WEIGHT and KILL_WEIGHT must sum to 1')
   .refine(c => c.GARRISON_CAP > c.MAX_DIVISION_GENERALS,
     'GARRISON_CAP must exceed MAX_DIVISION_GENERALS')
-  .refine(c => c.STARTING_GENERALS * c.PLAYER_STARTING_CAPACITY >= c.STARTING_TROOPS,
-    'STARTING_GENERALS * PLAYER_STARTING_CAPACITY must cover STARTING_TROOPS');
+  .refine(c => Object.values(c.RIVAL_OPENING_FIELD).every(n => n <= c.RIVAL_GENERALS && n <= c.MAX_DIVISION_GENERALS),
+    'RIVAL_OPENING_FIELD must fit RIVAL_GENERALS and one division');
 export type WorldConstants = z.infer<typeof WorldConstantsSchema>;

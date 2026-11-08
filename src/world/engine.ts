@@ -1,12 +1,34 @@
 import { getGameData } from '../data';
 import { resolveTurn } from './turn';
-import type { GeneralId } from '../data/schemas';
+import type { ClassId, GeneralId } from '../data/schemas';
+import { getRunConfig } from '../run/config';
 import { uniqueName } from '../data/names';
 import type { ProgressTroop } from '../progression';
 import type { BuiltWorldData } from './data';
 import { internal, nextId, pick, worldRng, type WorldInternal } from './rng';
 import type { GeneralRecord, War } from './types';
-export interface WarSetup { seed: number; heroId: GeneralId; heroName: string; split?: number[] }
+export interface WarSetup { seed: number; heroId: GeneralId; heroName: string }
+
+/**
+ * The hero's opening army: the Skirmish demo's starting roster (hero class plus its configured
+ * partner, startingTroopsPerLine of each stage-1 line).
+ */
+function startingArmy(war: War, heroClass: ClassId): { classes: ClassId[]; troops: ProgressTroop[] } {
+  const { rng } = war._internal as WorldInternal;
+  const game = getGameData();
+  const run = getRunConfig();
+  const partner = run.startingPartners[heroClass];
+  if (!partner) throw new Error(`class ${heroClass} has no starting partner`);
+  const taken = new Set(war.generals.flatMap(g => g.troops.map(t => t.name)));
+  const troops: ProgressTroop[] = [];
+  for (const classId of [heroClass, partner]) {
+    const lines = game.units.filter(u => u.stage === 1 && u.classId === classId).sort((a, b) => a.line.localeCompare(b.line));
+    for (const unit of lines) for (let i = 0; i < run.startingTroopsPerLine; i++) {
+      troops.push({ id: nextId(rng, 'troop'), name: uniqueName(rng, game.names, taken), unitId: unit.id, xp: 0, level: 1 });
+    }
+  }
+  return { classes: [heroClass, partner], troops };
+}
 
 /** Fresh level-one troops from the faction's unlocked classes. */
 export function freshTroops(war: War, classes: War['factions'][number]['classes'], count: number): ProgressTroop[] {
@@ -22,28 +44,37 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
   const hero = game.generalById.get(setup.heroId);
   if (!hero) throw new Error(`Unknown hero ${setup.heroId}`);
   const c = data.constants;
-  const split = setup.split ?? Array.from({ length: c.STARTING_GENERALS }, (_, i) => Math.floor(c.STARTING_TROOPS / c.STARTING_GENERALS) + (i < c.STARTING_TROOPS % c.STARTING_GENERALS ? 1 : 0));
-  if (split.length !== c.STARTING_GENERALS || split.some(n => !Number.isInteger(n) || n < 0 || n > c.PLAYER_STARTING_CAPACITY) || split.reduce((a, b) => a + b, 0) !== c.STARTING_TROOPS) throw new Error('Invalid starting split: total and capacities must match');
   const rng = worldRng(setup.seed);
   const state: WorldInternal = { data: structuredClone(data), rng, pending: [], supply: Object.fromEntries(data.nodes.map(n => [n.id, n.supplyPerWeek])), paths: {} };
   const war: War = { version: 1, id: nextId(rng, 'war'), seed: setup.seed, turn: 1, week: 1, phase: 'orders', factions: data.factions.map(f => ({ ...structuredClone(f), gold: c.STARTING_GOLD, captives: [] })), nodes: structuredClone(data.nodes), routes: structuredClone(data.routes), generals: [], divisions: [], pendingBattle: null, events: [], turnLog: [], _internal: state };
   const taken = new Set([setup.heroName]);
   for (const faction of [...war.factions].sort((a, b) => a.id.localeCompare(b.id))) {
     const castle = war.nodes.find(n => n.kind === 'castle' && n.owner === faction.id)!;
-    const profiles = game.generals.filter(g => faction.classes.includes(game.unitById.get(g.unitId)!.classId));
     const generals: GeneralRecord[] = [];
-    for (let i = 0; i < (faction.isPlayer ? c.STARTING_GENERALS : 6); i++) {
-      const isHero = faction.isPlayer && i === 0;
-      const profile = isHero ? hero : pick(rng, profiles);
-      const general: GeneralRecord = { id: nextId(rng, 'general'), name: isHero ? setup.heroName : uniqueName(rng, game.names, taken), generalId: profile.id, factionId: faction.id, isHero, level: 1, xp: 0, hp: profile.hp, maxHp: profile.hp, capacity: faction.isPlayer ? c.PLAYER_STARTING_CAPACITY : c.STARTING_CAPACITY, troops: [], injuredTurns: 0, nodeId: castle.id };
+    if (faction.isPlayer) {
+      // The hero starts alone; more generals come from adopting beaten rivals and promotion.
+      const army = startingArmy(war, game.unitById.get(hero.unitId)!.classId);
+      if (army.troops.length > c.PLAYER_STARTING_CAPACITY) throw new Error('Starting army exceeds PLAYER_STARTING_CAPACITY');
+      faction.classes = army.classes;
+      const general: GeneralRecord = { id: nextId(rng, 'general'), name: setup.heroName, generalId: hero.id, factionId: faction.id, isHero: true, level: 1, xp: 0, hp: hero.hp, maxHp: hero.hp, capacity: c.PLAYER_STARTING_CAPACITY, troops: army.troops, injuredTurns: 0, nodeId: castle.id };
       war.generals.push(general);
-      general.troops = freshTroops(war, faction.classes, faction.isPlayer ? split[i]! : c.STARTING_CAPACITY);
       generals.push(general);
+    } else {
+      const profiles = game.generals.filter(g => faction.classes.includes(game.unitById.get(g.unitId)!.classId));
+      for (let i = 0; i < c.RIVAL_GENERALS; i++) {
+        const profile = pick(rng, profiles);
+        const general: GeneralRecord = { id: nextId(rng, 'general'), name: uniqueName(rng, game.names, taken), generalId: profile.id, factionId: faction.id, isHero: false, level: 1, xp: 0, hp: profile.hp, maxHp: profile.hp, capacity: c.STARTING_CAPACITY, troops: [], injuredTurns: 0, nodeId: castle.id };
+        war.generals.push(general);
+        general.troops = freshTroops(war, faction.classes, c.STARTING_CAPACITY);
+        generals.push(general);
+      }
     }
-    const deployed = faction.isPlayer ? generals.length : faction.personality === 'aggressive' ? 5 : faction.personality === 'opportunist' ? 4 : 3;
-    for (let i = 0; i < deployed; i += c.MAX_DIVISION_GENERALS) {
+    // Rivals open with a small field force; the rest stay home as the castle garrison.
+    const deployed = faction.isPlayer ? generals.length : c.RIVAL_OPENING_FIELD[faction.personality];
+    const size = faction.isPlayer ? c.MAX_DIVISION_GENERALS : Math.min(c.MAX_DIVISION_GENERALS, c.RIVAL_OPENING_DIVISION_SIZE);
+    for (let i = 0; i < deployed; i += size) {
       const id = nextId(rng, 'division');
-      war.divisions.push({ id, factionId: faction.id, generals: generals.slice(i, Math.min(deployed, i + c.MAX_DIVISION_GENERALS)).map(g => g.id), atNode: castle.id, previousNode: null });
+      war.divisions.push({ id, factionId: faction.id, generals: generals.slice(i, Math.min(deployed, i + size)).map(g => g.id), atNode: castle.id, previousNode: null });
       state.paths[id] = [];
     }
   }

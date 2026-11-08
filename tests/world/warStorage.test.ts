@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { getGameData } from '../../src/data';
 import { awardTroopXp } from '../../src/progression';
 import { buildWorldData, rawWorldData } from '../../src/world/data';
@@ -9,7 +10,7 @@ import type { War } from '../../src/world/types';
 
 const data = buildWorldData(rawWorldData);
 const game = getGameData();
-const make = () => createWar(data, { seed: 41, heroId: 'paladin', heroName: 'Ivy' });
+const make = () => legacyOpening(createWar(data, { seed: 41, heroId: 'paladin', heroName: 'Ivy' }));
 
 function store(): { map: Map<string, string>; storage: { getItem(k: string): string | null; setItem(k: string, v: string): void; removeItem(k: string): void } } {
   const map = new Map<string, string>();

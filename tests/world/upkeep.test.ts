@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { getGameData } from '../../src/data';
 import { buildWorldData, rawWorldData, createWar, issueOrder, resolveTurn } from '../../src/world';
 import { applyRest, applyUpkeep, resetWeeklySupply } from '../../src/world/upkeep';
 const data = buildWorldData(rawWorldData);
-const make = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+const make = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 function force() { const war = make(); const d = war.divisions.find(d => d.factionId === 'player')!; return { war, d, generals: war.generals.filter(g => d.generals.includes(g.id)) }; }
 describe('node actions and upkeep', () => {
   it('heals by the configured fraction, clamps HP, and supplies stage-1 unlocked troops', () => {

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { buildWorldData, rawWorldData, createWar, issueOrder } from '../../src/world';
 import { resolveTurn } from '../../src/world/turn';
 const data = buildWorldData(rawWorldData);
-const make = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+const make = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 describe('turn resolution', () => {
   it('advances once, clears events and queues, logs explicit and default holds', () => {
     const war = make(); const positions = war.divisions.map(d => d.atNode);

@@ -63,6 +63,21 @@ export function defaultDivision(war: War, factionId: string): Division | undefin
   return own.find(d => hero && d.generals.includes(hero.id)) ?? own[0];
 }
 
+/** Whether holding no castle ends the war (LOSE_WITHOUT_CASTLES); false means only the hero's death does. */
+export function castleLossEndsWar(war: War): boolean {
+  return (war._internal as { data: { constants: { LOSE_WITHOUT_CASTLES: boolean } } }).data.constants.LOSE_WITHOUT_CASTLES;
+}
+
+/** Where an adopted general would go: the preferred division if it has room, else the first that does. */
+export function adoptionTarget(war: War, factionId: string, preferred: string | null): { division: string } | { division: null; reason: string } {
+  const cap = (war._internal as { data: { constants: { MAX_DIVISION_GENERALS: number } } }).data.constants.MAX_DIVISION_GENERALS;
+  const own = war.divisions.filter(d => d.factionId === factionId && d.generals.length > 0).sort((a, b) => a.id.localeCompare(b.id));
+  const open = own.filter(d => d.generals.length < cap);
+  const pick = open.find(d => d.id === preferred) ?? open[0];
+  if (pick) return { division: pick.id };
+  return { division: null, reason: own.length ? `Every division is full (${cap} generals each).` : 'You have no division in the field to join.' };
+}
+
 /** Why a node action would do nothing here, or null when it is useful. */
 export function actionBlocker(war: War, division: Division, action: 'search' | 'rest'): string | null {
   const node = war.nodes.find(n => n.id === division.atNode);
@@ -138,6 +153,15 @@ export function turnReport(war: War, factionId: string): string[] {
       case 'resupplied': {
         const g = war.generals.find(x => x.id === event.general);
         if (g?.factionId === factionId) lines.push(`${g.name} took on ${event.troops} fresh troops.`);
+        break;
+      }
+      case 'generalDefeated': {
+        const g = war.generals.find(x => x.id === event.general); if (!g) break;
+        const ours = event.by === factionId;
+        const what = event.outcome === 'captured' ? (ours ? `You captured ${g.name}. Adopt them from Prisoners.` : `${g.name} was captured.`)
+          : event.outcome === 'injured' ? (ours ? `${g.name} escaped, injured.` : `${g.name} was injured and is out for a few turns.`)
+          : (ours ? `${g.name} fell.` : `${g.name} was killed.`);
+        lines.push(what);
         break;
       }
       case 'weekPassed': lines.push(`Week ${event.week} begins.`); break;

@@ -1,20 +1,57 @@
-.dl-war-start { box-sizing: border-box; width: min(1180px, 100%); max-height: min(800px, calc(100vh - 24px)); min-height: 0; margin: 12px auto; padding: clamp(12px, 2vw, 24px); overflow: auto; color: var(--dl-text); font-family: var(--dl-font-ui); }
-.dl-war-start h1 { margin: 0 0 12px; font: 700 28px var(--dl-font); color: var(--dl-accent); }
-.dl-war-start__layout { display: grid; grid-template-columns: minmax(190px, .8fr) minmax(210px, 1fr) minmax(250px, 1fr); gap: 12px; align-items: start; }
-.dl-war-start__heroes, .dl-war-start__profile, .dl-war-start__allocation { min-width: 0; }
-.dl-war-start__heroes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: min(690px, calc(100vh - 100px)); overflow-y: auto; }
-.dl-war-start__hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 7px; padding: 8px; color: var(--dl-text); background: var(--dl-bg-panel); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); cursor: pointer; }
-.dl-war-start__hero input { grid-row: span 2; align-self: center; }
-.dl-war-start__hero span { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
-.dl-war-start__hero:has(input:checked) { border-color: var(--dl-accent); }
-.dl-war-start__profile, .dl-war-start__allocation { padding: 14px; }
-.dl-war-start__profile h2, .dl-war-start__allocation h2 { margin: 0 0 10px; }
-.dl-war-start__allocation form, .dl-war-start__allocation label { display: grid; gap: 8px; }
-.dl-war-start__allocation label { margin: 10px 0; }
-.dl-war-start__allocation input { box-sizing: border-box; width: 100%; min-height: 40px; padding: 6px 9px; color: var(--dl-text); background: var(--dl-bg); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
-.dl-war-start__remaining { font-weight: 700; }
-.dl-war-start__errors { min-height: 1.5em; }
+.dl-war-start { box-sizing: border-box; width: min(1180px, 100%); margin: 0 auto; padding: clamp(10px, 2vw, 22px); color: var(--dl-text); font-family: var(--dl-font-ui); }
+.dl-war-start h1 { margin: 0; font: 700 30px var(--dl-font); color: var(--dl-accent); letter-spacing: .02em; }
+.dl-war-start__lede { margin: 4px 0 10px; color: var(--dl-text-dim); }
+.dl-war-start__layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 18px; align-items: center; }
+
+/* The star scales with the viewport height so the whole picker fits one screen. */
+.dl-war-start__star { position: relative; width: min(100%, calc(100vh - 130px)); aspect-ratio: 1; margin: 0 auto; container-type: inline-size; }
+.dl-war-start__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dl-war-start__ring { fill: #1b1511; stroke: #3a2e22; stroke-width: 2; }
+.dl-war-start__ally-edge { stroke: #6b5438; stroke-width: 2; stroke-dasharray: 6 6; }
+.dl-war-start__hunt-edge { stroke: rgba(236, 223, 201, .16); stroke-width: 2; }
+.dl-war-start__lit { stroke-width: 5; stroke-linecap: round; }
+.dl-war-start__lit--quarry { stroke: #7fd16b; }
+.dl-war-start__lit--nemesis { stroke: #e0604f; }
+.dl-war-start__lit--ally { stroke: var(--dl-accent); stroke-dasharray: 8 6; }
+.dl-war-start__class circle { stroke: #14100e; stroke-width: 3; transition: opacity .15s, stroke .15s; }
+.dl-war-start__class text { font: 700 15px var(--dl-font); fill: #14100e; pointer-events: none; }
+.dl-war-start__class[data-role="other"] circle { opacity: .35; }
+.dl-war-start__class[data-role="self"] circle { stroke: #fff; stroke-width: 4; }
+.dl-war-start__class[data-role="quarry"] circle { stroke: #7fd16b; stroke-width: 4; }
+.dl-war-start__class[data-role="nemesis"] circle { stroke: #e0604f; stroke-width: 4; }
+.dl-war-start__class[data-role="ally"] circle { stroke: var(--dl-accent); stroke-width: 4; }
+.dl-war-start__centre { font: 700 18px var(--dl-font); fill: var(--dl-accent); letter-spacing: .25em; }
+.dl-war-start__centre-sub { font: 12px var(--dl-font-ui); fill: var(--dl-text-dim); }
+
+.dl-war-start__tokens { position: absolute; inset: 0; }
+/* Sized to the star (cqw) so a row of three always fits its 15cqw spacing. */
+.dl-war-start__token { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0; width: 13.5cqw; padding: .6cqw 0; color: var(--dl-text); background: var(--dl-bg-panel); border: 2px solid color-mix(in srgb, var(--class-color) 55%, #000); border-radius: 18px; cursor: pointer; line-height: 1.15; }
+.dl-war-start__token strong { font: 700 clamp(10px, 2.05cqw, 13px) var(--dl-font); }
+.dl-war-start__token span { font-size: clamp(8px, 1.6cqw, 10px); color: var(--dl-text-dim); white-space: nowrap; }
+.dl-war-start__token:hover { border-color: var(--class-color); }
+.dl-war-start__token[aria-checked="true"] { background: color-mix(in srgb, var(--class-color) 35%, var(--dl-bg-panel)); border-color: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--class-color) 60%, transparent); }
+
+.dl-war-start__panel { padding: 16px 18px; min-width: 0; }
+.dl-war-start__panel h2 { margin: 0; font: 700 26px var(--dl-font); }
+.dl-war-start__meta { margin: 2px 0 10px; color: var(--dl-text-dim); }
+.dl-war-start__special { margin: 0 0 12px; font-size: 14px; }
+.dl-war-start__relations { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.dl-war-start__rel { display: grid; grid-template-columns: 76px auto minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px 8px; border-left: 4px solid; background: var(--dl-bg-panel-2); font-size: 13px; }
+.dl-war-start__rel b { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.dl-war-start__rel--quarry { border-color: #7fd16b; } .dl-war-start__rel--quarry b { color: #9be07a; }
+.dl-war-start__rel--nemesis { border-color: #e0604f; } .dl-war-start__rel--nemesis b { color: #f08a7a; }
+.dl-war-start__rel--ally { border-color: var(--dl-accent); } .dl-war-start__rel--ally b { color: var(--dl-accent); }
+.dl-war-start__chip { padding: 1px 8px; border-radius: 10px; background: var(--class-color); color: #14100e; font-weight: 700; font-size: 12px; }
+.dl-war-start__army { margin: 0 0 12px; padding: 8px 10px; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); font-size: 13px; }
+.dl-war-start__name { display: grid; gap: 4px; font-size: 13px; color: var(--dl-text-dim); }
+.dl-war-start__name input { box-sizing: border-box; width: 100%; min-height: 40px; padding: 6px 10px; font-size: 16px; color: var(--dl-text); background: var(--dl-bg); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
+.dl-war-start__errors { min-height: 1.4em; margin: 4px 0; }
 .dl-war-start__actions { display: flex; gap: 8px; justify-content: space-between; }
+.dl-war-start__actions .dl-primary { padding: 8px 22px; font-size: 15px; }
 .dl-war-start button:focus-visible, .dl-war-start input:focus-visible { outline: 3px solid var(--dl-accent); outline-offset: 2px; }
-@media (max-width: 850px) { .dl-war-start { max-height: none; } .dl-war-start__layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .dl-war-start__heroes { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); max-height: 30vh; } .dl-war-start__profile { grid-column: 1; } .dl-war-start__allocation { grid-column: 2; } }
-@media (max-width: 560px) { .dl-war-start__layout { grid-template-columns: minmax(0, 1fr); } .dl-war-start__heroes, .dl-war-start__profile, .dl-war-start__allocation { grid-column: 1; } .dl-war-start__heroes { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 34vh; } }
+
+@media (max-width: 900px) {
+  .dl-war-start__layout { grid-template-columns: minmax(0, 1fr); }
+  .dl-war-start__star { width: min(100%, 560px); }
+  .dl-war-start__token span { display: none; }
+}

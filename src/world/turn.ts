@@ -65,7 +65,8 @@ function settleTurn(war: War): void {
   }
   if (hero && hero.hp <= 0) { war.phase = 'lost'; return; }
   const player = war.factions.find(f => f.isPlayer)!;
-  if (!war.nodes.some(n => n.kind === 'castle' && n.owner === player.id)) { war.phase = 'lost'; return; }
+  // Optional: a solo hero cannot garrison, so by default only the hero's death ends the war.
+  if (state.data.constants.LOSE_WITHOUT_CASTLES && !war.nodes.some(n => n.kind === 'castle' && n.owner === player.id)) { war.phase = 'lost'; return; }
   if (war.factions.filter(f => !f.isPlayer).every(f => !war.nodes.some(n => n.kind === 'castle' && n.owner === f.id))) war.phase = 'won';
 }
 

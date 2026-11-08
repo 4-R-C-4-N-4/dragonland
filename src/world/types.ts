@@ -113,7 +113,9 @@ export type WorldEvent =
   | { type: 'weekPassed'; week: number }
   | { type: 'healed'; general: GeneralRecordId; hp: number }
   | { type: 'resupplied'; general: GeneralRecordId; troops: number }
-  | { type: 'retreated'; division: DivisionId; toNode: NodeId };
+  | { type: 'retreated'; division: DivisionId; toNode: NodeId }
+  /** A beaten general's fate; `by` is the winning faction. Captured generals can be adopted. */
+  | { type: 'generalDefeated'; general: GeneralRecordId; by: FactionId; outcome: 'captured' | 'injured' | 'killed' };
 
 export interface RecordedWorldTurn {
   turn: number;

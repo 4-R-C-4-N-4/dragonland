@@ -45,7 +45,7 @@ Numbers are starting defaults in validated JSON, not balance claims.
 - A battle triggers when hostile divisions end a turn on the same node, when a division enters an enemy castle with a garrison, or when two hostile divisions **swap nodes** along the same route in one turn (they cannot slip past each other).
 - **Losing or retreating returns the division to the node it came from.** Every division remembers its previous node for exactly this.
 - Garrisoned generals heal HP and refill troops per turn spent resting, capped per town per week.
-- Victory: hold every enemy castle. Defeat: hero dies, or you hold no castles.
+- Victory: hold every enemy castle. Defeat: the hero dies (holding no castles also loses only if `LOSE_WITHOUT_CASTLES` is set; D32).
 
 ### Node actions and biome recruitment
 - A node has a **biome** that determines which wild troop species live there.
@@ -78,7 +78,7 @@ General bonds and combo specials; terrain modifiers; parley/diplomacy; multiple 
 - **Castle capacity: garrison 7 vs attacking division of 5.** Tighter than Dragon Force's 10v5 on purpose — castles are a real obstacle but can change hands, so the map stays fluid.
 - **Turn-based overworld.** One node per turn; every node action costs a turn; enemies move one node per turn simultaneously.
 - **Retreat and defeat return a division to its previous node.** No separate troop penalty for retreating; losing the skirmishes is the cost.
-- **Starting force: hero + 2 generals, 150 troops total, freely split between them**, each player general leading at most 70 (`PLAYER_STARTING_CAPACITY`). Rival generals keep 50 each (`STARTING_CAPACITY`). Raised from 100/50 after playtesting: the 34-troop hero lost the opening fight against full 50-troop rivals. The default split is even (50/50/50).
+- **Starting force: the hero alone** with the Skirmish demo's starting army (hero class + partner, 60 troops); more generals come from adopting captured rivals (D30, D31). Rivals have 6 generals of 50 and open with single-general field divisions (D32). Superseded: hero + 2 generals sharing 100, then 150 troops.
 - **Map:** 12 nodes, 2 factions (you + 1 rival).
 - **Rival generals:** 6 named, no recurring grudge logic.
 - **Hero specials:** the hero keeps its single class special from MVP2. The 3–4 unlockable signature moves stay deferred.

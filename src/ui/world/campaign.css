@@ -75,6 +75,13 @@
   margin: 12px 0;
 }
 
+.dl-campaign__foe {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-left: 4px solid #b23a3a;
+  background: rgba(178, 58, 58, 0.12);
+}
+
 .dl-campaign__choices button {
   text-align: left;
 }

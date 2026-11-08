@@ -229,12 +229,14 @@ export function applySkirmishResult(war: War, sequence: EncounterSequence, skirm
     else {
       const constants = internal(war).data.constants;
       const roll = nextFloat(internal(war).rng), capture = constants.CAPTURE_WEIGHT, injure = capture + constants.INJURE_WEIGHT;
+      const by = records[result.winner]!.factionId;
       if (roll < capture) {
-        const captor = war.factions.find(f => f.id === records[result.winner]!.factionId)!;
+        const captor = war.factions.find(f => f.id === by)!;
         if (!captor.captives.includes(loser.id)) captor.captives.push(loser.id);
         loser.nodeId = records[result.winner]!.nodeId;
-      } else if (roll < injure) { loser.injuredTurns = constants.INJURY_TURNS; }
-      else { loser.hp = 0; }
+        war.events.push({ type: 'generalDefeated', general: loser.id, by, outcome: 'captured' });
+      } else if (roll < injure) { loser.injuredTurns = constants.INJURY_TURNS; war.events.push({ type: 'generalDefeated', general: loser.id, by, outcome: 'injured' }); }
+      else { loser.hp = 0; war.events.push({ type: 'generalDefeated', general: loser.id, by, outcome: 'killed' }); }
     }
   }
   pending.processedSkirmishIds.push(skirmishId);

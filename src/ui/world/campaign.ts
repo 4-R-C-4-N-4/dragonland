@@ -5,7 +5,7 @@ import type { GameData } from '../../data';
 import type { StartBattleView } from '../../battle/types';
 import { campaignBattlePerspective, playerSideOf } from './battlePerspective';
 import {
-  applyWildResult, buildWorldData, cancelOrder, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
+  adoptCaptive, applyWildResult, buildWorldData, cancelOrder, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
   resolveTurn, resumeTurn, saveWar, wildBattleSetup, WILD_SEARCHER_SIDE,
   type BuiltWorldData, type StorageLike, type War, type WorldOrder,
 } from '../../world';
@@ -17,6 +17,7 @@ import type { BattleSetup } from '../../sim';
 import { planFactionOrders } from '../../ai/strategy';
 import { joinDivision, leaveAsGarrison } from '../../world/garrison';
 import { mountWorldMap, type WorldMapSelection } from './index';
+import { adoptionTarget } from './presentation';
 import { mountWarStart } from './start';
 import './campaign.css';
 
@@ -158,6 +159,11 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
       onSelectionChange: next => { mapSelection = next; },
       onOrder: (order: WorldOrder) => { if (war) { issueOrder(war, order); saveWar(storage, war); renderStatus(status); } },
       onCancelOrder: division => { if (war) { cancelOrder(war, division); saveWar(storage, war); renderStatus(status); } },
+      onAdopt: (captive, division) => {
+        if (!war) return;
+        try { adoptCaptive(war, playerId, captive, division); saveWar(storage, war); mapHandle?.update(war); renderStatus(status); }
+        catch (error) { status.textContent = error instanceof Error ? error.message : String(error); }
+      },
       onGarrison: intent => {
         if (!war) return;
         try {
@@ -217,11 +223,22 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     const list = document.createElement('div'); list.className = 'dl-campaign__choices';
 
     if (mine.length) {
+      // Show who you would face, so fighting on or retreating is an informed choice: a lost
+      // fight costs a general, and the hero's loss ends the war.
+      const enemyIds = side === 'attacker' ? seq.defenderGeneralIds : seq.attackerGeneralIds;
+      const facing = side === 'attacker' && seq.selectedDefender ? [seq.selectedDefender]
+        : enemyIds.filter(id => !seq.defeatedGeneralIds.includes(id) && war!.generals.find(g => g.id === id)!.hp > 0);
+      const foe = document.createElement('p'); foe.className = 'dl-campaign__foe';
+      foe.textContent = (side === 'attacker' && seq.selectedDefender ? 'They sent: ' : 'They still have: ') + facing.map(id => {
+        const g = war!.generals.find(x => x.id === id)!;
+        return `${g.name} (${data.generalById.get(g.generalId)?.name ?? g.generalId}) · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`;
+      }).join('; ');
+      list.append(foe);
       const prompt = document.createElement('p');
       prompt.textContent = `Choose your ${side}:`;
       list.append(prompt);
       for (const g of mine) {
-        list.append(button(`${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`, () => chooseGeneral(seq, g.id, side)));
+        list.append(button(`${g.name}${g.isHero ? ' (hero)' : ''} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`, () => chooseGeneral(seq, g.id, side)));
       }
     } else {
       // The enemy owns this side: pick for them, deterministically, then re-render.
@@ -341,12 +358,27 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
       row.textContent = `${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops` + (g.injuredTurns ? ` · injured (${g.injuredTurns})` : '');
       list.append(row);
     }
-    if (player.captives.length) {
-      const captives = document.createElement('p');
-      captives.textContent = `Captives held: ${player.captives.map(id => war!.generals.find(g => g.id === id)?.name ?? id).join(', ')}`;
-      list.append(captives);
-    }
     box.append(list);
+    if (player.captives.length) {
+      const heading = document.createElement('h2'); heading.textContent = 'Prisoners'; box.append(heading);
+      const prisoners = document.createElement('div'); prisoners.className = 'dl-campaign__choices';
+      const hero = war.generals.find(g => g.isHero);
+      const heroDivision = war.divisions.find(d => hero && d.generals.includes(hero.id))?.id ?? null;
+      const target = adoptionTarget(war, playerId, heroDivision);
+      for (const id of player.captives) {
+        const g = war.generals.find(x => x.id === id); if (!g) continue;
+        const label = `Adopt ${g.name} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${g.troops.length} troops`;
+        const b = button(label, () => {
+          if (!target.division) return;
+          try { adoptCaptive(war!, playerId, id, target.division); saveWar(storage, war!); render(); }
+          catch (error) { const p = document.createElement('p'); p.className = 'dl-error'; p.textContent = error instanceof Error ? error.message : String(error); box.append(p); }
+        });
+        b.disabled = !target.division;
+        if (target.division === null) b.title = target.reason;
+        prisoners.append(b);
+      }
+      box.append(prisoners);
+    }
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
     actions.append(button('Resume the war', () => { completeAdmin(war!); commit(); }, true));
     box.append(actions);

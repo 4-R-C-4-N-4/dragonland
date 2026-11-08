@@ -1,21 +1,43 @@
-import type { GameData, GeneralId } from '../../data';
-import type { BuiltWorldData } from '../../world';
+import type { ClassId, GameData, GeneralId } from '../../data';
+import type { RunConfig } from '../../run/config';
 
-export function defaultStartingSplit(world: BuiltWorldData): number[] {
-  const { STARTING_TROOPS: troops, STARTING_GENERALS: generals } = world.constants;
-  return Array.from({ length: generals }, (_, i) => Math.floor(troops / generals) + (i < troops % generals ? 1 : 0));
+/**
+ * Classes around a pentagon so the authored counter cycle draws the star: each class's quarry
+ * (the class it is strong against) sits two points clockwise. With the authored data the
+ * starting partners then land on the pentagon edges, next to each other.
+ */
+export function huntOrder(data: GameData): ClassId[] {
+  const n = data.classes.length;
+  const order: ClassId[] = new Array(n);
+  let c = data.classes[0]!.id;
+  for (let k = 0, i = 0; k < n; k++, i = (i + 2) % n) { order[i] = c; c = data.classById.get(c)!.strongAgainst; }
+  return order;
 }
 
-export interface WarStartValidation { valid: boolean; errors: string[]; remaining: number }
-export function validateWarStart(data: GameData, world: BuiltWorldData, heroId: GeneralId, name: string, split: number[]): WarStartValidation {
+export function huntRelations(data: GameData, run: RunConfig, classId: ClassId): { quarry: ClassId; nemesis: ClassId; ally: ClassId } {
+  const quarry = data.classById.get(classId)!.strongAgainst;
+  const nemesis = data.classes.find(c => c.strongAgainst === classId)!.id;
+  return { quarry, nemesis, ally: run.startingPartners[classId]! };
+}
+
+/** Point i of an n-gon, first at the top, clockwise (SVG y grows downward). */
+export function vertex(i: number, n: number, cx: number, cy: number, r: number): [number, number] {
+  const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+/** The army a war starts with; mirrors createWar's starting army. */
+export function startingArmySummary(data: GameData, run: RunConfig, heroId: GeneralId): { classes: ClassId[]; troops: number; perKind: number } {
+  const heroClass = data.unitById.get(data.generalById.get(heroId)!.unitId)!.classId;
+  const classes = [heroClass, run.startingPartners[heroClass]!];
+  const kinds = classes.reduce((n, c) => n + data.units.filter(u => u.stage === 1 && u.classId === c).length, 0);
+  return { classes, troops: kinds * run.startingTroopsPerLine, perKind: run.startingTroopsPerLine };
+}
+
+export interface WarStartValidation { valid: boolean; errors: string[] }
+export function validateWarStart(data: GameData, heroId: GeneralId, name: string): WarStartValidation {
   const errors: string[] = [];
-  const { STARTING_TROOPS: total, STARTING_GENERALS: generals, PLAYER_STARTING_CAPACITY: capacity } = world.constants;
-  const remaining = total - split.reduce((sum, n) => sum + (Number.isFinite(n) ? n : 0), 0);
-  if (!data.generalById.has(heroId)) errors.push('Choose a hero from the catalog.');
-  if (!name.trim()) errors.push('Enter a name for your hero.');
-  if (split.length !== generals) errors.push(`Enter allocations for all ${generals} generals.`);
-  if (split.some(n => !Number.isInteger(n) || n < 0)) errors.push('Troop counts must be whole numbers of zero or more.');
-  if (split.some(n => Number.isFinite(n) && n > capacity)) errors.push(`Each general can lead at most ${capacity} troops.`);
-  if (split.every(Number.isInteger) && split.reduce((a, b) => a + b, 0) !== total) errors.push(`Allocate exactly ${total} troops.`);
-  return { valid: errors.length === 0, errors, remaining };
+  if (!data.generalById.has(heroId)) errors.push('Choose a hero.');
+  if (!name.trim()) errors.push('Name your hero.');
+  return { valid: errors.length === 0, errors };
 }

@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { buildWorldData, createWar, issueOrder, leaveAsGarrison, rawWorldData, resolveTurn } from '../../src/world';
 import { visibleNodes } from '../../src/ai/strategy';
 import {
   actionBlocker, adjacentNodeIds, defaultDivision, divisionName, garrisonStatus, nodeSummary, nodeTone, orderIntent, orderLabel,
-  turnReport, undefendedCastles, visibleEnemyDivisions,
+  turnReport, undefendedCastles, visibleEnemyDivisions, adoptionTarget, castleLossEndsWar,
 } from '../../src/ui/world/presentation';
 import { hasGarrison } from '../../src/world/movement';
 
 const data = buildWorldData(rawWorldData);
-const makeWar = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+const makeWar = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 
 describe('world map presentation helpers', () => {
   it('limits march targets to one authored route away', () => {
@@ -153,6 +154,29 @@ describe('overworld readability helpers', () => {
     const lead = war.generals.find(g => g.id === e.generals[0])!.name;
     war.events = [{ type: 'moved', division: e.id, from: 'pinewatch', to: 'greenfield' }];
     expect(turnReport(war, 'player')).toEqual([`Night Host (${lead}) marched to Greenfield.`]);
+  });
+
+  it('tells you whom you captured and points at Prisoners', () => {
+    const war = makeWar(); const e = enemy(war);
+    war.events = [{ type: 'generalDefeated', general: e.generals[0]!, by: 'player', outcome: 'captured' }];
+    const name = war.generals.find(g => g.id === e.generals[0])!.name;
+    expect(turnReport(war, 'player')).toEqual([`You captured ${name}. Adopt them from Prisoners.`]);
+  });
+
+  it('adopts into the selected division when it has room, else the first that does', () => {
+    const war = makeWar(); const d = own(war);
+    expect(adoptionTarget(war, 'player', d.id)).toEqual({ division: d.id });
+    expect(adoptionTarget(war, 'player', null)).toEqual({ division: d.id });
+    d.generals.push('f1', 'f2'); // now full at MAX_DIVISION_GENERALS
+    expect(d.generals.length).toBe(5);
+    expect(adoptionTarget(war, 'player', d.id)).toEqual({ division: null, reason: expect.stringMatching(/full/) });
+  });
+
+  it('reads whether losing every castle ends the war from the war rules', () => {
+    const war = makeWar();
+    expect(castleLossEndsWar(war)).toBe(false);
+    (war._internal as { data: { constants: { LOSE_WITHOUT_CASTLES: boolean } } }).data.constants.LOSE_WITHOUT_CASTLES = true;
+    expect(castleLossEndsWar(war)).toBe(true);
   });
 
   it('keeps enemy recovery out of the report', () => {

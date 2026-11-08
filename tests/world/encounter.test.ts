@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { buildWorldData, rawWorldData, createWar, issueOrder, resolveTurn } from '../../src/world';
 import { detectEncounters } from '../../src/world/encounter';
 const data = buildWorldData(rawWorldData);
-const make = () => createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' });
+const make = () => legacyOpening(createWar(data, { seed: 17, heroId: 'paladin', heroName: 'Ivy' }));
 describe('encounters', () => {
   it('detects hostile node contact, once', () => {
     const war = make(); war.divisions.forEach(d => { d.atNode = 'greenfield'; });

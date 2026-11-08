@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { getGameData } from '../../src/data';
 import { buildWorldData, rawWorldData } from '../../src/world/data';
 import { createWar, issueOrder, resolveTurn, resumeTurn } from '../../src/world';
@@ -10,7 +11,7 @@ import type { War } from '../../src/world/types';
 
 const data = buildWorldData(rawWorldData);
 const game = getGameData();
-const make = (seed: number) => createWar(data, { seed, heroId: 'paladin', heroName: 'Ivy' });
+const make = (seed: number) => legacyOpening(createWar(data, { seed, heroId: 'paladin', heroName: 'Ivy' }));
 
 /** Put one player division on a node and return it. */
 function searcher(war: War, node: string) {
