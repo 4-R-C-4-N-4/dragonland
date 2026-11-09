@@ -127,6 +127,54 @@ describe('fighting with a prepared army', () => {
   });
 });
 
+describe('a general who falls', () => {
+  it('hands its benched troops back to the division instead of taking them away', () => {
+    const war = make(); const { own, foe, seq } = contact(war);
+    const mate = war.generals.find(g => own.generals.includes(g.id) && !g.isHero)!;
+    // The others are full, so the fighter's unchosen troops stay benched on it.
+    for (const id of own.generals) { const g = war.generals.find(x => x.id === id)!; if (g !== mate) g.capacity = g.troops.length; }
+    const pool = fightPool(war, mate.id);
+    const species = [...new Set(pool.map(t => t.unitId))];
+    const army = plan(pool, { [species[0]!]: 4 });
+    commitDefender(war, seq, foe.generals[0]!);
+    const selection = commitAttacker(war, seq, mate.id, army);
+    const deployed = army.squads.flatMap(q => q.troopIds);
+    const benched = ids(fightPool(war, mate.id).filter(t => !deployed.includes(t.id)));
+    expect(mate.troops.length).toBeGreaterThan(deployed.length);
+    // Room opens up again (e.g. levels gained elsewhere); the returned troops must fit within it.
+    for (const id of own.generals) { const g = war.generals.find(x => x.id === id)!; if (g !== mate) g.capacity = 100; }
+    // The attacker (side 1) loses outright; every deployed troop dies.
+    applySkirmishResult(war, seq, selection.id, {
+      result: { winner: 0, reason: 'generalDefeated', durationS: 5, hadDuel: false, dead: [[], deployed], survivors: [selection.setup.sides[0].squads.flatMap(q => q.troops.map(t => t.troopId)), []] },
+      generalHp: [selection.setup.sides[0].general!.hp, 0],
+    } as never);
+    expect(own.generals).not.toContain(mate.id);
+    expect(ids(own.generals.flatMap(id => war.generals.find(g => g.id === id)!.troops))).toEqual(benched);
+    expect(mate.troops).toEqual([]);
+    for (const id of own.generals) { const g = war.generals.find(x => x.id === id)!; expect(g.troops.length).toBeLessThanOrEqual(g.capacity); }
+  });
+
+  it('keeps a fallen general\u2019s troops in the division pool after a lost wild fight', () => {
+    const war = make(); const own = ownDivision(war);
+    own.atNode = 'reedhaven';
+    for (const id of own.generals) war.generals.find(g => g.id === id)!.nodeId = 'reedhaven';
+    war.pendingBattle = wildEncounter(war, own.id, [{ unitId: 'dog', count: 2 }]);
+    war.phase = 'battle';
+    const mate = war.generals.find(g => own.generals.includes(g.id) && !g.isHero)!;
+    const hero = war.generals.find(g => g.isHero)!;
+    // The others are full, so the fighter's unchosen troops stay benched on it.
+    for (const id of own.generals) { const g = war.generals.find(x => x.id === id)!; if (g !== mate) g.capacity = g.troops.length; }
+    const pool = fightPool(war, mate.id);
+    const species = [...new Set(pool.map(t => t.unitId))];
+    const army = plan(pool, { [species[0]!]: 4 });
+    const selection = wildBattleSetup(war, own.id, mate.id, army);
+    const deployed = army.squads.flatMap(q => q.troopIds);
+    const rest = ids(fightPool(war, mate.id).filter(t => !deployed.includes(t.id)));
+    applyWildResult(war, selection, { result: { winner: 0, reason: 'generalDefeated', durationS: 5, hadDuel: false, dead: [[], deployed], survivors: [[], []] } as never, generalHp: [100, 0] });
+    expect(ids(fightPool(war, hero.id))).toEqual(rest);
+  });
+});
+
 describe('wild fights with a prepared army', () => {
   it('fields the plan and keeps benched troops', () => {
     const war = make(); const own = ownDivision(war);

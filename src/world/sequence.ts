@@ -6,7 +6,7 @@ import { internal } from './rng';
 import { nextFloat } from './rng';
 import type { BattleSetup, SideSetup } from '../sim';
 import { retreatNode } from './movement';
-import { applyArmy, armySide, validateArmy as validatePlan, type WarArmy } from './army';
+import { applyArmy, armySide, returnBenched, validateArmy as validatePlan, type WarArmy } from './army';
 import type { Division, GeneralRecord, PendingBattle, War } from './types';
 
 export interface BattleSelection {
@@ -230,6 +230,8 @@ export function applySkirmishResult(war: War, sequence: EncounterSequence, skirm
   const loser = records[result.winner === 0 ? 1 : 0]!;
   if (loser.hp <= 0) {
     sequence.defeatedGeneralIds.push(loser.id);
+    // Troops it held without fighting belong to the pool it leaves, not to its captor or grave.
+    returnBenched(war, loser.id, skirmish.setup.sides[result.winner === 0 ? 1 : 0]!.squads.flatMap(q => q.troops.map(t => t.troopId)));
     const losingDivision = war.divisions.find(d => d.generals.includes(loser.id));
     if (losingDivision) losingDivision.generals = losingDivision.generals.filter(id => id !== loser.id);
     if (loser.isHero) { war.phase = 'lost'; sequence.status = 'resolved'; }

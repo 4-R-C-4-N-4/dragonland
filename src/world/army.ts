@@ -18,13 +18,31 @@ function general(war: War, id: string): GeneralRecord {
   return g;
 }
 
-/** Generals sharing a troop pool with this one: its division, or its castle's garrison. */
+/**
+ * Generals sharing a troop pool with this one: every member of its division (a fallen member
+ * still holds division troops), or the living generals of its castle's garrison.
+ */
 export function poolGenerals(war: War, generalId: string): GeneralRecord[] {
   const g = general(war, generalId);
   const division = war.divisions.find(d => d.generals.includes(generalId));
-  const ids = division ? division.generals
-    : war.generals.filter(x => x.factionId === g.factionId && x.nodeId === g.nodeId && !war.divisions.some(d => d.generals.includes(x.id))).map(x => x.id);
-  return ids.map(id => general(war, id)).filter(x => x.id === generalId || x.hp > 0);
+  if (division) return division.generals.map(id => general(war, id));
+  return war.generals.filter(x => x.factionId === g.factionId && x.nodeId === g.nodeId && (x.id === generalId || x.hp > 0) && !war.divisions.some(d => d.generals.includes(x.id)));
+}
+
+/**
+ * A general is leaving its pool (beaten in battle): the troops it held without fighting go back
+ * to the pool members who remain, as far as their command allows. Returns how many were left
+ * with the leaving general for lack of room.
+ */
+export function returnBenched(war: War, generalId: string, deployedIds: Iterable<string>): number {
+  const leaver = general(war, generalId);
+  const deployed = new Set(deployedIds);
+  const stay = poolGenerals(war, generalId).filter(m => m !== leaver);
+  const benched = leaver.troops.filter(t => !deployed.has(t.id));
+  const kept = leaver.troops.filter(t => deployed.has(t.id));
+  for (const m of stay) while (benched.length && m.troops.length < m.capacity) m.troops.push(benched.shift()!);
+  leaver.troops = [...kept, ...benched];
+  return benched.length;
 }
 
 /** Every troop this general could field. */
@@ -68,7 +86,7 @@ export function applyArmy(war: War, generalId: string, army: WarArmy): void {
   for (const m of members) if (m !== fighter) m.troops = m.troops.filter(t => !chosen.has(t.id));
   fighter.troops = [...chosen].map(id => byId.get(id)!);
   for (const m of members) {
-    if (m === fighter) continue;
+    if (m === fighter || m.hp <= 0) continue;
     while (spare.length && m.troops.length < m.capacity) m.troops.push(spare.shift()!);
   }
   fighter.troops.push(...spare);
