@@ -1,5 +1,5 @@
 import { getGameData } from '../data';
-import { companySquads } from './squads';
+import { armySide, validateArmy, type WarArmy } from './army';
 import { uniqueName } from '../data/names';
 import { deriveTroopStats, type ProgressTroop } from '../progression';
 import type { BattleSetup, BattleResult, SideSetup } from '../sim';
@@ -136,7 +136,8 @@ function wildSide(wild: { unitId: string; count: number }[]): SideSetup {
 export const WILD_SEARCHER_SIDE = 1 as const;
 
 /** Freeze the wild fight: the pack defends (side 0), the searching general attacks (side 1). */
-export function wildBattleSetup(war: War, divisionId: string, generalId: string): WildSelection {
+/** `army` is the player's prepared plan from the division pool; without one the general fights with what it holds. */
+export function wildBattleSetup(war: War, divisionId: string, generalId: string, army?: WarArmy): WildSelection {
   const pending = war.pendingBattle;
   if (!pending || pending.cause !== 'wild' || pending.defender !== null) throw new Error('No wild encounter is pending');
   if (pending.attacker !== divisionId) throw new Error(`Division ${divisionId} is not the searching division`);
@@ -145,16 +146,8 @@ export function wildBattleSetup(war: War, divisionId: string, generalId: string)
   const general = war.generals.find(g => g.id === generalId);
   if (!general) throw new Error(`Unknown general ${generalId}`);
   if (general.hp <= 0 || general.injuredTurns > 0) throw new Error(`General ${generalId} cannot fight`);
-  const game = getGameData();
-  const profile = game.generalById.get(general.generalId);
-  const formationId = game.formations[0]?.id;
-  if (!profile || !formationId) throw new Error('Missing general profile or formation');
-  const ours: SideSetup = {
-    generalId: general.generalId,
-    formationId,
-    general: { ...profile, hp: Math.max(1, general.hp), level: general.level },
-    squads: companySquads(general.troops, `side1-${general.id}`),
-  };
+  if (army) validateArmy(war, generalId, army);
+  const ours: SideSetup = armySide(war, general, WILD_SEARCHER_SIDE, army ?? null);
   return {
     encounterId: pending.id,
     divisionId,
@@ -189,7 +182,8 @@ export function applyWildResult(war: War, selection: WildSelection, snapshot: { 
   if (!Number.isFinite(snapshot.generalHp[1]) || snapshot.generalHp[1] < 0 || snapshot.generalHp[1] > general.maxHp) throw new Error('Illegal terminal general HP');
 
   // Validation is complete; now mutate.
-  general.troops = general.troops.filter(t => survivors.has(t.id));
+  // Benched troops did not fight; only deployed troops can die.
+  general.troops = general.troops.filter(t => !frozen.has(t.id) || survivors.has(t.id));
   general.hp = snapshot.generalHp[1];
   const won = result.winner === 1;
   if (won) applyWildVictory(war, selection.divisionId, selection.generalId, selection.wild);

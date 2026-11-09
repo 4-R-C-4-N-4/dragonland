@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { legacyOpening } from '../helpers/war';
 import { buildWorldData, rawWorldData, createWar, issueOrder } from '../../src/world';
 import { planFactionOrders, visibleNodes, STRATEGY_TUNING } from '../../src/ai/strategy';
 import type { War } from '../../src/world/types';
 
 const data = buildWorldData(rawWorldData);
-const make = (seed = 23): War => createWar(data, { seed, heroId: 'paladin', heroName: 'Ivy' });
+const make = (seed = 23): War => legacyOpening(createWar(data, { seed, heroId: 'paladin', heroName: 'Ivy' }));
 const playerDivisions = (war: War) => war.divisions.filter(d => d.factionId === 'player');
 const setPersonality = (war: War, personality: 'aggressive' | 'defensive' | 'opportunist') => {
   war.factions.find(f => f.id === 'player')!.personality = personality;

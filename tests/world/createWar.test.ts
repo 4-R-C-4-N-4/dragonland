@@ -10,23 +10,38 @@ const setup = { seed: 17, heroId: 'paladin' as const, heroName: 'Ivy' };
 const classOf = (unitId: string) => game.unitById.get(unitId)!.classId;
 
 describe('createWar', () => {
-  it('starts the hero alone with the Skirmish demo army: hero class plus partner, ten per line', () => {
+  it('starts the hero with the other two generals of its class, sharing the Skirmish demo army', () => {
     const war = createWar(data, setup);
     const mine = war.generals.filter(g => g.factionId === 'player');
-    expect(mine).toHaveLength(1);
-    const hero = mine[0]!;
-    expect(hero).toMatchObject({ name: 'Ivy', generalId: 'paladin', isHero: true, nodeId: 'dawnkeep', capacity: data.constants.PLAYER_STARTING_CAPACITY });
+    // Paladin is Human: the other Human generals are Deadeye and Assassin.
+    expect(mine.map(g => g.generalId).sort()).toEqual(['assassin', 'deadeye', 'paladin']);
+    const hero = mine.find(g => g.isHero)!;
+    expect(hero).toMatchObject({ name: 'Ivy', generalId: 'paladin', nodeId: 'dawnkeep' });
+    expect(mine.every(g => g.capacity === data.constants.PLAYER_STARTING_CAPACITY && g.nodeId === 'dawnkeep')).toBe(true);
+    expect(new Set(mine.map(g => g.name)).size).toBe(3);
     // Paladin is Human; the configured partner is Mage.
-    expect(run.startingPartners.human).toBe('mage');
     expect(war.factions.find(f => f.id === 'player')!.classes).toEqual(['human', 'mage']);
-    expect(hero.troops).toHaveLength(run.startingTroopsPerLine * 6);
+    const pool = mine.flatMap(g => g.troops);
+    expect(pool).toHaveLength(run.startingTroopsPerLine * 6);
     const perUnit = new Map<string, number>();
-    for (const t of hero.troops) perUnit.set(t.unitId, (perUnit.get(t.unitId) ?? 0) + 1);
+    for (const t of pool) perUnit.set(t.unitId, (perUnit.get(t.unitId) ?? 0) + 1);
     expect([...perUnit.values()]).toEqual(Array(6).fill(run.startingTroopsPerLine));
     expect([...perUnit.keys()].every(u => game.unitById.get(u)!.stage === 1 && ['human', 'mage'].includes(classOf(u)))).toBe(true);
-    expect(new Set([...perUnit.keys()].map(u => game.unitById.get(u)!.line + classOf(u))).size).toBe(6);
-    expect(war.divisions.filter(d => d.factionId === 'player')).toEqual([expect.objectContaining({ atNode: 'dawnkeep', previousNode: null, generals: [hero.id] })]);
+    // Dealt round-robin so every general holds a mix.
+    expect(mine.map(g => g.troops.length)).toEqual([20, 20, 20]);
+    expect(mine.every(g => new Set(g.troops.map(t => t.unitId)).size === 6)).toBe(true);
+    const division = war.divisions.find(d => d.factionId === 'player')!;
+    expect(division).toMatchObject({ atNode: 'dawnkeep', previousNode: null });
+    expect(division.generals[0]).toBe(hero.id);
+    expect([...division.generals].sort()).toEqual(mine.map(g => g.id).sort());
     expect(war).toMatchObject({ turn: 1, week: 1, phase: 'orders' });
+  });
+
+  it('gives each class its own two companions', () => {
+    for (const [heroId, mates] of [['warg', ['dragon', 'eagle']], ['devil', ['archangel', 'shepherd']]] as const) {
+      const war = createWar(data, { ...setup, heroId });
+      expect(war.generals.filter(g => g.factionId === 'player' && !g.isHero).map(g => g.generalId).sort()).toEqual([...mates]);
+    }
   });
 
   it('takes the partner class from the hero, not from the authored faction', () => {

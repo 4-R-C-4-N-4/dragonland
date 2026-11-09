@@ -186,9 +186,11 @@ describe('interrupted turn continuation', () => {
     issueOrder(war, { type: 'march', division: divisions[0]!.id, toNode: 'westmere' });
     issueOrder(war, { type: 'march', division: divisions[1]!.id, toNode: 'dawnkeep' });
     resolveTurn(war);
-    expect(war.pendingBattle?.cause).toBe('swap');
-    finishPending(war, enemy.id);
-    resumeTurn(war);
+    // Both the road clash and the castle assault are due this turn; which comes first depends
+    // on record ids. Play the clash if it is first, then the assault must still be pending.
+    const causes = [war.pendingBattle?.cause];
+    if (war.pendingBattle?.cause === 'swap') { finishPending(war, enemy.id); resumeTurn(war); causes.push(war.pendingBattle?.cause); }
+    expect(causes).toContain('assault');
     // The garrison must be fought, so the castle neither flips nor settles this turn.
     expect(castle.owner).toBe(player.id);
     expect(war.pendingBattle?.cause).toBe('assault');

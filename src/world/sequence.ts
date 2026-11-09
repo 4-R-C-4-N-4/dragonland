@@ -6,7 +6,7 @@ import { internal } from './rng';
 import { nextFloat } from './rng';
 import type { BattleSetup, SideSetup } from '../sim';
 import { retreatNode } from './movement';
-import { companySquads } from './squads';
+import { applyArmy, armySide, validateArmy as validatePlan, type WarArmy } from './army';
 import type { Division, GeneralRecord, PendingBattle, War } from './types';
 
 export interface BattleSelection {
@@ -14,6 +14,8 @@ export interface BattleSelection {
   generalIds: [string, string];
   setup: BattleSetup;
   id: string;
+  /** Each general's full roster at setup (deployed and benched), checked when the result lands. */
+  rosterIds?: [string[], string[]];
 }
 export interface EncounterSequence {
   encounterId: string;
@@ -27,6 +29,8 @@ export interface EncounterSequence {
   status: 'selecting-defender' | 'selecting-attacker' | 'battling' | 'resolved';
   retreatNode: string | null;
   appliedSkirmishIds?: string[];
+  /** The defender's prepared army, held until the attacker answers. */
+  defenderArmy?: WarArmy | null;
 }
 export interface TerminalBattleSnapshot { result: BattleResult; generalHp: [number, number] }
 export interface SkirmishApplication { duplicate: boolean; status: EncounterSequence['status']; resolved: boolean }
@@ -118,41 +122,39 @@ function commit(sequence: EncounterSequence, generalId: string, side: 'defender'
   const eligible = side === 'defender' ? sequence.defenderGeneralIds : sequence.attackerGeneralIds;
   if (!eligible.includes(generalId) || sequence.defeatedGeneralIds.includes(generalId) || sequence.usedGeneralIds.includes(generalId)) throw new Error(`General ${generalId} is not eligible`);
 }
-function buildSide(g: GeneralRecord, sideIndex: 0 | 1): SideSetup {
-  const game = getGameData();
-  const profile = game.generalById.get(g.generalId);
-  const formationId = game.formations[0]?.id;
-  if (!profile || !formationId) throw new Error(!profile ? `Missing general profile ${g.generalId}` : 'No battle formation is available');
-  const squads = companySquads(g.troops, `side${sideIndex}-${g.id}`);
-  return { generalId: g.generalId, formationId, general: { ...profile, hp: Math.max(1, g.hp), level: g.level }, squads };
-}
-function makeSkirmish(war: War, defender: GeneralRecord, attacker: GeneralRecord): BattleSelection {
-  const game = getGameData();
+function makeSkirmish(war: War, defender: GeneralRecord, attacker: GeneralRecord, defenderArmy: WarArmy | null, attackerArmy: WarArmy | null): BattleSelection {
+  const sides: [SideSetup, SideSetup] = [armySide(war, defender, 0, defenderArmy), armySide(war, attacker, 1, attackerArmy)];
   return {
+    rosterIds: [defender.troops.map(t => t.id), attacker.troops.map(t => t.id)],
     id: `${war.pendingBattle!.id}-skirmish-${war.pendingBattle!.processedSkirmishIds.length + 1}`,
     generalIds: [defender.id, attacker.id],
-    setup: { seed: (war.seed ^ hash(`${war.pendingBattle!.id}:${war.pendingBattle!.processedSkirmishIds.length}`)) >>> 0, sides: [buildSide(defender, 0), buildSide(attacker, 1)] },
+    setup: { seed: (war.seed ^ hash(`${war.pendingBattle!.id}:${war.pendingBattle!.processedSkirmishIds.length}`)) >>> 0, sides },
   };
 }
-export function commitDefender(war: War, sequence: EncounterSequence, generalId: string): BattleSelection | null {
+/** `army` is the player's prepared plan; AI defenders pass none and fight with what they hold. */
+export function commitDefender(war: War, sequence: EncounterSequence, generalId: string, army?: WarArmy): BattleSelection | null {
   if (!war.pendingBattle || war.pendingBattle.id !== sequence.encounterId) throw new Error('Sequence does not match the pending encounter');
   commit(sequence, generalId, 'defender');
   const defender = war.generals.find(g => g.id === generalId)!;
   if (!alive(defender) || !sequence.defenderGeneralIds.includes(generalId) || (war.pendingBattle!.defender && !division(war, war.pendingBattle!.defender).generals.includes(generalId)) || (!war.pendingBattle!.defender && war.divisions.some(d => d.generals.includes(generalId)))) throw new Error('Selected general is no longer eligible');
+  if (army) applyArmy(war, generalId, army);
+  sequence.defenderArmy = army ?? null;
   sequence.selectedDefender = generalId;
   sequence.status = 'selecting-attacker';
   // No setup is made until the attacker is committed.
   void defender;
   return null;
 }
-export function commitAttacker(war: War, sequence: EncounterSequence, generalId: string): BattleSelection {
+export function commitAttacker(war: War, sequence: EncounterSequence, generalId: string, army?: WarArmy): BattleSelection {
   if (!war.pendingBattle || war.pendingBattle.id !== sequence.encounterId) throw new Error('Sequence does not match the pending encounter');
   commit(sequence, generalId, 'attacker');
   const defender = war.generals.find(g => g.id === sequence.selectedDefender);
   const attacker = war.generals.find(g => g.id === generalId);
   const pending = war.pendingBattle!;
   if (!defender || !attacker || !alive(defender) || !alive(attacker) || !sequence.defenderGeneralIds.includes(defender.id) || !sequence.attackerGeneralIds.includes(attacker.id) || !division(war, pending.attacker).generals.includes(attacker.id) || (pending.defender && !division(war, pending.defender).generals.includes(defender.id))) throw new Error('Selected general is no longer eligible');
-  const skirmish = makeSkirmish(war, defender, attacker);
+  // Validate before anything moves, so a bad plan leaves the war and the sequence untouched.
+  if (army) validatePlan(war, attacker.id, army);
+  const skirmish = makeSkirmish(war, defender, attacker, sequence.defenderArmy ?? null, army ?? null);
   sequence.selectedAttacker = generalId;
   sequence.currentSkirmish = skirmish;
   sequence.usedGeneralIds = [...new Set([...sequence.usedGeneralIds, defender.id, attacker.id])];
@@ -170,7 +172,9 @@ function validSnapshot(war: War, sequence: EncounterSequence, skirmish: BattleSe
   const frozenHp = skirmish.setup.sides.map(side => side.general?.hp);
   for (const side of [0,1] as const) {
     const g = records[side]!;
-    if (frozenHp[side] === undefined || skirmish.setup.sides[side]!.generalId !== g.generalId || g.hp !== frozenHp[side] || g.troops.map(t => t.id).sort().join('\0') !== [...frozenIds[side]!].sort().join('\0')) throw new Error('Skirmish roster changed after setup');
+    // Deployed plus benched: the general's whole roster as it stood when the fight was set up.
+    const roster = skirmish.rosterIds?.[side] ?? frozenIds[side]!;
+    if (frozenHp[side] === undefined || skirmish.setup.sides[side]!.generalId !== g.generalId || g.hp !== frozenHp[side] || g.troops.map(t => t.id).sort().join('\0') !== [...roster].sort().join('\0')) throw new Error('Skirmish roster changed after setup');
   }
   if (snapshot.generalHp.some((hp, i) => !Number.isFinite(hp) || hp < 0 || hp > frozenHp[i]!)) throw new Error('Illegal terminal general HP');
   if (snapshot.generalHp[result.winner] <= 0 || (result.reason === 'generalDefeated' && snapshot.generalHp[result.winner === 0 ? 1 : 0] !== 0)) throw new Error('Terminal general HP does not match result');
@@ -209,11 +213,14 @@ export function applySkirmishResult(war: War, sequence: EncounterSequence, skirm
   // All validation is complete before state changes.
   for (const side of [0,1] as const) {
     const g = records[side]!; g.hp = snapshot.generalHp[side];
-    g.troops = g.troops.filter(t => result.survivors[side].includes(t.id));
+    // Only the deployed troops fought: the dead leave, benched troops stay untouched.
+    const deployed = new Set(skirmish.setup.sides[side]!.squads.flatMap(q => q.troops.map(t => t.troopId)));
+    const survived = new Set(result.survivors[side]);
+    g.troops = g.troops.filter(t => !deployed.has(t.id) || survived.has(t.id));
     if (side === result.winner) {
       const xp = getProgressionConfig().troop.xpPerVictory;
       const unitById = Object.fromEntries([...getGameData().unitById].map(([id,u])=>[id,u]));
-      g.troops = g.troops.map(t => awardTroopXp(t, xp, unitById));
+      g.troops = g.troops.map(t => deployed.has(t.id) ? awardTroopXp(t, xp, unitById) : t);
     }
     if (side === result.winner && g.isHero) {
       const hero: HeroProgress = { generalId: g.generalId, xp: g.xp, level: g.level, upgrades: { vitality:0,might:0,mastery:0 }, claimedMilestones:[] };

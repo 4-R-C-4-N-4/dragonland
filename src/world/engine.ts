@@ -61,13 +61,21 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
     const castle = war.nodes.find(n => n.kind === 'castle' && n.owner === faction.id)!;
     const generals: GeneralRecord[] = [];
     if (faction.isPlayer) {
-      // The hero starts alone; more generals come from adopting beaten rivals and promotion.
+      // The hero marches with the other generals of its class; more come from adopting beaten rivals.
+      const heroClass = game.unitById.get(hero.unitId)!.classId;
+      const mates = game.generals.filter(g => g.id !== hero.id && game.unitById.get(g.unitId)!.classId === heroClass).sort((a, b) => a.id.localeCompare(b.id));
+      for (const profile of [hero, ...mates]) {
+        const isHero = profile.id === hero.id;
+        const general: GeneralRecord = { id: nextId(rng, 'general'), name: isHero ? setup.heroName : uniqueName(rng, game.names, taken), generalId: profile.id, factionId: faction.id, isHero, level: 1, xp: 0, hp: profile.hp, maxHp: profile.hp, capacity: c.PLAYER_STARTING_CAPACITY, troops: [], injuredTurns: 0, nodeId: castle.id };
+        war.generals.push(general);
+        generals.push(general);
+      }
+      // One shared army for the division: dealt round-robin so every general holds a mix. Who
+      // fights with which troops is chosen before each fight, so this split is never shown.
       const army = startingArmy(war, hero.id);
-      if (army.troops.length > c.PLAYER_STARTING_CAPACITY) throw new Error('Starting army exceeds PLAYER_STARTING_CAPACITY');
+      if (army.troops.length > c.PLAYER_STARTING_CAPACITY * generals.length) throw new Error('Starting army exceeds the generals\' command');
       faction.classes = army.classes;
-      const general: GeneralRecord = { id: nextId(rng, 'general'), name: setup.heroName, generalId: hero.id, factionId: faction.id, isHero: true, level: 1, xp: 0, hp: hero.hp, maxHp: hero.hp, capacity: c.PLAYER_STARTING_CAPACITY, troops: army.troops, injuredTurns: 0, nodeId: castle.id };
-      war.generals.push(general);
-      generals.push(general);
+      army.troops.forEach((t, i) => generals[i % generals.length]!.troops.push(t));
     } else {
       const profiles = game.generals.filter(g => faction.classes.includes(game.unitById.get(g.unitId)!.classId));
       for (let i = 0; i < c.RIVAL_GENERALS; i++) {
