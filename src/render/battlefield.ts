@@ -16,6 +16,7 @@ import { getSquadIntent, previewSquadTarget, type World, type Side } from '../si
 import type { Camera } from '../battle/camera';
 import { lerp, stepAnim, type AnimTrack } from '../battle/helpers';
 import { groundToScreen } from '../battle/camera';
+
 import { approachPreview, createProjection, depthScale, projectGround, type FieldProjection } from './projection';
 import { buildPlaceholderTextures, type UnitPlaceholder } from './placeholder';
 import { discoverSheets, type AnimationName, type ParsedSheet } from './spriteSheets';
@@ -51,6 +52,9 @@ function outlineSourceFor(base: Texture): Texture['source'] | null {
   return t.source;
 }
 import { squadColorNumberFor, teamColorNumber, type SideColors } from './colorUi';
+
+/** Opacity of the battlefield grass over the backdrop art. */
+const FIELD_ALPHA = 0.6;
 
 /** @deprecated Legacy FX fixture scale; production uses FieldProjection exclusively. */
 export const Y_SQUASH = 0.65;
@@ -165,10 +169,11 @@ export class Battlefield {
     const quad = (x: number, y: number, w: number, h: number) => [
       ...point(x, y), ...point(x + w, y), ...point(x + w, y + h), ...point(x, y + h),
     ];
-    // Every band, patch and blade is on the same plane as the units' feet.
+    // Every band, patch and blade is on the same plane as the units' feet. The grass is
+    // translucent so the biome backdrop shows through while the battle runs.
     for (let band = 0; band < 12; band++) {
       const y = this.fieldH * band / 12;
-      g.poly(quad(0, y, this.fieldW, this.fieldH / 12)).fill({ color: band < 4 ? 0x405b36 : band < 8 ? 0x3d5d30 : 0x3b602e });
+      g.poly(quad(0, y, this.fieldW, this.fieldH / 12)).fill({ color: band < 4 ? 0x405b36 : band < 8 ? 0x3d5d30 : 0x3b602e, alpha: FIELD_ALPHA });
     }
     let seed = 1234567;
     const rnd = (): number => {
