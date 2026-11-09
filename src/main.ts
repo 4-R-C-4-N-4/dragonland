@@ -8,6 +8,8 @@ import { mountDebugPanel } from './ui/debug';
 import { updateDebugState, getDebugState } from './debug/state';
 import { getBattleCounter } from './ui/flow/battleCounter';
 import { loadConstantOverrides } from './ui/debug';
+import { mountGameMenu } from './ui/common/gameMenu';
+import type { GameMode } from './ui/common/gameMenuLogic';
 
 const MODE_KEY = 'dragonland.mode';
 const data = getGameData();
@@ -18,37 +20,32 @@ updateDebugState({ constantOverrides: loadConstantOverrides(window.localStorage)
 
 // War campaign (MVP3) is the default; MVP2's linear run stays as Skirmish, and the
 // MVP1 sandbox with unlimited recruiting stays available.
-type Mode = 'war' | 'run' | 'sandbox';
+type Mode = GameMode;
 const mode = (new URLSearchParams(location.search).get('mode') ?? window.localStorage.getItem(MODE_KEY) ?? 'war') as Mode;
 function switchMode(next: Mode): void {
   window.localStorage.setItem(MODE_KEY, next);
   location.search = '';
 }
-function modeLink(label: string, next: Mode, right = 10): void {
-  const link = document.createElement('a');
-  link.href = '#';
-  link.textContent = label;
-  link.style.cssText = `position:fixed;top:6px;right:${right}px;z-index:50;font-size:12px;color:#9cf`;
-  link.addEventListener('click', (e) => { e.preventDefault(); switchMode(next); });
-  document.body.appendChild(link);
-}
 if (mode === 'sandbox') {
   mountFlow(app, { data, store, storage: window.localStorage });
-  modeLink('War campaign', 'war');
-  modeLink('Skirmish', 'run', 120);
+  mountGameMenu({ mode, onMode: switchMode });
 } else if (mode === 'run') {
-  mountRun(app, { data, storage: window.localStorage, onSandbox: () => switchMode('sandbox') });
-  modeLink('War campaign', 'war');
+  mountRun(app, { data, storage: window.localStorage });
+  mountGameMenu({ mode, onMode: switchMode });
 } else {
-  mountCampaign(app, {
+  const campaign = mountCampaign(app, {
     data,
     storage: window.localStorage,
     startBattleView,
     seed: 1,
-    onExit: () => switchMode('run'),
   });
-  modeLink('Skirmish', 'run');
-  modeLink('Sandbox', 'sandbox', 90);
+  mountGameMenu({
+    mode: 'war',
+    onMode: switchMode,
+    warActive: () => campaign.hasWar(),
+    onWarTitle: () => campaign.toTitle(),
+    onWarRestart: () => campaign.abandonWar(),
+  });
 }
 
 const debugRoot = document.createElement('div');

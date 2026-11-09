@@ -34,7 +34,17 @@ export interface CampaignOptions {
 
 type Screen = 'title' | 'setup' | 'map' | 'battle' | 'admin' | 'over';
 
-export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destroy(): void } {
+export interface CampaignHandle {
+  destroy(): void;
+  /** Whether a war is loaded (in progress or just ended). */
+  hasWar(): boolean;
+  /** Leave whatever is on screen (even a battle) for the war's title screen; the save stays. */
+  toTitle(): void;
+  /** Delete the saved war and go to the hero picker. */
+  abandonWar(): void;
+}
+
+export function mountCampaign(root: HTMLElement, opts: CampaignOptions): CampaignHandle {
   const { data, storage } = opts;
   const world: BuiltWorldData = buildWorldData(rawWorldData);
   const playerId = world.factions.find(f => f.isPlayer)!.id;
@@ -48,6 +58,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
   let childHandle: { destroy(): void } | null = null;
   let battleRoot: HTMLElement | null = null;
   let busy = false;
+  // Bumped when the player leaves a battle through the menu, so its late callbacks are ignored.
+  let epoch = 0;
   // Map selection survives the remount that follows every turn.
   let mapSelection: WorldMapSelection | undefined;
 
@@ -130,7 +142,9 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
       : ['Lead your hero and two generals of the same kind, share your troops between them, and win the war for Dragonland.'];
     const box = panel('Dragonland: War', lines);
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
-    actions.append(button('New war', () => { corrupt = null; screen = 'setup'; render(); }, true));
+    const current = war;
+    if (current && !corrupt) actions.append(button(current.phase === 'won' || current.phase === 'lost' ? 'See how the war ended' : 'Continue the war', () => { screen = screenFor(current); render(); }, true));
+    actions.append(button(current && !corrupt ? 'New war (replaces the saved one)' : 'New war', () => { corrupt = null; screen = 'setup'; render(); }, !current || !!corrupt));
     if (corrupt) actions.append(button('Discard the broken save', () => { clearWar(storage); corrupt = null; render(); }));
     if (opts.onExit) actions.append(button('Back to menu', () => opts.onExit!()));
     box.append(actions);
@@ -371,17 +385,19 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     battleRoot = document.createElement('div');
     battleRoot.className = 'dl-campaign__battle';
     shell.replaceChildren(battleRoot);
+    const started = epoch;
     void opts.startBattleView(battleRoot, {
       data, setup, labels, biome,
       onFinished: world => {
-        if (destroyed) return;
+        if (destroyed || started !== epoch) return;
         busy = false;
         onDone(perspective.snapshot(world));
       },
     }).then(view => {
-      if (destroyed) { view.destroy(); return; }
+      if (destroyed || started !== epoch) { view.destroy(); return; }
       childHandle = view;
     }).catch(error => {
+      if (destroyed || started !== epoch) return;
       busy = false;
       const box = panel('The battle could not start', [error instanceof Error ? error.message : String(error)]);
       box.append(button('Back to the map', () => { if (war) { war.pendingBattle = null; afterEngineStep(); } }, true));
@@ -464,9 +480,34 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     }
   }
 
+  /** Drop any in-flight battle or pending screen state before showing another screen. */
+  function interrupt(): void {
+    epoch++;
+    busy = false;
+    sequence = null;
+  }
+
   render();
 
   return {
+    hasWar: () => war !== null,
+    toTitle(): void {
+      if (destroyed) return;
+      interrupt();
+      // A battle left mid-way is replayed from the saved state at the start of its encounter.
+      const loaded = loadWar(storage, world, data);
+      war = loaded.kind === 'ok' ? loaded.state : null;
+      screen = 'title';
+      render();
+    },
+    abandonWar(): void {
+      if (destroyed) return;
+      interrupt();
+      clearWar(storage);
+      war = null; corrupt = null; mapSelection = undefined;
+      screen = 'setup';
+      render();
+    },
     destroy(): void {
       if (destroyed) return;
       destroyed = true;

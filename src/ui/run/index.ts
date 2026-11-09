@@ -20,7 +20,8 @@ export interface MountRunOptions {
   data: GameData;
   storage: StorageLike;
   /** Switch to the unlimited sandbox (MVP1 flow). */
-  onSandbox: () => void;
+  /** Unused since the game menu switches modes; kept so existing callers still type-check. */
+  onSandbox?: () => void;
 }
 
 const DISPOSITIONS: Disposition[] = ['fierce', 'mixed', 'guard'];
@@ -90,8 +91,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
   function header(s: RunState): string {
     const g = data.generalById.get(s.hero.generalId)!;
     const unlocked = s.unlockedClasses.map((c) => esc(className(c))).join(', ');
-    return `<a href="#" class="dl-mode-link" id="dl-sandbox">Sandbox mode</a>
-      <h1 class="dl-title">Battle ${Math.min(s.depth + 1, cfg.battles)} of ${cfg.battles}</h1>
+    return `<h1 class="dl-title">Battle ${Math.min(s.depth + 1, cfg.battles)} of ${cfg.battles}</h1>
       <div class="dl-run-meta">${esc(g.name)} · Lv ${s.hero.level} (${s.hero.xp} XP) · ${s.roster.length} troops in your company roster</div>
       <div class="dl-run-meta dl-dim">Unlocked classes: ${unlocked}</div>
       ${depletedCompanyHtml(data, s)}`;
@@ -104,10 +104,6 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
       plan = null;
       render();
       screen.querySelector<HTMLButtonElement>('#dl-new')?.focus();
-    });
-    screen.querySelector('#dl-sandbox')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      opts.onSandbox();
     });
   }
 
@@ -134,8 +130,7 @@ export function mountRun(root: HTMLElement, opts: MountRunOptions): { destroy():
   function renderTitle(): void {
     const selected = data.generals[0]!.id;
     screen.innerHTML = `
-      <a href="#" class="dl-mode-link" id="dl-sandbox">Sandbox mode</a>
-      <h1 class="dl-title">Dragonland — Campaign</h1>
+      <h1 class="dl-title">Dragonland — Skirmish</h1>
       <p class="dl-flavor">Win ${cfg.battles} battles. Your troops level up and evolve. After victory, some fallen troops recover as wounded and rejoin; permanent losses leave your roster. If your general falls, the run ends.</p>
       ${corrupt ? `<div class="dl-panel"><p class="dl-error">Your saved run could not be loaded: ${esc(corrupt)}</p><p>Starting a new run will discard it.</p></div>` : ''}
       <div class="dl-panel">
