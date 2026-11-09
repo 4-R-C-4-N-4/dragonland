@@ -32,6 +32,8 @@ export interface SideSetup {
   squads: SquadSetup[];
   /** Optional derived general definition (hero progression). Its id must equal generalId. */
   general?: GeneralDef;
+  /** MP the general starts with (carried from earlier battles); clamped to its max, default 0. */
+  startMp?: number;
   /** Presentation only (sim ignores it): team colour '#rrggbb'. */
   color?: string;
 }

@@ -5,6 +5,7 @@
 import { getGameData, type Disposition } from '../data';
 import { deriveTroopStats, type ProgressTroop } from '../progression';
 import type { SideSetup, SquadSetup } from '../sim';
+import { mpOf } from './mp';
 import { companySquads } from './squads';
 import type { GeneralRecord, War } from './types';
 
@@ -97,7 +98,7 @@ export function armySide(war: War, g: GeneralRecord, sideIndex: 0 | 1, army?: Wa
   const game = getGameData();
   const profile = game.generalById.get(g.generalId);
   if (!profile) throw new Error(`Missing general profile ${g.generalId}`);
-  const base = { generalId: g.generalId, general: { ...profile, hp: Math.max(1, g.hp), level: g.level } };
+  const base = { generalId: g.generalId, general: { ...profile, hp: Math.max(1, g.hp), level: g.level }, startMp: mpOf(g) };
   if (!army) {
     const formationId = game.formations[0]?.id;
     if (!formationId) throw new Error('No battle formation is available');

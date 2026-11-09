@@ -11,9 +11,10 @@ export function campaignBattlePerspective(setup: BattleSetup, playerSide: 0 | 1)
     snapshot(world) {
       const snapshot = snapshotBattleResult(world);
       if (playerSide === 0) return snapshot;
-      const { result, generalHp } = snapshot;
+      const { result, generalHp, generalMp } = snapshot;
       return {
         generalHp: [generalHp[1], generalHp[0]],
+        ...(generalMp ? { generalMp: [generalMp[1], generalMp[0]] as [number, number] } : {}),
         result: {
           ...result,
           winner: result.winner === 0 ? 1 : 0,

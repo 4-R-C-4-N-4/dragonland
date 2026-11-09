@@ -6,6 +6,7 @@ import { internal } from './rng';
 import { nextFloat } from './rng';
 import type { BattleSetup, SideSetup } from '../sim';
 import { retreatNode } from './movement';
+import { storeMp } from './mp';
 import { applyArmy, armySide, returnBenched, validateArmy as validatePlan, type WarArmy } from './army';
 import type { Division, GeneralRecord, PendingBattle, War } from './types';
 
@@ -32,13 +33,14 @@ export interface EncounterSequence {
   /** The defender's prepared army, held until the attacker answers. */
   defenderArmy?: WarArmy | null;
 }
-export interface TerminalBattleSnapshot { result: BattleResult; generalHp: [number, number] }
+/** `generalMp` is optional so results recorded before MP carried over still apply. */
+export interface TerminalBattleSnapshot { result: BattleResult; generalHp: [number, number]; generalMp?: [number, number] }
 export interface SkirmishApplication { duplicate: boolean; status: EncounterSequence['status']; resolved: boolean }
 
 /** Side 0 is the defender; side 1 is the attacker. */
 export function snapshotBattleResult(world: SimWorld): TerminalBattleSnapshot {
   if (!world.result || world.phase !== 'result') throw new Error('Battle world has no terminal result');
-  return { result: structuredClone(world.result), generalHp: [world.ents.hp[world.generals[0].entity]!, world.ents.hp[world.generals[1].entity]!] };
+  return { result: structuredClone(world.result), generalHp: [world.ents.hp[world.generals[0].entity]!, world.ents.hp[world.generals[1].entity]!], generalMp: [world.generals[0].mp, world.generals[1].mp] };
 }
 
 function division(war: War, id: string): Division {
@@ -213,6 +215,7 @@ export function applySkirmishResult(war: War, sequence: EncounterSequence, skirm
   // All validation is complete before state changes.
   for (const side of [0,1] as const) {
     const g = records[side]!; g.hp = snapshot.generalHp[side];
+    storeMp(g, snapshot.generalMp?.[side]);
     // Only the deployed troops fought: the dead leave, benched troops stay untouched.
     const deployed = new Set(skirmish.setup.sides[side]!.squads.flatMap(q => q.troops.map(t => t.troopId)));
     const survived = new Set(result.survivors[side]);

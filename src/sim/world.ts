@@ -163,7 +163,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
       entity: gEntity,
       def: generalDef,
       special: generalDef.special,
-      mp: 0,
+      mp: Number.isFinite(sideSetup.startMp) ? Math.min(generalDef.mp, Math.max(0, sideSetup.startMp!)) : 0,
       maxMp: generalDef.mp,
       startX: gp.x,
       startY: gp.y,

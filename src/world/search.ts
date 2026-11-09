@@ -5,6 +5,7 @@ import { deriveTroopStats, type ProgressTroop } from '../progression';
 import type { BattleSetup, BattleResult, SideSetup } from '../sim';
 import { retreatNode } from './movement';
 import { raiseMuster } from './muster';
+import { storeMp } from './mp';
 import { internal, nextFloat, nextId } from './rng';
 import type { Division, PendingBattle, War } from './types';
 
@@ -169,7 +170,7 @@ function hashText(text: string): number {
  * Apply a finished wild fight once. A win recruits the defeated pack up to capacity; a loss
  * sends the division back along its own arrival path and recruits nothing.
  */
-export function applyWildResult(war: War, selection: WildSelection, snapshot: { result: BattleResult; generalHp: [number, number] }): { applied: boolean; won: boolean } {
+export function applyWildResult(war: War, selection: WildSelection, snapshot: { result: BattleResult; generalHp: [number, number]; generalMp?: [number, number] }): { applied: boolean; won: boolean } {
   const pending = war.pendingBattle;
   if (!pending || pending.id !== selection.encounterId) return { applied: false, won: false };
   if (pending.processedSkirmishIds.includes(selection.encounterId)) return { applied: false, won: false };
@@ -187,6 +188,7 @@ export function applyWildResult(war: War, selection: WildSelection, snapshot: { 
   // Benched troops did not fight; only deployed troops can die.
   general.troops = general.troops.filter(t => !frozen.has(t.id) || survivors.has(t.id));
   general.hp = snapshot.generalHp[1];
+  storeMp(general, snapshot.generalMp?.[1]);
   const won = result.winner === 1;
   if (won) applyWildVictory(war, selection.divisionId, selection.generalId, selection.wild);
   else {
