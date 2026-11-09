@@ -55,6 +55,8 @@ export interface GeneralRecord {
   injuredTurns: number;
   /** Which node this general is at. */
   nodeId: NodeId;
+  /** MP carried between battles; absent (older saves) means full. */
+  mp?: number;
 }
 
 export interface Division {
@@ -62,6 +64,8 @@ export interface Division {
   factionId: FactionId;
   /** 1..MAX_DIVISION_GENERALS general record ids, in battle order. */
   generals: GeneralRecordId[];
+  /** Troops the division counts as its own; resting refills losses up to it (see muster.ts). */
+  muster?: number;
   /** Node the division occupies. Divisions are always on a node. */
   atNode: NodeId;
   /** Node it came from; a beaten or retreating division returns here. */

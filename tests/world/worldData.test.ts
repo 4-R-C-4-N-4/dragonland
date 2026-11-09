@@ -22,10 +22,10 @@ describe('world type contract', () => {
     expectTypeOf<GeneralRecord>().toEqualTypeOf<{
       id: string; name: string; generalId: GeneralId; factionId: string; isHero: boolean;
       level: number; xp: number; hp: number; maxHp: number; capacity: number;
-      troops: ProgressTroop[]; injuredTurns: number; nodeId: string;
+      troops: ProgressTroop[]; injuredTurns: number; nodeId: string; mp?: number;
     }>();
     expectTypeOf<Division>().toEqualTypeOf<{
-      id: string; factionId: string; generals: string[]; atNode: string; previousNode: string | null;
+      id: string; factionId: string; generals: string[]; muster?: number; atNode: string; previousNode: string | null;
     }>();
     expectTypeOf<Faction['classes']>().toEqualTypeOf<ClassId[]>();
   });
@@ -188,7 +188,7 @@ describe('world constants', () => {
   it('ships valid tuning with legal opening troop capacity and defender advantage', () => {
     const constants = WorldConstantsSchema.parse(worldConstantsJson);
     expect(constants).toEqual({
-      TURNS_PER_WEEK: 7, HEAL_HP_PER_REST_FRAC: 0.25, RESUPPLY_TROOPS_PER_REST: 6,
+      TURNS_PER_WEEK: 7, HEAL_HP_PER_REST_FRAC: 0.25, RESUPPLY_TROOPS_PER_REST: 60,
       CAPTURE_WEIGHT: 0.6, INJURE_WEIGHT: 0.3, KILL_WEIGHT: 0.1, GARRISON_CAP: 7,
       MAX_DIVISION_GENERALS: 5, SEARCH_CHANCE_LAIR: 0.5, SEARCH_CHANCE_WILD: 0.2,
       INJURY_TURNS: 3, STARTING_GOLD: 100, STARTING_CAPACITY: 50, PLAYER_STARTING_CAPACITY: 100,
@@ -222,11 +222,11 @@ describe('world data schema', () => {
     }
     const castles = world.nodes.filter(n => n.kind === 'castle');
     expect(castles).toHaveLength(2);
-    expect(castles.every(n => n.garrisonCap === 7 && n.supplyPerWeek === 20 && n.biome === 'settled')).toBe(true);
+    expect(castles.every(n => n.garrisonCap === 7 && n.supplyPerWeek === 60 && n.biome === 'settled')).toBe(true);
     expect(Math.abs(castles[0]!.x - castles[1]!.x)).toBeGreaterThanOrEqual(800);
     const towns = world.nodes.filter(n => n.kind === 'town');
     expect(towns).toHaveLength(3);
-    expect(towns.every(n => n.supplyPerWeek === 10 && n.incomePerTurn === 2 && n.biome === 'settled')).toBe(true);
+    expect(towns.every(n => n.supplyPerWeek === 30 && n.incomePerTurn === 2 && n.biome === 'settled')).toBe(true);
     const villages = world.nodes.filter(n => n.kind === 'village');
     expect(villages).toHaveLength(5);
     expect(villages.every(n => n.incomePerTurn === 3 && n.supplyPerWeek === 0)).toBe(true);

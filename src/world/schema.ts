@@ -33,12 +33,14 @@ export const GeneralRecordSchema = z.object({
   troops: z.array(ProgressTroopSchema),
   injuredTurns: z.number().int().nonnegative(),
   nodeId: Id,
+  mp: z.number().finite().nonnegative().optional(),
 });
 
 export const DivisionSchema = z.object({
   id: Id,
   factionId: Id,
   generals: z.array(Id),
+  muster: z.number().int().nonnegative().optional(),
   atNode: Id,
   previousNode: Id.nullable(),
 });

@@ -1,6 +1,7 @@
 // Garrisoning: move a general between a field division and its node's standing garrison.
 // A garrison general is simply one that belongs to no division, which is exactly what
 // sequenceEncounter already treats as a castle's defenders.
+import { lowerMuster, raiseMuster } from './muster';
 import { internal } from './rng';
 import type { War } from './types';
 
@@ -23,6 +24,7 @@ export function leaveAsGarrison(war: War, divisionId: string, generalId: string)
   const cap = internal(war).data.constants.GARRISON_CAP;
   const standing = war.generals.filter(g => g.factionId === division.factionId && g.nodeId === division.atNode && !war.divisions.some(d => d.generals.includes(g.id)));
   if (standing.length >= cap) throw new Error(`This node already holds ${cap} generals`);
+  lowerMuster(war, division, general.troops.length);
   division.generals = division.generals.filter(id => id !== generalId);
   general.nodeId = division.atNode;
   (internal(war).actions ??= []).push({ type: 'leaveGarrison', division: divisionId, general: generalId });
@@ -41,6 +43,7 @@ export function joinDivision(war: War, divisionId: string, generalId: string): v
   const cap = internal(war).data.constants.MAX_DIVISION_GENERALS;
   if (division.generals.length >= cap) throw new Error(`A division leads at most ${cap} generals`);
   division.generals.push(generalId);
+  raiseMuster(war, division);
   (internal(war).actions ??= []).push({ type: 'joinDivision', division: divisionId, general: generalId });
 }
 

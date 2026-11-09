@@ -1,6 +1,7 @@
 // Adopting beaten generals: a captured rival switches sides and joins one of your divisions.
 // With a solo-hero start this is the main way to grow an army during a war; promotion from the
 // ranks is too slow to matter in one campaign.
+import { raiseMuster } from './muster';
 import { internal } from './rng';
 import type { War } from './types';
 
@@ -26,5 +27,6 @@ export function adoptCaptive(war: War, factionId: string, captiveId: string, div
   // Beaten generals come back hurt; one still standing keeps what it had.
   captive.hp = Math.max(captive.hp, Math.ceil(captive.maxHp * hpFrac));
   division.generals.push(captiveId);
+  raiseMuster(war, division);
   (internal(war).actions ??= []).push({ type: 'adopt', faction: factionId, captive: captiveId, division: divisionId });
 }

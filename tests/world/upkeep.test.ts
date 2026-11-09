@@ -10,38 +10,39 @@ describe('node actions and upkeep', () => {
   it('heals by the configured fraction, clamps HP, and supplies stage-1 unlocked troops', () => {
     const { war, d, generals } = force();
     generals[0]!.hp = generals[0]!.maxHp - 10; generals[1]!.hp = 0;
+    for (const g of generals) g.troops = g.troops.slice(0, 40);
     applyRest(war, d);
     expect(generals[0]!.hp).toBe(generals[0]!.maxHp);
     expect(generals[1]!.hp).toBe(generals[1]!.maxHp * .25);
-    expect(generals.map(g => g.troops.length)).toEqual([56, 56, 56]);
+    // Losses come back up to the muster (150), filling generals in order within their command.
+    expect(generals.map(g => g.troops.length)).toEqual([70, 40, 40]);
     for (const g of generals) for (const troop of g.troops) {
       const unit = getGameData().unitById.get(troop.unitId)!;
       expect(unit.stage).toBe(1);
       expect(war.factions.find(f => f.id === d.factionId)!.classes).toContain(unit.classId);
     }
-    expect(war.events).toContainEqual({ type: 'resupplied', general: generals[0]!.id, troops: 6 });
+    expect(war.events).toContainEqual({ type: 'resupplied', general: generals[0]!.id, troops: 30 });
   });
   it('respects each capacity and the shared remaining weekly budget', () => {
     const { war, d, generals } = force(); generals[0]!.capacity = 53;
-    applyRest(war, d); expect(generals[0]!.troops).toHaveLength(53);
-    applyRest(war, d); applyRest(war, d);
-    expect(generals.reduce((sum, g) => sum + g.troops.length, 0)).toBe(170);
-    const before = generals.map(g => g.troops.length); applyRest(war, d);
-    expect(generals.map(g => g.troops.length)).toEqual(before);
+    generals.forEach(g => { g.troops = []; });
+    applyRest(war, d); expect(generals.map(g => g.troops.length)).toEqual([53, 7, 0]);
+    // The castle's weekly stock (60) is spent.
+    applyRest(war, d); expect(generals.reduce((sum, g) => sum + g.troops.length, 0)).toBe(60);
   });
   it('resets budgets on weekly rollover', () => {
     const { war, d, generals } = force();
     generals.forEach(g => { g.troops = []; });
     for (let i = 0; i < 7; i++) { issueOrder(war, { type: 'rest', division: d.id }); resolveTurn(war); }
-    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(20);
+    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(60);
     expect(war.phase).toBe('admin'); war.phase = 'orders';
     issueOrder(war, { type: 'rest', division: d.id }); resolveTurn(war);
-    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(38);
+    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(120);
   });
   it('explicit budget reset restores original supply', () => {
     const { war, d, generals } = force(); generals.forEach(g => { g.troops = []; });
     applyRest(war, d); applyRest(war, d); resetWeeklySupply(war); applyRest(war, d);
-    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(38);
+    expect(generals.reduce((n, g) => n + g.troops.length, 0)).toBe(120);
   });
   it.each(['reedhaven', 'stoneford', 'nightspire'])('rest at unfriendly or non-settlement %s does nothing', node => {
     const { war, d, generals } = force(); d.atNode = node; generals[0]!.hp = 1;

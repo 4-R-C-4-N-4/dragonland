@@ -91,7 +91,8 @@ export function createWar(data: BuiltWorldData, setup: WarSetup): War {
     const size = faction.isPlayer ? c.MAX_DIVISION_GENERALS : Math.min(c.MAX_DIVISION_GENERALS, c.RIVAL_OPENING_DIVISION_SIZE);
     for (let i = 0; i < deployed; i += size) {
       const id = nextId(rng, 'division');
-      war.divisions.push({ id, factionId: faction.id, generals: generals.slice(i, Math.min(deployed, i + size)).map(g => g.id), atNode: castle.id, previousNode: null });
+      const members = generals.slice(i, Math.min(deployed, i + size));
+      war.divisions.push({ id, factionId: faction.id, generals: members.map(g => g.id), muster: members.reduce((n, g) => n + g.troops.length, 0), atNode: castle.id, previousNode: null });
       state.paths[id] = [];
     }
   }

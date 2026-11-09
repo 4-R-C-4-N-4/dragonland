@@ -4,6 +4,7 @@ import { uniqueName } from '../data/names';
 import { deriveTroopStats, type ProgressTroop } from '../progression';
 import type { BattleSetup, BattleResult, SideSetup } from '../sim';
 import { retreatNode } from './movement';
+import { raiseMuster } from './muster';
 import { internal, nextFloat, nextId } from './rng';
 import type { Division, PendingBattle, War } from './types';
 
@@ -76,6 +77,7 @@ export function applyWildVictory(war: War, divisionId: string, generalId: string
     remaining -= count;
     if (remaining <= 0) break;
   }
+  raiseMuster(war, division);
 }
 
 export interface WildSelection {

@@ -29,5 +29,6 @@ export function legacyOpening(war: War): War {
       field.generals.push(g.id);
     }
   }
+  for (const d of war.divisions) d.muster = d.generals.reduce((n, id) => n + war.generals.find(g => g.id === id)!.troops.length, 0);
   return war;
 }

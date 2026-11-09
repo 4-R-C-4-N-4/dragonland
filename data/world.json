@@ -1,13 +1,13 @@
 {
   "nodes": [
-    { "id": "dawnkeep", "kind": "castle", "biome": "settled", "name": "Dawnkeep", "x": 0, "y": 300, "owner": "player", "supplyPerWeek": 20, "incomePerTurn": 0, "garrisonCap": 7 },
-    { "id": "westmere", "kind": "town", "biome": "settled", "name": "Westmere", "x": 180, "y": 100, "owner": "player", "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "dawnkeep", "kind": "castle", "biome": "settled", "name": "Dawnkeep", "x": 0, "y": 300, "owner": "player", "supplyPerWeek": 60, "incomePerTurn": 0, "garrisonCap": 7 },
+    { "id": "westmere", "kind": "town", "biome": "settled", "name": "Westmere", "x": 180, "y": 100, "owner": "player", "supplyPerWeek": 30, "incomePerTurn": 2, "garrisonCap": 0 },
     { "id": "greenfield", "kind": "village", "biome": "plains", "name": "Greenfield", "x": 360, "y": 80, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
     { "id": "pinewatch", "kind": "village", "biome": "forest", "name": "Pinewatch", "x": 560, "y": 100, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
-    { "id": "eastgate", "kind": "town", "biome": "settled", "name": "Eastgate", "x": 800, "y": 120, "owner": "invader", "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
-    { "id": "nightspire", "kind": "castle", "biome": "settled", "name": "Nightspire", "x": 1000, "y": 300, "owner": "invader", "supplyPerWeek": 20, "incomePerTurn": 0, "garrisonCap": 7 },
+    { "id": "eastgate", "kind": "town", "biome": "settled", "name": "Eastgate", "x": 800, "y": 120, "owner": "invader", "supplyPerWeek": 30, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "nightspire", "kind": "castle", "biome": "settled", "name": "Nightspire", "x": 1000, "y": 300, "owner": "invader", "supplyPerWeek": 60, "incomePerTurn": 0, "garrisonCap": 7 },
     { "id": "reedhaven", "kind": "village", "biome": "swamp", "name": "Reedhaven", "x": 180, "y": 500, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
-    { "id": "stoneford", "kind": "town", "biome": "settled", "name": "Stoneford", "x": 400, "y": 500, "owner": null, "supplyPerWeek": 10, "incomePerTurn": 2, "garrisonCap": 0 },
+    { "id": "stoneford", "kind": "town", "biome": "settled", "name": "Stoneford", "x": 400, "y": 500, "owner": null, "supplyPerWeek": 30, "incomePerTurn": 2, "garrisonCap": 0 },
     { "id": "oldwall", "kind": "village", "biome": "ruins", "name": "Oldwall", "x": 620, "y": 520, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
     { "id": "highpass", "kind": "village", "biome": "mountain", "name": "Highpass", "x": 820, "y": 500, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 3, "garrisonCap": 0 },
     { "id": "wyrmpeak", "kind": "lair", "biome": "mountain", "name": "Wyrmpeak", "x": 480, "y": 280, "owner": null, "supplyPerWeek": 0, "incomePerTurn": 0, "garrisonCap": 0 },
