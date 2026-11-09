@@ -60,6 +60,14 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Campaign battles overflowed the window (inline canvas line-height inside a flex child), giving both scrollbars. The battle host is now fixed to the viewport like Skirmish's, and the battle canvas is `display: block` for every host.
 - `battle.html?duel=1` opens straight into a duel for visual checks. Browser: generals visible from duel start and fighting in the middle; no page overflow at 1280x800, 1024x768, 800x600. Gate: 716 tests, build.
 
+### Rest refills losses; MP carries over (plan `docs/plans/mvp3-rest-and-mp.md`, D34)
+
+- Rest refills a division's losses up to its muster (castle stock 60/week, town 30), heals 25%, refills MP. Previously 6 troops per general per rest from 20/10 a week.
+- Generals keep MP between battles (new wars start full); battle setups carry `startMp`, snapshots `generalMp` (perspective-swapped), clash and wild results store it.
+- "Hero charges slower": not a bug. Both sides use the same rate formula; specials differ (Shepherd 16 s is the fastest, Warg 19 s, Paladin 20 s).
+- Map sidebar: each general's MP; troops header shows the muster when below it. Prepare screen shows MP.
+- Gate: 752 tests, build. Browser: sidebar text checked; a full rest-after-loss loop not played in the browser.
+
 ### Class-mate generals, troop pools and fight preparation (plan `docs/plans/mvp3-troop-pools.md`)
 
 - Start: hero + the other two generals of its class (Warg → Dragon, Eagle), one division, sharing the 60-troop demo army. Troops belong to the division (or castle garrison); generals keep their class. Supersedes the solo start below (D33).

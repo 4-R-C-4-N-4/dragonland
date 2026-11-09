@@ -4,6 +4,7 @@
 import type { Disposition, GameData } from '../../data';
 import type { War } from '../../world';
 import { fightPool, type WarArmy } from '../../world/army';
+import { maxMpOf, mpOf } from '../../world/mp';
 import { classEdge, planToArmy, speciesGroups, type ArmyPlan } from '../run/logic';
 import { initialPlan, planProblems, troopsByClass } from './prepareLogic';
 import './prepare.css';
@@ -50,7 +51,7 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   for (const line of opts.enemyLines) enemy.append(el('p', undefined, line));
   const mine = el('div', 'dl-prepare__mine');
   mine.append(el('h2', undefined, `${general.name} (${profile.name})`),
-    el('p', undefined, `${Math.round(general.hp)}/${general.maxHp} HP · commands up to ${limit} troops · ${pool.length} in the division`),
+    el('p', undefined, `${Math.round(general.hp)}/${general.maxHp} HP · MP ${Math.floor(mpOf(general))}/${maxMpOf(general)} · commands up to ${limit} troops · ${pool.length} in the division`),
     el('p', 'dl-prepare__special', `${profile.special.name}: ${profile.special.description}`));
   const formation = el('select'); formation.setAttribute('aria-label', 'Formation');
   for (const f of data.formations) { const o = el('option', undefined, f.name); o.value = f.id; formation.append(o); }

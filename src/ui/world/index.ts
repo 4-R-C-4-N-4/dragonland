@@ -1,6 +1,8 @@
 import { Application } from 'pixi.js';
 import type { Division, WorldOrder, War } from '../../world/types';
 import { queuedOrders } from '../../world/engine';
+import { musterOf } from '../../world/muster';
+import { maxMpOf, mpOf } from '../../world/mp';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import {
   actionBlocker, adjacentNodeIds, adoptionTarget, castleLossEndsWar, defaultDivision, divisionName, garrisonStatus, nodeSummary, orderIntent, orderLabel,
@@ -30,7 +32,7 @@ export interface WorldMapHandle { update(war: War): void; destroy(): void }
 
 const ACTION_HELP: Record<'search' | 'rest' | 'hold', string> = {
   search: 'Spend the turn hunting wild troops to recruit.',
-  rest: 'Heal generals and take on fresh troops.',
+  rest: 'Heal a quarter of HP, refill MP, and replace lost troops (castles hold 60 a week, towns 30).',
   hold: 'Stay put and defend this node.',
 };
 
@@ -215,7 +217,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (tag) text.append(el('span', 'dl-world-map__tag', tag));
       const kind = getGameData().generalById.get(g.generalId)?.name;
       text.append(el('strong', undefined, g.name + (g.isHero ? ' (hero)' : '')));
-      text.append(document.createTextNode(`${kind ? ` · ${kind}` : ''} · HP ${Math.round(g.hp)}/${g.maxHp} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
+      text.append(document.createTextNode(`${kind ? ` · ${kind}` : ''} · HP ${Math.round(g.hp)}/${g.maxHp} · MP ${Math.floor(mpOf(g))}/${maxMpOf(g)} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
       row.append(text);
       if (action) { action.classList.add('dl-world-map__small'); row.append(action); }
       return row;
@@ -252,7 +254,8 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const pool = d.generals.flatMap(id => war.generals.find(g => g.id === id)?.troops ?? []);
       const kinds = new Map<string, number>();
       for (const t of pool) kinds.set(t.unitId, (kinds.get(t.unitId) ?? 0) + 1);
-      s.append(el('h4', undefined, `Troops (${pool.length})`));
+      const muster = musterOf(war, d);
+      s.append(el('h4', undefined, `Troops (${pool.length}${muster > pool.length ? ` of ${muster}: rest in a castle or town to refill` : ''})`));
       s.append(el('p', 'dl-world-map__pool', [...kinds].map(([u, n]) => `${n} ${getGameData().unitById.get(u)?.name ?? u}`).join(' · ') || 'No troops.'));
       s.append(el('h4', undefined, 'Generals'));
       const holdable = canOrder() && node && node.owner === factionId && (node.kind === 'castle' || node.kind === 'town');
