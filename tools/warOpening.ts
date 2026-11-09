@@ -1,10 +1,15 @@
-// Opening-fight probe: the solo hero against the rival's first field division, both sides on AI.
+// Opening-fight probe: the player's opening division against the rival's first field division.
+// The player fields the preparation screen's default plan (Auto-arrange from the whole division
+// pool, up to the general's command); battles are AI against AI.
 // Reproduces the figures in DECISIONS D32. Usage: npx tsx tools/warOpening.ts [wars=60] [stack=0]
 // stack > 0 merges that many rival field generals into one division (the old opening shape).
 import { getGameData } from '../src/data';
 import { createBattle, step } from '../src/sim';
 import { buildWorldData, rawWorldData, createWar } from '../src/world';
 import { applySkirmishResult, commitAttacker, commitDefender, sequenceEncounter, snapshotBattleResult } from '../src/world/sequence';
+import { fightPool } from '../src/world/army';
+import { initialPlan } from '../src/ui/world/prepareLogic';
+import { planToArmy } from '../src/ui/run/logic';
 
 const wars = Number(process.argv[2] ?? 60);
 const stack = Number(process.argv[3] ?? 0);
@@ -29,7 +34,10 @@ for (let s = 1; s <= wars; s++) {
     const d = avail(seq.defenderGeneralIds)[0], a = avail(seq.attackerGeneralIds)[0];
     if (!d || !a) break;
     commitDefender(war, seq, d);
-    const sel = commitAttacker(war, seq, a);
+    const fighter = war.generals.find(g => g.id === a)!;
+    const pool = fightPool(war, a);
+    const army = pool.length ? planToArmy(game, pool, initialPlan(game, pool, Math.min(fighter.capacity, game.constants.MAX_COMPANY))) : undefined;
+    const sel = commitAttacker(war, seq, a, army && army.squads.length ? army : undefined);
     const w = createBattle(game, sel.setup);
     for (let i = 0; i < 200_000 && !w.result; i++) step(w);
     if (!w.result) throw new Error(`war ${s}: unfinished battle`);

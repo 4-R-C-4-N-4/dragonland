@@ -161,7 +161,8 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
       relation('ally', rel.ally, 'Neutral to you; half your starting army.'),
     );
     const start = startingArmySummary(selectedId);
-    army.textContent = `You start alone with ${start.troops} troops: ${start.classes.map(className).join(' and ')}, ${start.perKind} of each kind. Beaten rival generals can be adopted into your army.`;
+    const mates = data.generals.filter(x => x.id !== selectedId && classOf(x.id) === mine).map(x => x.name);
+    army.textContent = `${g.name} marches with ${mates.join(' and ')}, sharing ${start.troops} troops: ${start.classes.map(className).join(' and ')}, ${start.perKind} of each kind. Any general can lead any troops; beaten rival generals can be adopted.`;
     refresh();
   }
 

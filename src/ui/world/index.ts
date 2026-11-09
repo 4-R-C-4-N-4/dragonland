@@ -207,13 +207,15 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     }
 
     /** A general's stats with an optional compact action on the same line. */
-    function generalRow(id: string, tag?: string, action?: HTMLButtonElement): HTMLElement | null {
+    /** `pooled`: the general draws from its division's pool, so show its command, not its holdings. */
+    function generalRow(id: string, tag?: string, action?: HTMLButtonElement, pooled = false): HTMLElement | null {
       const g = war.generals.find(x => x.id === id); if (!g) return null;
       const row = el('div', 'dl-world-map__general');
       const text = el('span');
       if (tag) text.append(el('span', 'dl-world-map__tag', tag));
+      const kind = getGameData().generalById.get(g.generalId)?.name;
       text.append(el('strong', undefined, g.name + (g.isHero ? ' (hero)' : '')));
-      text.append(document.createTextNode(` · HP ${Math.round(g.hp)}/${g.maxHp} · ${g.troops.length}/${g.capacity} troops${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
+      text.append(document.createTextNode(`${kind ? ` · ${kind}` : ''} · HP ${Math.round(g.hp)}/${g.maxHp} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
       row.append(text);
       if (action) { action.classList.add('dl-world-map__small'); row.append(action); }
       return row;
@@ -246,6 +248,12 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
         }
       }
 
+      // Troops belong to the division; any general can lead them (chosen before each fight).
+      const pool = d.generals.flatMap(id => war.generals.find(g => g.id === id)?.troops ?? []);
+      const kinds = new Map<string, number>();
+      for (const t of pool) kinds.set(t.unitId, (kinds.get(t.unitId) ?? 0) + 1);
+      s.append(el('h4', undefined, `Troops (${pool.length})`));
+      s.append(el('p', 'dl-world-map__pool', [...kinds].map(([u, n]) => `${n} ${getGameData().unitById.get(u)?.name ?? u}`).join(' · ') || 'No troops.'));
       s.append(el('h4', undefined, 'Generals'));
       const holdable = canOrder() && node && node.owner === factionId && (node.kind === 'castle' || node.kind === 'town');
       for (const id of d.generals) {
@@ -254,7 +262,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
           try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
         }, { key: `leave-${g.id}` }) : undefined;
         leave?.setAttribute('aria-label', node?.kind === 'castle' ? `Leave ${g.name} to defend ${node.name}` : `Leave ${g.name} stationed in ${node?.name ?? 'this node'}`);
-        const row = generalRow(id, undefined, leave); if (row) s.append(row);
+        const row = generalRow(id, undefined, leave, true); if (row) s.append(row);
       }
       const stationed = node ? garrisonStatus(war, node.id, factionId) : { defenders: [], idle: [] };
       for (const id of [...stationed.defenders, ...stationed.idle]) {

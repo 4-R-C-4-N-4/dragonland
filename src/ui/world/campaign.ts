@@ -19,6 +19,8 @@ import { joinDivision, leaveAsGarrison } from '../../world/garrison';
 import { mountWorldMap, type WorldMapSelection } from './index';
 import { adoptionTarget } from './presentation';
 import { mountWarStart } from './start';
+import { mountPrepare } from './prepare';
+import type { WarArmy } from '../../world/army';
 import './campaign.css';
 
 export interface CampaignOptions {
@@ -238,7 +240,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
       prompt.textContent = `Choose your ${side}:`;
       list.append(prompt);
       for (const g of mine) {
-        list.append(button(`${g.name}${g.isHero ? ' (hero)' : ''} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`, () => chooseGeneral(seq, g.id, side)));
+        const kind = data.generalById.get(g.generalId)?.name ?? g.generalId;
+        list.append(button(`${g.name}${g.isHero ? ' (hero)' : ''} · ${kind} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => prepareSkirmish(seq, g.id, side, facing)));
       }
     } else {
       // The enemy owns this side: pick for them, deterministically, then re-render.
@@ -263,10 +266,40 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     box.querySelector('h1')?.focus();
   }
 
-  function chooseGeneral(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker'): void {
+  /** One line per enemy general the player may see: name, kind, HP, and troops by species. */
+  function describeGeneral(id: string, withTroops: boolean): string {
+    const g = war!.generals.find(x => x.id === id)!;
+    const counts = new Map<string, number>();
+    for (const t of g.troops) counts.set(t.unitId, (counts.get(t.unitId) ?? 0) + 1);
+    const troops = withTroops ? ` — ${g.troops.length} troops: ${[...counts].map(([u, n]) => `${n} ${data.unitById.get(u)?.name ?? u}`).join(', ') || 'none'}` : '';
+    return `${g.name} (${data.generalById.get(g.generalId)?.name ?? g.generalId}) · ${Math.round(g.hp)}/${g.maxHp} HP${troops}`;
+  }
+
+  /** Before the player's general fights, choose its troops from the pool (see prepare.ts). */
+  function prepareSkirmish(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker', facing: string[]): void {
     if (!war) return;
-    if (side === 'defender') { commitDefender(war, seq, generalId); render(); return; }
-    const selection = commitAttacker(war, seq, generalId);
+    // The attacker sees the committed defender's army; the defender only knows who might answer.
+    const known = side === 'attacker' && !!seq.selectedDefender;
+    const enemyLines = known ? [describeGeneral(seq.selectedDefender!, true)] : ['Whoever they send answers after you commit:', ...facing.map(id => describeGeneral(id, false))];
+    const enemyTroops = known ? war.generals.find(g => g.id === seq.selectedDefender)!.troops : [];
+    const host = document.createElement('div');
+    shell.replaceChildren(host);
+    childHandle?.destroy();
+    childHandle = mountPrepare(host, {
+      data, war, generalId, enemyLines, enemyTroops,
+      title: `Battle at ${world.nodeById.get(war.pendingBattle!.nodeId)?.name ?? war.pendingBattle!.nodeId}: prepare ${war.generals.find(g => g.id === generalId)!.name}`,
+      onBack: () => render(),
+      onFight: army => {
+        try { chooseGeneral(seq, generalId, side, army); }
+        catch (error) { const p = document.createElement('p'); p.className = 'dl-error'; p.textContent = error instanceof Error ? error.message : String(error); host.append(p); }
+      },
+    });
+  }
+
+  function chooseGeneral(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker', army?: WarArmy): void {
+    if (!war) return;
+    if (side === 'defender') { commitDefender(war, seq, generalId, army); render(); return; }
+    const selection = commitAttacker(war, seq, generalId, army);
     const defender = war.generals.find(g => g.id === selection.generalIds[0])!;
     const attacker = war.generals.find(g => g.id === selection.generalIds[1])!;
     const playerDefends = defender.factionId === playerId;
@@ -290,11 +323,23 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
     const list = document.createElement('div'); list.className = 'dl-campaign__choices';
     const fighters = war.generals.filter(g => division?.generals.includes(g.id) && g.hp > 0 && g.injuredTurns === 0);
     for (const g of fighters) {
-      list.append(button(`${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops`, () => {
-        const selection = wildBattleSetup(war!, division!.id, g.id);
-        runBattle(selection.setup, WILD_SEARCHER_SIDE, { player: g.name, enemy: 'Wild pack' }, snapshot => {
-          applyWildResult(war!, selection, snapshot);
-          afterEngineStep();
+      list.append(button(`${g.name} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => {
+        const host = document.createElement('div');
+        shell.replaceChildren(host);
+        childHandle?.destroy();
+        childHandle = mountPrepare(host, {
+          data, war: war!, generalId: g.id,
+          title: `Wild creatures at ${node?.name ?? pending.nodeId}: prepare ${g.name}`,
+          enemyLines: [`A wild pack: ${pack}.`],
+          enemyTroops: pending.wild.flatMap(w => Array.from({ length: w.count }, () => ({ unitId: w.unitId }))),
+          onBack: () => render(),
+          onFight: army => {
+            const selection = wildBattleSetup(war!, division!.id, g.id, army);
+            runBattle(selection.setup, WILD_SEARCHER_SIDE, { player: g.name, enemy: 'Wild pack' }, snapshot => {
+              applyWildResult(war!, selection, snapshot);
+              afterEngineStep();
+            });
+          },
         });
       }));
     }

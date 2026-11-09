@@ -1,0 +1,26 @@
+.dl-prepare { max-width: 980px; }
+.dl-prepare h2 { margin: 10px 0 6px; font: 700 16px var(--dl-font); color: var(--dl-accent); }
+.dl-prepare__top { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dl-prepare__enemy { padding: 8px 12px; border-left: 4px solid var(--dl-bad); background: rgba(178, 58, 58, 0.12); }
+.dl-prepare__enemy p, .dl-prepare__mine p { margin: 3px 0; font-size: 13px; }
+.dl-prepare__mine { padding: 8px 12px; border-left: 4px solid var(--dl-good); background: rgba(79, 158, 82, 0.1); }
+.dl-prepare__special { color: var(--dl-text-dim); }
+.dl-prepare__formation { display: inline-flex; gap: 6px; align-items: center; margin: 6px 10px 0 0; font-size: 13px; }
+.dl-prepare__squads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.dl-prepare__squad { display: grid; gap: 4px; padding: 6px 8px; background: var(--dl-bg-panel-2); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); font-size: 13px; }
+.dl-prepare__squad select { min-width: 0; }
+.dl-prepare__squad small { color: var(--dl-text-dim); font-size: 11px; }
+.dl-prepare__scroll { max-height: min(42vh, 380px); overflow: auto; margin-top: 10px; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
+.dl-prepare__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dl-prepare__table th { position: sticky; top: 0; background: var(--dl-bg-panel); text-align: left; padding: 6px 8px; }
+.dl-prepare__table td { padding: 5px 8px; border-top: 1px solid var(--dl-border); }
+.dl-prepare__table input { width: 4.5em; }
+.dl-prepare__table small { color: var(--dl-text-dim); }
+.dl-prepare__chip { padding: 0 6px; border-radius: 8px; background: var(--class-color); color: #14100e; font-size: 11px; font-weight: 700; }
+.dl-prepare__edge--strong { color: #9be07a; font-weight: 700; }
+.dl-prepare__edge--weak { color: #f08a7a; font-weight: 700; }
+.dl-prepare__footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.dl-prepare__issues { color: var(--dl-bad); font-size: 13px; min-height: 1.2em; }
+.dl-prepare__actions { display: flex; gap: 8px; }
+.dl-prepare__actions .dl-primary { padding: 8px 24px; font-size: 15px; }
+@media (max-width: 760px) { .dl-prepare__top { grid-template-columns: 1fr; } .dl-prepare__squads { grid-template-columns: 1fr 1fr; } }

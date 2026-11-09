@@ -60,6 +60,15 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Campaign battles overflowed the window (inline canvas line-height inside a flex child), giving both scrollbars. The battle host is now fixed to the viewport like Skirmish's, and the battle canvas is `display: block` for every host.
 - `battle.html?duel=1` opens straight into a duel for visual checks. Browser: generals visible from duel start and fighting in the middle; no page overflow at 1280x800, 1024x768, 800x600. Gate: 716 tests, build.
 
+### Class-mate generals, troop pools and fight preparation (plan `docs/plans/mvp3-troop-pools.md`)
+
+- Start: hero + the other two generals of its class (Warg → Dragon, Eagle), one division, sharing the 60-troop demo army. Troops belong to the division (or castle garrison); generals keep their class. Supersedes the solo start below (D33).
+- Preparation screen before every fight the player takes part in (general clashes, assaults, wild packs): enemy army as far as the rules reveal it (attacker sees the committed defender's troops by species), the Skirmish planner (counts per species, four squads with dispositions, formation, Auto-arrange) capped at the general's command. Back returns to the general choice.
+- Engine: `fightPool`, `validateArmy`/`applyArmy`/`armySide` in `src/world/army.ts`; `commitDefender/commitAttacker/wildBattleSetup` take an optional plan; results keep benched troops and give XP only to deployed survivors; skirmishes record each general's full roster for the result check.
+- Map sidebar shows the division's troops by species and each general's command limit.
+- Measured (`tools/warOpening.ts`, player fielding the default plan): 59/60 opening encounters won against single rival generals; 0/60 against pairs when the hero fights every round with the same troops (the probe does not rotate generals; players can).
+- Browser: Warg war starts with Warg, Dragon, Eagle and a shared pool of 60; the map shows the pool; a road clash reached the prepare screen with the defender's army shown, a trimmed plan (54 of 60, fierce vanguard) launched with exactly those squads under Fenira the Dragon. Battle completion still unverified in this browser. Gate: 739 tests, build.
+
 ### Solo-hero start, adoption and the hunt-star picker (plan `docs/plans/mvp3-solo-start.md`)
 
 - War opens with the hero alone and the demo's starting army (hero class + partner, 60 troops); no split screen. Rival: 6 generals of 50, opening field force in single-general divisions, the rest garrisoning Nightspire. Defeat is hero death only by default (D30-D32).
