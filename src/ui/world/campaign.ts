@@ -127,7 +127,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): { destr
   function renderTitle(): void {
     const lines = corrupt
       ? ['A saved war could not be loaded, so it has been left untouched.', corrupt]
-      : ['Take a hero, two generals and 150 troops, and win the war for Dragonland.'];
+      : ['Lead your hero and two generals of the same kind, share your troops between them, and win the war for Dragonland.'];
     const box = panel('Dragonland: War', lines);
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
     actions.append(button('New war', () => { corrupt = null; screen = 'setup'; render(); }, true));

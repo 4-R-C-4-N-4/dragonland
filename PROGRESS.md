@@ -67,7 +67,8 @@ Driven by hands-on play that found the map hard to read and slow to command (kin
 - Engine: `fightPool`, `validateArmy`/`applyArmy`/`armySide` in `src/world/army.ts`; `commitDefender/commitAttacker/wildBattleSetup` take an optional plan; results keep benched troops and give XP only to deployed survivors; skirmishes record each general's full roster for the result check.
 - Map sidebar shows the division's troops by species and each general's command limit.
 - Measured (`tools/warOpening.ts`, player fielding the default plan): 59/60 opening encounters won against single rival generals; 0/60 against pairs when the hero fights every round with the same troops (the probe does not rotate generals; players can).
-- Browser: Warg war starts with Warg, Dragon, Eagle and a shared pool of 60; the map shows the pool; a road clash reached the prepare screen with the defender's army shown, a trimmed plan (54 of 60, fierce vanguard) launched with exactly those squads under Fenira the Dragon. Battle completion still unverified in this browser. Gate: 739 tests, build.
+- A beaten general's unfought (benched) troops return to the generals who remain in its pool; a fallen general still in its division keeps its troops in the pool (`returnBenched`, 311406c).
+- Browser: Warg war starts with Warg, Dragon, Eagle and a shared pool of 60; the map shows the pool; a road clash reached the prepare screen with the defender's army shown, a trimmed plan (54 of 60, fierce vanguard) launched with exactly those squads under Fenira the Dragon. Battle completion still unverified in this browser: the headless SwiftShader tab disconnects mid-battle (twice more on 2026-11-08, at 1280×800 and 900×640), as it did before this work. Gate: 741 tests, build.
 
 ### Solo-hero start, adoption and the hunt-star picker (plan `docs/plans/mvp3-solo-start.md`)
 
