@@ -37,7 +37,8 @@ if (mode === 'sandbox') {
     data,
     storage: window.localStorage,
     startBattleView,
-    seed: 1,
+    // ?seed=N replays a particular war (testing); without it every new war differs.
+    seed: Number.isInteger(Number(new URLSearchParams(location.search).get('seed') ?? 'x')) ? Number(new URLSearchParams(location.search).get('seed')) : undefined,
   });
   mountGameMenu({
     mode: 'war',

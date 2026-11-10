@@ -162,7 +162,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     const host = document.createElement('div');
     shell.replaceChildren(host);
     childHandle = mountWarStart(host, {
-      data, worldData: world, seed: opts.seed ?? 1,
+      // A fixed seed (tests, ?seed=) replays one war; otherwise every new war is different.
+      data, worldData: world, seed: opts.seed ?? (Math.floor(Math.random() * 0x7fffffff) | 0),
       onBegin: next => { war = next; mapSelection = undefined; commit(); },
       onBack: () => { screen = 'title'; render(); },
     });
