@@ -18,7 +18,7 @@ import type { BattleSetup } from '../../sim';
 import { planFactionOrders } from '../../ai/strategy';
 import { joinDivision, leaveAsGarrison } from '../../world/garrison';
 import { mountWorldMap, type WorldMapSelection } from './index';
-import { adoptionTarget } from './presentation';
+import { adoptionTarget, divisionName } from './presentation';
 import { mountWarStart } from './start';
 import { mountPrepare } from './prepare';
 import { fairShare } from './prepareLogic';
@@ -374,12 +374,12 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     const pack = pending.wild.map(w => `${w.count}x ${data.unitById.get(w.unitId)?.name ?? w.unitId}`).join(', ');
     const box = panel(`Wild creatures at ${node?.name ?? pending.nodeId}`, [
       `Your search disturbed ${pack}.`,
-      'Beat them and the survivors join the general who fought.',
+      `Beat them and the whole pack joins your division${division ? ` (now ${fightPool(war, division.generals[0]!).length} troops)` : ''}, as far as your generals' command allows. Lose, and the division falls back.`,
     ]);
     const list = document.createElement('div'); list.className = 'dl-campaign__choices';
     const fighters = war.generals.filter(g => division?.generals.includes(g.id) && g.hp > 0 && g.injuredTurns === 0);
     for (const g of fighters) {
-      list.append(button(`${g.name} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => {
+      list.append(button(`${g.name}${g.isHero ? ' (hero: if they fall, the war is lost)' : ''} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP · MP ${Math.floor(mpOf(g))}`, () => {
         const host = document.createElement('div');
         shell.replaceChildren(host);
         childHandle?.destroy();
@@ -450,14 +450,21 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
   function renderAdmin(): void {
     if (!war) return;
     const player = war.factions.find(f => f.id === playerId)!;
+    // The muster is only for adopting prisoners; with none, it would be a screen to click past.
+    if (!player.captives.length) { completeAdmin(war); commit(); return; }
     const mine = war.generals.filter(g => g.factionId === playerId);
     const box = panel(`Week ${war.week} muster`, [
       'Once a week your generals gather: adopt prisoners into a division. The muster costs no turn and the enemy does not move.',
     ]);
-    const list = document.createElement('div'); list.className = 'dl-campaign__choices';
+    const list = document.createElement('ul'); list.className = 'dl-campaign__roster';
     for (const g of mine) {
-      const row = document.createElement('p');
-      row.textContent = `${g.name}${g.isHero ? ' (hero)' : ''} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP` + (g.injuredTurns ? ` · injured (${g.injuredTurns})` : '');
+      const row = document.createElement('li');
+      const captor = war.factions.find(f => f.id !== playerId && f.captives.includes(g.id));
+      const division = war.divisions.find(d => d.generals.includes(g.id));
+      const where = captor ? `captured by ${captor.name}` : g.hp <= 0 ? 'fallen'
+        : g.injuredTurns ? `injured for ${g.injuredTurns} more turn${g.injuredTurns === 1 ? '' : 's'}`
+        : division ? divisionName(war, division) : `holding ${world.nodeById.get(g.nodeId)?.name ?? g.nodeId}`;
+      row.textContent = `${g.name}${g.isHero ? ' (hero)' : ''} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP · ${where}`;
       list.append(row);
     }
     box.append(list);

@@ -96,3 +96,4 @@
 .dl-campaign__hint { margin: 4px 0; color: #a8957a; font-size: 14px; }
 .dl-campaign__choices button.dl-campaign__edge--strong { border-color: #6fb35a; }
 .dl-campaign__choices button.dl-campaign__edge--weak { border-color: #c45a4a; }
+.dl-campaign__roster { margin: 8px 0 12px; padding-left: 18px; line-height: 1.6; }
