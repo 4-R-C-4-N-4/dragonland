@@ -147,6 +147,21 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       return s;
     }
 
+    /** One-click fix: detach the last non-hero general of a division still standing on the castle. */
+    function quickLeaveButtons(undefended: { id: string; name: string }[]): HTMLButtonElement[] {
+      const out: HTMLButtonElement[] = [];
+      for (const castle of undefended) {
+        const d = ownDivisions().find(x => x.atNode === castle.id && x.generals.length > 1);
+        const gid = d && [...d.generals].reverse().find(id => !war.generals.find(g => g.id === id)?.isHero);
+        const g = gid && war.generals.find(x => x.id === gid);
+        if (d && g && options.onGarrison) out.push(button(`Leave ${g.name} to hold ${castle.name}`, () => {
+          confirmingEnd = false;
+          try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
+        }, { key: `quick-leave-${castle.id}` }));
+      }
+      return out;
+    }
+
     function renderTurnBar(orders: WorldOrder[]): HTMLElement {
       const bar = el('div', 'dl-world-map__turn');
       const undefended = undefendedCastles(war, factionId, orders);
@@ -157,8 +172,9 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (confirmingEnd && undefended.length) {
         const box = el('div', 'dl-world-map__confirm');
         box.setAttribute('role', 'alertdialog'); box.setAttribute('aria-label', 'Confirm end turn');
-        box.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will have no defenders. Any enemy that walks in takes it, and holding no castle loses the war.`));
+        box.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will have no defenders. Any enemy that walks in takes it${castleLossEndsWar(war) ? ', and holding no castle loses the war' : ': castles are where you recruit new troops'}.`));
         const actions = el('div', 'dl-world-map__row');
+        for (const b of quickLeaveButtons(undefended)) actions.append(b);
         actions.append(
           button('End turn anyway', () => { confirmingEnd = false; options.onEndTurn(); }, { key: 'end-confirm', primary: true }),
           button('Keep giving orders', () => { confirmingEnd = false; render(); }, { key: 'end-cancel' }),
@@ -168,23 +184,15 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       }
       bar.append(button(`End turn ${war.turn}`, () => {
         if (!canOrder()) return;
-        // Ask only when an empty castle can actually end the war; otherwise the warning is enough.
-        if (undefended.length && castleLossEndsWar(war)) { confirmingEnd = true; render(); return; }
+        // Castles are where troops are recruited, so leaving one empty always asks first.
+        if (undefended.length) { confirmingEnd = true; render(); return; }
         options.onEndTurn();
       }, { key: 'end-turn', primary: true }));
       if (undefended.length) {
         const warn = el('div', 'dl-world-map__warning');
         warn.setAttribute('role', 'status');
-        warn.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will be left empty: an enemy that walks in takes it${castleLossEndsWar(war) ? ', and holding no castle loses the war' : ' and its resupply'}. Leave a general to hold it, or keep a division there.`));
-        // One-click fix: detach the last non-hero general of a division still standing on the castle.
-        for (const castle of undefended) {
-          const d = ownDivisions().find(x => x.atNode === castle.id && x.generals.length > 1);
-          const gid = d && [...d.generals].reverse().find(id => !war.generals.find(g => g.id === id)?.isHero);
-          const g = gid && war.generals.find(x => x.id === gid);
-          if (d && g && options.onGarrison) warn.append(button(`Leave ${g.name} to hold ${castle.name}`, () => {
-            try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
-          }, { key: `quick-leave-${castle.id}` }));
-        }
+        warn.append(el('p', undefined, `${undefended.map(n => n.name).join(', ')} will be left empty: an enemy that walks in takes it${castleLossEndsWar(war) ? ', and holding no castle loses the war' : ' and with it your recruiting'}. Leave a general to hold it, or keep a division there.`));
+        for (const b of quickLeaveButtons(undefended)) warn.append(b);
         bar.append(warn);
       }
       return bar;
