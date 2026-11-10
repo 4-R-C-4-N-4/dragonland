@@ -32,7 +32,7 @@ export interface WorldMapHandle { update(war: War): void; destroy(): void }
 
 const ACTION_HELP: Record<'search' | 'rest' | 'hold', string> = {
   search: 'Spend the turn hunting wild troops to recruit.',
-  rest: 'Heal a quarter of HP, refill MP, and replace lost troops (castles hold 60 a week, towns 30).',
+  rest: 'Heal a quarter of HP and refill MP. Towns replace lost troops (30 a week); castles also recruit new ones up to your command (60 a week).',
   hold: 'Stay put and defend this node.',
 };
 

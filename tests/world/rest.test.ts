@@ -42,19 +42,27 @@ describe('muster strength', () => {
 });
 
 describe('resting refills losses', () => {
-  it('brings a castle-resting division back to its muster in one rest', () => {
+  it('brings a town-resting division back to its muster in one rest', () => {
     const war = make(); const d = own(war);
-    lose(war, d, 45);
+    d.atNode = 'westmere';
+    lose(war, d, 25);
     applyRest(war, d);
     expect(held(war, d)).toBe(60);
     for (const id of d.generals) { const g = war.generals.find(x => x.id === id)!; expect(g.troops.length).toBeLessThanOrEqual(g.capacity); }
-    expect(war.events.filter(e => e.type === 'resupplied').reduce((n, e) => n + (e as { troops: number }).troops, 0)).toBe(45);
+    expect(war.events.filter(e => e.type === 'resupplied').reduce((n, e) => n + (e as { troops: number }).troops, 0)).toBe(25);
   });
 
-  it('gives no troops beyond the muster', () => {
+  it('recruits beyond the muster in a castle, raising it, but only refills in a town', () => {
     const war = make(); const d = own(war);
     applyRest(war, d);
-    expect(held(war, d)).toBe(60);
+    expect(held(war, d)).toBe(120);
+    expect(musterOf(war, d)).toBe(120);
+    applyRest(war, d);
+    expect(held(war, d)).toBe(120);
+    const town = make(); const t = own(town);
+    t.atNode = 'westmere';
+    applyRest(town, t);
+    expect(held(town, t)).toBe(60);
   });
 
   it('is limited by the node\u2019s weekly stock: 60 at a castle, 30 at a town', () => {
@@ -63,6 +71,7 @@ describe('resting refills losses', () => {
     applyRest(war, d); expect(held(war, d)).toBe(60);
     d.generals.forEach(id => { war.generals.find(g => g.id === id)!.troops = []; });
     applyRest(war, d); expect(held(war, d)).toBe(0);
+    d.muster = 60;
     resetWeeklySupply(war);
     d.atNode = 'westmere';
     applyRest(war, d); expect(held(war, d)).toBe(30);

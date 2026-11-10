@@ -14,14 +14,16 @@ describe('node actions and upkeep', () => {
     applyRest(war, d);
     expect(generals[0]!.hp).toBe(generals[0]!.maxHp);
     expect(generals[1]!.hp).toBe(generals[1]!.maxHp * .25);
-    // Losses come back up to the muster (150), filling generals in order within their command.
-    expect(generals.map(g => g.troops.length)).toEqual([70, 40, 40]);
+    // A castle refills losses and recruits beyond (here the weekly stock of 60 is the limit),
+    // filling generals in order within their command.
+    expect(generals.map(g => g.troops.length)).toEqual([70, 70, 40]);
     for (const g of generals) for (const troop of g.troops) {
       const unit = getGameData().unitById.get(troop.unitId)!;
       expect(unit.stage).toBe(1);
       expect(war.factions.find(f => f.id === d.factionId)!.classes).toContain(unit.classId);
     }
     expect(war.events).toContainEqual({ type: 'resupplied', general: generals[0]!.id, troops: 30 });
+    expect(war.events).toContainEqual({ type: 'resupplied', general: generals[1]!.id, troops: 30 });
   });
   it('respects each capacity and the shared remaining weekly budget', () => {
     const { war, d, generals } = force(); generals[0]!.capacity = 53;

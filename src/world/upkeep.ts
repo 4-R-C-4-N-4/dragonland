@@ -1,6 +1,6 @@
 import { freshTroops } from './engine';
 import { maxMpOf } from './mp';
-import { musterOf } from './muster';
+import { musterOf, raiseMuster } from './muster';
 import { internal } from './rng';
 import type { Division, War } from './types';
 
@@ -15,10 +15,12 @@ export function applyRest(war: War, division: Division): void {
     if (healed > 0) { g.hp += healed; war.events.push({ type: 'healed', general: g.id, hp: healed }); }
     g.mp = maxMpOf(g);
   }
-  // Refill the division's losses up to its muster, within the node's weekly stock, the per-rest
-  // limit and each general's command. Troops are pooled, so who holds them does not matter.
+  // A town refills the division's losses up to its muster; a castle also recruits new troops up
+  // to the generals' command, raising the muster. Both draw on the node's weekly stock and the
+  // per-rest limit. Troops are pooled, so who holds them does not matter.
   const held = members.reduce((n, g) => n + g.troops.length, 0);
-  let budget = Math.max(0, Math.min(musterOf(war, division) - held, state.data.constants.RESUPPLY_TROOPS_PER_REST, state.supply[node.id] ?? 0));
+  const target = node.kind === 'castle' ? members.reduce((n, g) => n + g.capacity, 0) : musterOf(war, division);
+  let budget = Math.max(0, Math.min(target - held, state.data.constants.RESUPPLY_TROOPS_PER_REST, state.supply[node.id] ?? 0));
   for (const g of members) {
     const count = Math.min(budget, Math.max(0, g.capacity - g.troops.length));
     if (count <= 0) continue;
@@ -27,6 +29,7 @@ export function applyRest(war: War, division: Division): void {
     budget -= count;
     war.events.push({ type: 'resupplied', general: g.id, troops: count });
   }
+  raiseMuster(war, division);
 }
 export function applyUpkeep(war: War): void {
   for (const faction of war.factions) faction.gold += war.nodes.filter(n => n.owner === faction.id).reduce((sum, n) => sum + n.incomePerTurn, 0);
