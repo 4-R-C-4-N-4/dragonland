@@ -23,10 +23,13 @@ const ALONE = 'Deploy at least one squad.';
 
 /**
  * Troops one general takes by default when `fighters` generals may still have to fight this
- * encounter: an even split, so the first fight does not spend the whole division.
+ * encounter: an even split, so the first fight does not spend the whole division. When the
+ * enemy's company is known, take enough to outnumber it by a fifth if the pool allows.
  */
-export function fairShare(poolSize: number, fighters: number, command: number): number {
-  return Math.min(command, Math.ceil(poolSize / Math.max(1, fighters)));
+export function fairShare(poolSize: number, fighters: number, command: number, enemyTroops?: number): number {
+  const even = Math.ceil(poolSize / Math.max(1, fighters));
+  const outnumber = enemyTroops ? Math.ceil(enemyTroops * 1.2) : 0;
+  return Math.min(command, poolSize, Math.max(even, outnumber));
 }
 
 /** The Skirmish plan checks plus this general's command limit. Empty means ready to fight. */

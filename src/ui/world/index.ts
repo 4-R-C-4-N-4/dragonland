@@ -5,7 +5,7 @@ import { musterOf } from '../../world/muster';
 import { maxMpOf, mpOf } from '../../world/mp';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import {
-  actionBlocker, adjacentNodeIds, adoptionTarget, castleLossEndsWar, defaultDivision, divisionName, garrisonStatus, nodeSummary, orderIntent, orderLabel,
+  actionBlocker, adjacentNodeIds, adoptionTarget, castleLossEndsWar, defaultDivision, divisionName, enemyForce, garrisonStatus, nodeSummary, orderIntent, orderLabel,
   turnReport, undefendedCastles,
 } from './presentation';
 import { visibleNodes } from '../../ai/strategy';
@@ -35,6 +35,10 @@ const ACTION_HELP: Record<'search' | 'rest' | 'hold', string> = {
   rest: 'Heal a quarter of HP, refill MP, and replace lost troops (castles hold 60 a week, towns 30).',
   hold: 'Stay put and defend this node.',
 };
+
+function forceText(f: { generals: number; troops: number }): string {
+  return `${f.generals} general${f.generals === 1 ? '' : 's'} with ${f.troops} troops`;
+}
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -236,10 +240,13 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
 
       if (canOrder()) {
         s.append(el('p', 'dl-world-map__hint', 'Click a gold-ringed node on the map to march there, or choose below.'));
+        const ours = d.generals.reduce((n, gid) => n + (war.generals.find(g => g.id === gid)?.troops.length ?? 0), 0);
         for (const id of adjacentNodeIds(war, d.atNode)) {
           const target = war.nodes.find(n => n.id === id); if (!target) continue;
+          const foe = enemyForce(war, id, factionId);
+          const odds = foe ? ` · ${forceText(foe)} there vs your ${ours}${foe.troops > ours ? ' — outnumbered' : ''}` : '';
           s.append(button(`March to ${target.name}`, () => issue(orderIntent(war, factionId, d.id, 'march', id)), {
-            key: `march-${id}`, pressed: order?.type === 'march' && order.toNode === id, detail: nodeSummary(war, target, factionId),
+            key: `march-${id}`, pressed: order?.type === 'march' && order.toNode === id, detail: nodeSummary(war, target, factionId) + odds,
           }));
         }
         for (const type of ['search', 'rest', 'hold'] as const) {
@@ -288,6 +295,8 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const s = section(node.name, 'dl-world-map__detail');
       s.append(el('p', 'dl-world-map__hint', nodeSummary(war, node, factionId)));
       const seen = visibleNodes(war, factionId).has(node.id);
+      const foe = enemyForce(war, node.id, factionId);
+      if (foe) s.append(el('p', 'dl-world-map__enemy', `Enemy here: ${forceText(foe)}.`));
       for (const d of war.divisions.filter(x => x.atNode === node.id && x.generals.length > 0)) {
         if (d.factionId === factionId) s.append(button(`Select ${divisionName(war, d)}`, () => selectDivision(d.id), { key: `division-at-${d.id}` }));
         else if (seen) s.append(el('p', 'dl-world-map__enemy', `${war.factions.find(f => f.id === d.factionId)?.name ?? 'Enemy'}: ${divisionName(war, d)}, ${d.generals.length} general${d.generals.length === 1 ? '' : 's'}`));

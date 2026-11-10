@@ -51,9 +51,20 @@ export function nodeSummary(war: War, node: WorldNode, factionId: string): strin
   const parts: string[] = [node.kind];
   if (wild) parts.push(node.biome);
   parts.push(owner);
-  if (node.incomePerTurn > 0) parts.push(`+${node.incomePerTurn} gold/turn`);
   if (wild) parts.push(node.kind === 'lair' ? 'rich in wild troops' : 'wild troops');
   return parts.join(' · ');
+}
+
+/**
+ * Enemy generals and troops standing on a node (garrison and divisions alike), or null when
+ * the node is out of sight or holds no enemy general.
+ */
+export function enemyForce(war: War, nodeId: string, factionId: string): { generals: number; troops: number } | null {
+  if (!visibleNodes(war, factionId).has(nodeId)) return null;
+  const inDivision = (id: string) => war.divisions.find(d => d.generals.includes(id));
+  const here = war.generals.filter(g => g.factionId !== factionId && g.hp > 0 && !war.factions.some(f => f.captives.includes(g.id))
+    && (inDivision(g.id)?.atNode ?? g.nodeId) === nodeId);
+  return here.length ? { generals: here.length, troops: here.reduce((n, g) => n + g.troops.length, 0) } : null;
 }
 
 /** Hero's division first, then the first live division by id. */

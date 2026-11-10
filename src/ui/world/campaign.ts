@@ -309,11 +309,11 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     const fighter = war.generals.find(g => g.id === generalId)!;
     const poolSize = fightPool(war, generalId).length;
     const command = Math.min(fighter.capacity, data.constants.MAX_COMPANY);
-    const share = fairShare(poolSize, fighters, command);
+    const share = fairShare(poolSize, fighters, command, known ? enemyTroops.length : undefined);
     childHandle = mountPrepare(host, {
       data, war, generalId, enemyLines, enemyTroops, share,
       shareNote: share < Math.min(poolSize, command)
-        ? `Auto-arrange deploys a fair share (${share} of ${poolSize}): ${fighters} of your generals may still have to fight here, and each fight is to the last troop. Deploy more to go all in.`
+        ? `Auto-arrange deploys ${share} of ${poolSize}: ${fighters} of your generals may still have to fight here, and each fight is to the last troop.${known ? ' Enough to outnumber this enemy by a fifth.' : ''} Deploy more to go all in.`
         : undefined,
       title: `Battle at ${world.nodeById.get(war.pendingBattle!.nodeId)?.name ?? war.pendingBattle!.nodeId}: prepare ${war.generals.find(g => g.id === generalId)!.name}`,
       onBack: () => render(),

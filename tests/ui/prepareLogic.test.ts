@@ -41,6 +41,13 @@ describe('fight preparation logic', () => {
     expect(fairShare(0, 3, 100)).toBe(0);
   });
 
+  it('deploys enough to outnumber a known enemy when the pool allows', () => {
+    expect(fairShare(60, 3, 100, 50)).toBe(60);
+    expect(fairShare(150, 3, 100, 50)).toBe(60);
+    expect(fairShare(150, 3, 100, 10)).toBe(50);
+    expect(fairShare(150, 3, 40, 50)).toBe(40);
+  });
+
   it('reports a company over the command limit', () => {
     const w = war(); const hero = w.generals.find(g => g.isHero)!;
     const pool = fightPool(w, hero.id);

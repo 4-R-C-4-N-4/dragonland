@@ -4,7 +4,7 @@ import { buildWorldData, createWar, issueOrder, leaveAsGarrison, rawWorldData, r
 import { visibleNodes } from '../../src/ai/strategy';
 import {
   actionBlocker, adjacentNodeIds, defaultDivision, divisionName, garrisonStatus, nodeSummary, nodeTone, orderIntent, orderLabel,
-  turnReport, undefendedCastles, visibleEnemyDivisions, adoptionTarget, castleLossEndsWar,
+  turnReport, undefendedCastles, visibleEnemyDivisions, adoptionTarget, castleLossEndsWar, enemyForce,
 } from '../../src/ui/world/presentation';
 import { hasGarrison } from '../../src/world/movement';
 
@@ -19,6 +19,19 @@ describe('world map presentation helpers', () => {
     expect(targets.length).toBeGreaterThan(0);
     expect(targets.every(id => war.routes.some(r => (r.from === division.atNode && r.to === id) || (r.to === division.atNode && r.from === id)))).toBe(true);
     expect(adjacentNodeIds(war, 'missing-node')).toEqual([]);
+  });
+
+  it('sizes up an enemy force only where it can be seen', () => {
+    const war = createWar(data, { seed: 17, heroId: 'warg', heroName: 'Ivy' });
+    const castle = war.nodes.find(n => n.kind === 'castle' && n.owner !== 'player')!;
+    const there = war.generals.filter(g => g.factionId === castle.owner && g.nodeId === castle.id && g.hp > 0);
+    expect(enemyForce(war, castle.id, 'player')).toBeNull();
+    const own = war.divisions.find(d => d.factionId === 'player')!;
+    const next = war.routes.find(r => r.from === castle.id || r.to === castle.id)!;
+    own.atNode = next.from === castle.id ? next.to : next.from;
+    expect(visibleNodes(war, 'player').has(castle.id)).toBe(true);
+    expect(enemyForce(war, castle.id, 'player')).toEqual({ generals: there.length, troops: there.reduce((n, g) => n + g.troops.length, 0) });
+    expect(enemyForce(war, own.atNode, 'player')).toBeNull();
   });
 
   it('exposes enemy divisions only at visible nodes', () => {
@@ -69,9 +82,9 @@ describe('overworld readability helpers', () => {
 
   it('summarises nodes in player words', () => {
     const war = makeWar();
-    expect(nodeSummary(war, node(war, 'reedhaven'), 'player')).toBe('village · swamp · unclaimed · +3 gold/turn · wild troops');
+    expect(nodeSummary(war, node(war, 'reedhaven'), 'player')).toBe('village · swamp · unclaimed · wild troops');
     expect(nodeSummary(war, node(war, 'dawnkeep'), 'player')).toBe('castle · yours');
-    expect(nodeSummary(war, node(war, 'eastgate'), 'player')).toBe('town · held by Night Host · +2 gold/turn');
+    expect(nodeSummary(war, node(war, 'eastgate'), 'player')).toBe('town · held by Night Host');
     expect(nodeSummary(war, node(war, 'wyrmpeak'), 'player')).toContain('rich in wild troops');
     expect(nodeSummary(war, node(war, 'dawnkeep'), 'player')).not.toContain('settled');
   });
