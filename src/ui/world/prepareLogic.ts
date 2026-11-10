@@ -19,12 +19,30 @@ export function initialPlan(data: GameData, pool: ProgressTroop[], limit: number
   return plan;
 }
 
+const ALONE = 'Deploy at least one squad.';
+
+/**
+ * Troops one general takes by default when `fighters` generals may still have to fight this
+ * encounter: an even split, so the first fight does not spend the whole division.
+ */
+export function fairShare(poolSize: number, fighters: number, command: number): number {
+  return Math.min(command, Math.ceil(poolSize / Math.max(1, fighters)));
+}
+
 /** The Skirmish plan checks plus this general's command limit. Empty means ready to fight. */
 export function planProblems(data: GameData, pool: ProgressTroop[], plan: ArmyPlan, limit: number): string[] {
-  const issues = planIssues(data, pool, plan);
+  // A general may fight alone (e.g. once the division's troops are spent); see planWarnings.
+  const issues = planIssues(data, pool, plan).filter(i => i !== ALONE);
   const total = Object.values(plan.assignment).reduce((n, a) => n + (Number.isInteger(a.count) && a.count > 0 ? a.count : 0), 0);
   if (total > limit) issues.push(`This general can command ${limit} troops; ${total} are deployed.`);
   return issues;
+}
+
+/** Things worth a second look that do not block the fight. */
+export function planWarnings(data: GameData, pool: ProgressTroop[], plan: ArmyPlan): string[] {
+  return planIssues(data, pool, plan).includes(ALONE)
+    ? [pool.length ? 'Nobody is deployed: the general fights alone.' : 'The division has no troops left: the general fights alone.']
+    : [];
 }
 
 /** Enemy troop counts by class, for the quarry/nemesis hints on each species row. */

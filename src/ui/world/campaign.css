@@ -63,9 +63,9 @@
   font-size: 22px;
 }
 
-.dl-campaign__panel h1:focus-visible {
-  outline: 2px solid #d5a33a;
-  outline-offset: 3px;
+.dl-campaign__panel h1:focus, .dl-campaign__panel h1:focus-visible {
+  /* Focus moves to the heading so screen readers announce the new screen; it is not a control. */
+  outline: none;
 }
 
 .dl-campaign__choices {

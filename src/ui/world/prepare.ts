@@ -6,7 +6,7 @@ import type { War } from '../../world';
 import { fightPool, type WarArmy } from '../../world/army';
 import { maxMpOf, mpOf } from '../../world/mp';
 import { classEdge, planToArmy, speciesGroups, type ArmyPlan } from '../run/logic';
-import { initialPlan, planProblems, troopsByClass } from './prepareLogic';
+import { initialPlan, planProblems, planWarnings, troopsByClass } from './prepareLogic';
 import './prepare.css';
 
 export interface PrepareOptions {
@@ -18,6 +18,10 @@ export interface PrepareOptions {
   enemyLines: string[];
   /** Enemy troops visible to the player (for counter hints); empty when unknown. */
   enemyTroops: { unitId: string }[];
+  /** Troops Auto-arrange deploys (default: the command limit), e.g. a fair share of the pool. */
+  share?: number;
+  /** One line under the plan explaining the default, e.g. why only a share is deployed. */
+  shareNote?: string;
   onFight: (army: WarArmy) => void;
   onBack: () => void;
 }
@@ -40,7 +44,8 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   const limit = Math.min(general.capacity, data.constants.MAX_COMPANY);
   const groups = speciesGroups(data, pool);
   const enemyClasses = troopsByClass(data, opts.enemyTroops);
-  let plan: ArmyPlan = initialPlan(data, pool, limit);
+  const share = Math.min(limit, opts.share ?? limit);
+  let plan: ArmyPlan = initialPlan(data, pool, share);
   let destroyed = false;
 
   const box = el('section', 'dl-campaign__panel dl-panel dl-prepare');
@@ -53,6 +58,7 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   mine.append(el('h2', undefined, `${general.name} (${profile.name})`),
     el('p', undefined, `${Math.round(general.hp)}/${general.maxHp} HP · MP ${Math.floor(mpOf(general))}/${maxMpOf(general)} · commands up to ${limit} troops · ${pool.length} in the division`),
     el('p', 'dl-prepare__special', `${profile.special.name}: ${profile.special.description}`));
+  if (general.isHero) mine.append(el('p', 'dl-prepare__warn', `${general.name} is your hero: if they fall, the war is lost.`));
   const formation = el('select'); formation.setAttribute('aria-label', 'Formation');
   for (const f of data.formations) { const o = el('option', undefined, f.name); o.value = f.id; formation.append(o); }
   const formationLabel = el('label', 'dl-prepare__formation', 'Formation '); formationLabel.append(formation);
@@ -68,9 +74,10 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   const scroll = el('div', 'dl-prepare__scroll'); scroll.append(table);
   const footer = el('div', 'dl-prepare__footer');
   const totals = el('strong'); const issues = el('div', 'dl-prepare__issues'); issues.setAttribute('role', 'status');
+  const notes = el('div', 'dl-prepare__notes');
   const back = el('button', undefined, 'Back'); back.type = 'button';
   const fight = el('button', 'dl-primary', 'Fight!'); fight.type = 'button';
-  const summary = el('div'); summary.append(totals, issues);
+  const summary = el('div'); summary.append(totals, notes, issues);
   const actions = el('div', 'dl-prepare__actions'); actions.append(back, fight);
   footer.append(summary, actions);
   box.append(h, top, el('h2', undefined, 'Squads'), squadsRow, scroll, footer);
@@ -120,13 +127,14 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
     totals.textContent = `${total} / ${limit} deployed · ${Math.max(0, pool.length - total)} stay in reserve`;
     const problems = planProblems(data, pool, plan, limit);
     issues.textContent = problems.join(' ');
+    notes.textContent = [...planWarnings(data, pool, plan), ...(opts.shareNote ? [opts.shareNote] : [])].join(' ');
     fight.disabled = problems.length > 0;
   }
 
   function renderAll(): void { formation.value = plan.formationId; renderSquads(); renderRows(); refresh(); }
 
   formation.addEventListener('change', () => { plan.formationId = formation.value; });
-  auto.addEventListener('click', () => { plan = initialPlan(data, pool, limit, plan.formationId); renderAll(); auto.focus(); });
+  auto.addEventListener('click', () => { plan = initialPlan(data, pool, share, plan.formationId); renderAll(); auto.focus(); });
   back.addEventListener('click', () => { if (!destroyed) opts.onBack(); });
   fight.addEventListener('click', () => {
     if (destroyed || planProblems(data, pool, plan, limit).length) return refresh();

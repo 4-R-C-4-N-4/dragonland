@@ -20,6 +20,8 @@ import { mountWorldMap, type WorldMapSelection } from './index';
 import { adoptionTarget } from './presentation';
 import { mountWarStart } from './start';
 import { mountPrepare } from './prepare';
+import { fairShare } from './prepareLogic';
+import { fightPool } from '../../world/army';
 import type { WarArmy } from '../../world/army';
 import './campaign.css';
 
@@ -201,11 +203,15 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
 
   function renderStatus(host: HTMLElement): void {
     if (!war) return;
-    const player = war.factions.find(f => f.id === playerId)!;
     const castles = war.nodes.filter(n => n.kind === 'castle' && n.owner === playerId).length;
+    const toTake = war.nodes.filter(n => n.kind === 'castle' && n.owner !== playerId).length;
     const hero = war.generals.find(g => g.isHero);
     const troops = war.generals.filter(g => g.factionId === playerId).reduce((n, g) => n + g.troops.length, 0);
-    host.textContent = `Turn ${war.turn} · Week ${war.week} · ${player.gold} gold · ${castles} castle${castles === 1 ? '' : 's'} · ${troops} troops` + (hero ? ` · ${hero.name} ${Math.round(hero.hp)}/${hero.maxHp} HP` : '');
+    const perWeek = world.constants.TURNS_PER_WEEK;
+    const toMuster = perWeek - ((war.turn - 1) % perWeek);
+    // Gold is collected but has no use yet, so it is not shown.
+    host.textContent = `Turn ${war.turn} · Week ${war.week}, muster in ${toMuster} turn${toMuster === 1 ? '' : 's'} · ${castles} castle${castles === 1 ? '' : 's'} held, ${toTake} to take · ${troops} troops`
+      + (hero ? ` · ${hero.name} ${Math.round(hero.hp)}/${hero.maxHp} HP${hero.injuredTurns ? `, injured ${hero.injuredTurns}` : ''}` : '');
   }
 
   function renderBattle(): void {
@@ -255,7 +261,7 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
       list.append(prompt);
       for (const g of mine) {
         const kind = data.generalById.get(g.generalId)?.name ?? g.generalId;
-        list.append(button(`${g.name}${g.isHero ? ' (hero)' : ''} · ${kind} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => prepareSkirmish(seq, g.id, side, facing)));
+        list.append(button(`${g.name}${g.isHero ? ' (hero: if they fall, the war is lost)' : ''} · ${kind} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => prepareSkirmish(seq, g.id, side, facing, mine.length)));
       }
     } else {
       // The enemy owns this side: pick for them, deterministically, then re-render.
@@ -290,7 +296,8 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
   }
 
   /** Before the player's general fights, choose its troops from the pool (see prepare.ts). */
-  function prepareSkirmish(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker', facing: string[]): void {
+  /** `fighters`: how many of the player's generals can still fight this encounter. */
+  function prepareSkirmish(seq: EncounterSequence, generalId: string, side: 'defender' | 'attacker', facing: string[], fighters: number): void {
     if (!war) return;
     // The attacker sees the committed defender's army; the defender only knows who might answer.
     const known = side === 'attacker' && !!seq.selectedDefender;
@@ -299,8 +306,15 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     const host = document.createElement('div');
     shell.replaceChildren(host);
     childHandle?.destroy();
+    const fighter = war.generals.find(g => g.id === generalId)!;
+    const poolSize = fightPool(war, generalId).length;
+    const command = Math.min(fighter.capacity, data.constants.MAX_COMPANY);
+    const share = fairShare(poolSize, fighters, command);
     childHandle = mountPrepare(host, {
-      data, war, generalId, enemyLines, enemyTroops,
+      data, war, generalId, enemyLines, enemyTroops, share,
+      shareNote: share < Math.min(poolSize, command)
+        ? `Auto-arrange deploys a fair share (${share} of ${poolSize}): ${fighters} of your generals may still have to fight here, and each fight is to the last troop. Deploy more to go all in.`
+        : undefined,
       title: `Battle at ${world.nodeById.get(war.pendingBattle!.nodeId)?.name ?? war.pendingBattle!.nodeId}: prepare ${war.generals.find(g => g.id === generalId)!.name}`,
       onBack: () => render(),
       onFight: army => {
@@ -410,13 +424,12 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     const player = war.factions.find(f => f.id === playerId)!;
     const mine = war.generals.filter(g => g.factionId === playerId);
     const box = panel(`Week ${war.week} muster`, [
-      `${player.gold} gold in the war chest.`,
-      'Admin costs no turn and the enemy does not move.',
+      'Once a week your generals gather: adopt prisoners into a division. The muster costs no turn and the enemy does not move.',
     ]);
     const list = document.createElement('div'); list.className = 'dl-campaign__choices';
     for (const g of mine) {
       const row = document.createElement('p');
-      row.textContent = `${g.name} · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length}/${g.capacity} troops` + (g.injuredTurns ? ` · injured (${g.injuredTurns})` : '');
+      row.textContent = `${g.name}${g.isHero ? ' (hero)' : ''} · ${data.generalById.get(g.generalId)?.name ?? g.generalId} · ${Math.round(g.hp)}/${g.maxHp} HP` + (g.injuredTurns ? ` · injured (${g.injuredTurns})` : '');
       list.append(row);
     }
     box.append(list);

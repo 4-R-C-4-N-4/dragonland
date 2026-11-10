@@ -20,6 +20,8 @@
 .dl-prepare__edge--strong { color: #9be07a; font-weight: 700; }
 .dl-prepare__edge--weak { color: #f08a7a; font-weight: 700; }
 .dl-prepare__footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.dl-prepare__notes { color: var(--dl-text-dim); font-size: 13px; }
+.dl-prepare__warn { color: #f0c27a; font-weight: 600; }
 .dl-prepare__issues { color: var(--dl-bad); font-size: 13px; min-height: 1.2em; }
 .dl-prepare__actions { display: flex; gap: 8px; }
 .dl-prepare__actions .dl-primary { padding: 8px 24px; font-size: 15px; }
