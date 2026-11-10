@@ -1,7 +1,7 @@
 import { internal } from './rng';
 import { detectEncounters } from './encounter';
 import { searchOutcome, wildEncounter } from './search';
-import { applyRest, applyUpkeep, resetWeeklySupply } from './upkeep';
+import { applyGarrisonUpkeep, applyRest, applyUpkeep, resetWeeklySupply } from './upkeep';
 import { canMarch, moveDivisions, captureUndefended } from './movement';
 import type { War, WorldOrder } from './types';
 
@@ -52,6 +52,7 @@ function settleTurn(war: War): void {
     return;
   }
   applyUpkeep(war);
+  applyGarrisonUpkeep(war);
   const actions = state.actions ?? [];
   war.turnLog.push({ turn: frame.turn, orders: structuredClone(frame.orders), ...(actions.length ? { actions: structuredClone(actions) } : {}) });
   state.actions = [];

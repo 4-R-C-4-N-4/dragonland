@@ -31,6 +31,32 @@ export function applyRest(war: War, division: Division): void {
   }
   raiseMuster(war, division);
 }
+/**
+ * Generals holding an owned castle (in no division, alive, not injured) heal, refill MP and
+ * recruit up to their command from what is left of the castle's weekly stock, each turn.
+ * A garrison left with a handful of troops is otherwise an open door.
+ */
+export function applyGarrisonUpkeep(war: War): void {
+  const state = internal(war);
+  const c = state.data.constants;
+  for (const node of war.nodes.filter(n => n.kind === 'castle' && n.owner)) {
+    const faction = war.factions.find(f => f.id === node.owner)!;
+    const garrison = war.generals
+      .filter(g => g.factionId === node.owner && g.nodeId === node.id && g.hp > 0 && g.injuredTurns === 0 && !war.divisions.some(d => d.generals.includes(g.id)))
+      .sort((a, b) => a.id.localeCompare(b.id));
+    for (const g of garrison) {
+      const healed = Math.min(g.maxHp - g.hp, g.maxHp * c.HEAL_HP_PER_REST_FRAC);
+      if (healed > 0) { g.hp += healed; war.events.push({ type: 'healed', general: g.id, hp: healed }); }
+      g.mp = maxMpOf(g);
+      const count = Math.max(0, Math.min(g.capacity - g.troops.length, c.RESUPPLY_TROOPS_PER_REST, state.supply[node.id] ?? 0));
+      if (count <= 0) continue;
+      g.troops.push(...freshTroops(war, faction.classes, count));
+      state.supply[node.id] = (state.supply[node.id] ?? 0) - count;
+      war.events.push({ type: 'resupplied', general: g.id, troops: count });
+    }
+  }
+}
+
 export function applyUpkeep(war: War): void {
   for (const faction of war.factions) faction.gold += war.nodes.filter(n => n.owner === faction.id).reduce((sum, n) => sum + n.incomePerTurn, 0);
   for (const g of war.generals) g.injuredTurns = Math.max(0, g.injuredTurns - 1);

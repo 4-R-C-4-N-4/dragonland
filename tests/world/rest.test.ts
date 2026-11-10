@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildWorldData, createWar, rawWorldData, leaveAsGarrison, adoptCaptive, applyWildVictory } from '../../src/world';
-import { applyRest, resetWeeklySupply } from '../../src/world/upkeep';
+import { applyGarrisonUpkeep, applyRest, resetWeeklySupply } from '../../src/world/upkeep';
 import { musterOf } from '../../src/world/muster';
 
 const data = buildWorldData(rawWorldData);
@@ -38,6 +38,31 @@ describe('muster strength', () => {
     war.factions.find(f => f.id === 'player')!.captives.push(rival.id);
     adoptCaptive(war, 'player', rival.id, d.id);
     expect(musterOf(war, d)).toBe(65 + rival.troops.length);
+  });
+});
+
+describe('castle garrisons', () => {
+  it('heal, refill MP and recruit from the castle each turn, sharing its weekly stock', () => {
+    const war = make(); const d = own(war);
+    const g = war.generals.find(x => x.id === d.generals[2])!;
+    leaveAsGarrison(war, d.id, g.id);
+    g.troops = g.troops.slice(0, 5); g.hp = 100; g.mp = 0;
+    applyGarrisonUpkeep(war);
+    expect(g.troops.length).toBe(65);
+    expect(g.hp).toBe(100 + g.maxHp * 0.25);
+    expect(g.mp).toBe(100);
+    applyGarrisonUpkeep(war);
+    expect(g.troops.length).toBe(65);
+  });
+
+  it('do nothing in towns or for injured generals', () => {
+    const war = make(); const d = own(war);
+    d.atNode = 'westmere'; for (const id of d.generals) war.generals.find(x => x.id === id)!.nodeId = 'westmere';
+    const g = war.generals.find(x => x.id === d.generals[2])!;
+    leaveAsGarrison(war, d.id, g.id);
+    g.troops = [];
+    applyGarrisonUpkeep(war);
+    expect(g.troops).toEqual([]);
   });
 });
 
