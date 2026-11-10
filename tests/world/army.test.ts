@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getGameData } from '../../src/data';
 import { createBattle, step } from '../../src/sim';
-import { buildWorldData, createWar, rawWorldData, wildBattleSetup, wildEncounter, applyWildResult, leaveAsGarrison } from '../../src/world';
+import { buildWorldData, createWar, rawWorldData, wildBattleSetup, wildEncounter, applyWildResult, applyWildVictory, leaveAsGarrison } from '../../src/world';
 import { fightPool, type WarArmy } from '../../src/world/army';
 import { applySkirmishResult, commitAttacker, commitDefender, sequenceEncounter, snapshotBattleResult } from '../../src/world/sequence';
 import { internal } from '../../src/world/rng';
@@ -124,6 +124,22 @@ describe('fighting with a prepared army', () => {
     commitDefender(war, seq, rival.id);
     const selection = commitAttacker(war, seq, war.generals.find(g => g.isHero)!.id);
     expect(selection.setup.sides[0].squads.flatMap(q => q.troops.map(t => t.troopId)).sort()).toEqual(ids(rival.troops));
+  });
+});
+
+describe('wild recruits', () => {
+  it('join any division general with room, not only the one who fought', () => {
+    const war = make(); const own = ownDivision(war);
+    own.atNode = 'reedhaven';
+    for (const id of own.generals) war.generals.find(g => g.id === id)!.nodeId = 'reedhaven';
+    const [first, ...rest] = own.generals.map(id => war.generals.find(g => g.id === id)!);
+    // The fighter holds the whole pool and is full; the others hold nothing.
+    first!.troops = rest.flatMap(g => g.troops).concat(first!.troops).slice(0, first!.capacity);
+    for (const g of rest) g.troops = [];
+    first!.capacity = first!.troops.length;
+    applyWildVictory(war, own.id, first!.id, [{ unitId: 'dog', count: 7 }]);
+    expect(rest.reduce((n, g) => n + g.troops.length, 0)).toBe(7);
+    expect(first!.troops.length).toBe(first!.capacity);
   });
 });
 

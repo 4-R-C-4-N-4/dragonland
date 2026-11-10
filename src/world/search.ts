@@ -60,7 +60,10 @@ export function applyWildVictory(war: War, divisionId: string, generalId: string
   const general = war.generals.find(g => g.id === generalId);
   if (!general) throw new Error(`Unknown general ${generalId}`);
   if (defeated.some(entry => !Number.isInteger(entry.count) || entry.count < 0 || !getGameData().unitById.has(entry.unitId))) throw new Error('Invalid defeated wild troops');
-  const capacity = Math.max(0, general.capacity - general.troops.length);
+  // Recruits join the division's pool: the fighter first, then any general with room.
+  const members = [general, ...division.generals.filter(id => id !== generalId).map(id => war.generals.find(g => g.id === id)!).filter(Boolean)];
+  const room = () => members.find(m => m.troops.length < m.capacity);
+  const capacity = members.reduce((n, m) => n + Math.max(0, m.capacity - m.troops.length), 0);
   const total = defeated.reduce((sum, entry) => sum + entry.count, 0);
   const takenNames = new Set(war.generals.flatMap(g => g.troops.map(t => t.name)));
   const takenIds = new Set(war.generals.flatMap(g => g.troops.map(t => t.id)));
@@ -73,7 +76,7 @@ export function applyWildVictory(war: War, divisionId: string, generalId: string
       while (takenIds.has(id)) id = nextId(rng, 'troop');
       takenIds.add(id);
       const troop: ProgressTroop = { id, name: uniqueName(rng, names, takenNames), unitId: entry.unitId, xp: 0, level: 1 };
-      general.troops.push(troop);
+      room()!.troops.push(troop);
     }
     remaining -= count;
     if (remaining <= 0) break;
