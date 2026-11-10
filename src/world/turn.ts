@@ -3,6 +3,7 @@ import { detectEncounters } from './encounter';
 import { searchOutcome, wildEncounter } from './search';
 import { applyGarrisonUpkeep, applyRest, applyUpkeep, resetWeeklySupply } from './upkeep';
 import { canMarch, moveDivisions, captureUndefended } from './movement';
+import { rivalsTakeTheField } from './rivals';
 import type { War, WorldOrder } from './types';
 
 /** Resolve every division from the same pre-movement order/position snapshot. */
@@ -64,6 +65,7 @@ function settleTurn(war: War): void {
   if ((war.turn - 1) % state.data.constants.TURNS_PER_WEEK === 0) {
     war.phase = 'admin'; war.week++;
     resetWeeklySupply(war);
+    rivalsTakeTheField(war);
     war.events.push({ type: 'weekPassed', week: war.week });
   }
   if (hero && hero.hp <= 0) { war.phase = 'lost'; return; }
