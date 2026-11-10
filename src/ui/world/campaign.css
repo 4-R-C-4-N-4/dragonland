@@ -92,3 +92,7 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+.dl-campaign__hint { margin: 4px 0; color: #a8957a; font-size: 14px; }
+.dl-campaign__choices button.dl-campaign__edge--strong { border-color: #6fb35a; }
+.dl-campaign__choices button.dl-campaign__edge--weak { border-color: #c45a4a; }

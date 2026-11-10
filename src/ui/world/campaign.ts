@@ -3,6 +3,7 @@
 // intents and persists one snapshot per transition.
 import type { GameData } from '../../data';
 import type { StartBattleView } from '../../battle/types';
+import type { GeneralRecord } from '../../world/types';
 import { campaignBattlePerspective, playerSideOf } from './battlePerspective';
 import {
   adoptCaptive, applyWildResult, buildWorldData, cancelOrder, clearWar, completeAdmin, issueOrder, loadWar, rawWorldData,
@@ -22,6 +23,9 @@ import { mountWarStart } from './start';
 import { mountPrepare } from './prepare';
 import { fairShare } from './prepareLogic';
 import { fightPool } from '../../world/army';
+import { mpOf } from '../../world/mp';
+import { retreatNode } from '../../world/movement';
+import { classRelation } from '../run/logic';
 import type { WarArmy } from '../../world/army';
 import './campaign.css';
 
@@ -256,12 +260,32 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
         return `${g.name} (${data.generalById.get(g.generalId)?.name ?? g.generalId}) · ${Math.round(g.hp)}/${g.maxHp} HP · ${g.troops.length} troops`;
       }).join('; ');
       list.append(foe);
+      if (side === 'attacker' && seq.selectedDefender) {
+        const behind = enemyIds.filter(id => id !== seq.selectedDefender && !seq.defeatedGeneralIds.includes(id) && war!.generals.find(g => g.id === id)!.hp > 0);
+        if (behind.length) {
+          const troops = behind.reduce((n, id) => n + war!.generals.find(g => g.id === id)!.troops.length, 0);
+          const more = document.createElement('p'); more.className = 'dl-campaign__hint';
+          more.textContent = `Behind them: ${behind.length} more general${behind.length === 1 ? '' : 's'} with ${troops} troops. Each fight is to the last troop; win every fight to win the battle.`;
+          list.append(more);
+        }
+      }
+      const pool = fightPool(war, mine[0]!.id).length;
+      const ours = document.createElement('p'); ours.className = 'dl-campaign__hint';
+      ours.textContent = `Your division has ${pool} troops to share among ${mine.length === 1 ? 'this general' : `these ${mine.length} generals`}; you choose who leads which troops next.`;
+      list.append(ours);
       const prompt = document.createElement('p');
       prompt.textContent = `Choose your ${side}:`;
       list.append(prompt);
+      // The class matchup against a known enemy general (generals' own attacks follow the hunt too).
+      const known = side === 'attacker' && seq.selectedDefender ? war.generals.find(g => g.id === seq.selectedDefender) : undefined;
+      const classOf = (generalId: GeneralRecord['generalId']) => data.unitById.get(data.generalById.get(generalId)!.unitId)!.classId;
       for (const g of mine) {
         const kind = data.generalById.get(g.generalId)?.name ?? g.generalId;
-        list.append(button(`${g.name}${g.isHero ? ' (hero: if they fall, the war is lost)' : ''} · ${kind} · ${Math.round(g.hp)}/${g.maxHp} HP`, () => prepareSkirmish(seq, g.id, side, facing, mine.length)));
+        const rel = known ? classRelation(data, classOf(g.generalId), classOf(known.generalId)) : 'neutral';
+        const edge = rel === 'quarry' ? ` · hunts ${data.generalById.get(known!.generalId)?.name}` : rel === 'nemesis' ? ` · hunted by ${data.generalById.get(known!.generalId)?.name}` : '';
+        const b = button(`${g.name}${g.isHero ? ' (hero: if they fall, the war is lost)' : ''} · ${kind} · ${Math.round(g.hp)}/${g.maxHp} HP · MP ${Math.floor(mpOf(g))}${edge}`, () => prepareSkirmish(seq, g.id, side, facing, mine.length));
+        if (rel !== 'neutral') b.classList.add(rel === 'quarry' ? 'dl-campaign__edge--strong' : 'dl-campaign__edge--weak');
+        list.append(b);
       }
     } else {
       // The enemy owns this side: pick for them, deterministically, then re-render.
@@ -272,8 +296,12 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
     box.append(list);
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
     const own = war.divisions.find(d => d.factionId === playerId && (d.id === war!.pendingBattle!.attacker || d.id === war!.pendingBattle!.defender));
-    if (own && seq.status !== 'battling') {
-      actions.append(button('Retreat', () => {
+    const fallback = own ? retreatNode(war, own) : null;
+    if (own && seq.status !== 'battling' && fallback && fallback !== own.atNode) {
+      const hint = document.createElement('p'); hint.className = 'dl-campaign__hint';
+      hint.textContent = `Retreat: your division falls back to ${world.nodeById.get(fallback)?.name ?? fallback} without fighting.`;
+      box.append(hint);
+      actions.append(button(`Retreat to ${world.nodeById.get(fallback)?.name ?? fallback}`, () => {
         try { retreatEncounter(war!, seq, own.id); sequence = null; afterEngineStep(); } catch (error) {
           const p = document.createElement('p'); p.className = 'dl-error';
           p.textContent = error instanceof Error ? error.message : String(error);
