@@ -252,6 +252,26 @@ Checklist: `docs/plans/mainline-ux.md` (all findings from the readiness audit ar
 | 6 | Art pass hooks | verified | dropping `assets/sprites/dog.{png,json}` replaced Dog placeholders with no code change (test sheet in `assets/sprites-test/`) |
 | 7 | Tuning support | verified | debug constants panel (applies next battle), reset roster, headless matrix/overrides |
 
+## Browser playtest checkpoint — round 10
+
+- Source checkpoint: `d25d193`; scratch Playwright evidence is under
+  `/home/ivy/.hermes/cache/scratch/pw/s1`, `s2`, and `s3` (not committed).
+- Eagle completed a winning war on turn 28; Devil completed one on turn 17.
+  Each log contains six completed tactical battles and a terminal `OVER won`.
+- Paladin did not finish: its log ends at turn 67, repeatedly resting at
+  Eastgate with 100 troops against a recorded muster of 134. The scripted
+  player uses an uncapped muster-based rest threshold; this is not evidence
+  of an unwinnable campaign or a successful third run. The outer shell's
+  successful exit also does not establish completion of every child run.
+- The build and browser launches were started concurrently, so these runs
+  do not conclusively verify the new weekly rival reformation rule in the
+  browser. Its three focused unit tests pass; final-head browser validation
+  remains open. Future batches must finish building before launching players.
+- Fresh final-head gate: 763 tests across 97 files, typecheck, production
+  build and whitespace checks pass. The existing large-bundle warning remains.
+- The random-seed release was pushed previously; `d25d193` is still local at
+  this checkpoint. Do not describe the rival change as published.
+
 ## Open
 
 - D19 class-counter decisiveness at 100 v 100 (design call).
