@@ -35,10 +35,10 @@
   ],
   "biomes": {
     "settled": [],
-    "plains": [{ "unitId": "dog", "weight": 3, "count": 8 }, { "unitId": "raven", "weight": 2, "count": 6 }],
-    "forest": [{ "unitId": "sprite", "weight": 3, "count": 6 }, { "unitId": "dog", "weight": 2, "count": 8 }, { "unitId": "raven", "weight": 1, "count": 5 }],
-    "mountain": [{ "unitId": "wyrm", "weight": 3, "count": 5 }, { "unitId": "golem", "weight": 2, "count": 4 }],
-    "swamp": [{ "unitId": "zombie", "weight": 3, "count": 8 }, { "unitId": "witch", "weight": 2, "count": 5 }],
-    "ruins": [{ "unitId": "imp", "weight": 3, "count": 6 }, { "unitId": "automata", "weight": 2, "count": 4 }, { "unitId": "cherub", "weight": 1, "count": 4 }]
+    "plains": [{ "unitId": "dog", "weight": 3, "count": 16 }, { "unitId": "raven", "weight": 2, "count": 12 }],
+    "forest": [{ "unitId": "sprite", "weight": 3, "count": 12 }, { "unitId": "dog", "weight": 2, "count": 16 }, { "unitId": "raven", "weight": 1, "count": 10 }],
+    "mountain": [{ "unitId": "wyrm", "weight": 3, "count": 10 }, { "unitId": "golem", "weight": 2, "count": 8 }],
+    "swamp": [{ "unitId": "zombie", "weight": 3, "count": 16 }, { "unitId": "witch", "weight": 2, "count": 10 }],
+    "ruins": [{ "unitId": "imp", "weight": 3, "count": 12 }, { "unitId": "automata", "weight": 2, "count": 8 }, { "unitId": "cherub", "weight": 1, "count": 8 }]
   }
 }
