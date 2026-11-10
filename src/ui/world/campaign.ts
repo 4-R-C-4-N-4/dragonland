@@ -504,6 +504,23 @@ export function mountCampaign(root: HTMLElement, opts: CampaignOptions): Campaig
         ? `Every enemy castle has fallen after ${war.turn - 1} turns.`
         : hero && hero.hp <= 0 ? `${hero.name} fell after ${war.turn - 1} turns, and the war died with them.` : `You hold no castles after ${war.turn - 1} turns.`,
     ]);
+    // A short account of the war, read from its final state.
+    const player = war.factions.find(f => f.id === playerId)!;
+    const serving = war.generals.filter(g => g.factionId === playerId && g.hp > 0 && !war!.factions.some(f => f.captives.includes(g.id)));
+    const troops = serving.reduce((n, g) => n + g.troops.length, 0);
+    const held = war.nodes.filter(n => n.owner === playerId);
+    const adopted = (war.turnLog ?? []).flatMap(t => t.actions ?? []).filter(a => a.type === 'adopt').length;
+    const lost = war.generals.filter(g => g.factionId === playerId && (g.hp <= 0 || war!.factions.some(f => f.id !== playerId && f.captives.includes(g.id)))).length;
+    const summary = document.createElement('ul'); summary.className = 'dl-campaign__roster';
+    for (const line of [
+      hero ? `${hero.name} the ${data.generalById.get(hero.generalId)?.name ?? hero.generalId} · level ${hero.level}` : null,
+      `${held.filter(n => n.kind === 'castle').length} castle${held.filter(n => n.kind === 'castle').length === 1 ? '' : 's'} and ${held.length} places held`,
+      `${serving.length} general${serving.length === 1 ? '' : 's'} serving with ${troops} troops`,
+      adopted ? `${adopted} rival general${adopted === 1 ? '' : 's'} adopted` : null,
+      player.captives.length ? `${player.captives.length} prisoner${player.captives.length === 1 ? '' : 's'} still held` : null,
+      lost ? `${lost} of your generals fell or were captured` : null,
+    ]) if (line) { const li = document.createElement('li'); li.textContent = line; summary.append(li); }
+    box.append(summary);
     const actions = document.createElement('div'); actions.className = 'dl-campaign__actions';
     actions.append(button('Start a new war', () => { clearWar(storage); war = null; sequence = null; screen = 'setup'; render(); }, true));
     if (opts.onExit) actions.append(button('Back to menu', () => opts.onExit!()));
