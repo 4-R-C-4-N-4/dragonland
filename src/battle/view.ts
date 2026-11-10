@@ -17,6 +17,9 @@ import type { Camera } from './camera';
 import { resolveBattleColors } from '../render/colorUi';
 import { DEFAULT_PLAYER_COLOR, DEFAULT_ENEMY_COLOR } from '../data/colors';
 
+/** Battle speed chosen last (F / speed button), carried into the next battle this session. */
+let lastSpeed: 1 | 2 = 1;
+
 export const startBattleView: StartBattleView = async (root, opts) => {
   const { data, setup, labels, onFinished } = opts;
   const world = createBattle(data, setup);
@@ -140,6 +143,7 @@ export const startBattleView: StartBattleView = async (root, opts) => {
         const next = loopHandle.getSpeed() === 1 ? 2 : 1;
         loopHandle.setSpeed(next);
         hud.setSpeedLabel(next);
+        lastSpeed = next;
       },
     });
     app.stage.addChild(hud.root);
@@ -223,6 +227,8 @@ export const startBattleView: StartBattleView = async (root, opts) => {
         if (blocked()) return;
         const next = loopHandle.getSpeed() === 1 ? 2 : 1;
         loopHandle.setSpeed(next);
+        hud.setSpeedLabel(next);
+        lastSpeed = next;
       },
     });
 
@@ -266,6 +272,8 @@ export const startBattleView: StartBattleView = async (root, opts) => {
         }
       },
     });
+    // Keep the speed the player last chose for the next battle in this session.
+    if (lastSpeed === 2) { loopHandle.setSpeed(2); hud.setSpeedLabel(2); }
 
     cleanups.push(() => loopHandle.stop());
     return { destroy };

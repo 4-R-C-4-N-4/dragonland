@@ -73,7 +73,7 @@ describe('overworld readability helpers', () => {
 
   it('labels every order and the default hold', () => {
     const war = makeWar(); const id = own(war).id;
-    expect(orderLabel(war, undefined)).toBe('Holding (default)');
+    expect(orderLabel(war, undefined)).toBe('No order yet: will hold');
     expect(orderLabel(war, { type: 'march', division: id, toNode: 'reedhaven' })).toBe('Marching to Reedhaven');
     expect(orderLabel(war, { type: 'search', division: id })).toBe('Searching');
     expect(orderLabel(war, { type: 'rest', division: id })).toBe('Resting');

@@ -35,7 +35,7 @@ export function divisionName(war: War, division: Division): string {
 
 /** What a division will do this turn; no queued order means it holds. */
 export function orderLabel(war: War, order: WorldOrder | undefined): string {
-  if (!order) return 'Holding (default)';
+  if (!order) return 'No order yet: will hold';
   switch (order.type) {
     case 'march': return `Marching to ${nodeName(war, order.toNode)}`;
     case 'search': return 'Searching';

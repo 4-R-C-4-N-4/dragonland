@@ -229,7 +229,9 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       if (tag) text.append(el('span', 'dl-world-map__tag', tag));
       const kind = getGameData().generalById.get(g.generalId)?.name;
       text.append(el('strong', undefined, g.name + (g.isHero ? ' (hero)' : '')));
-      text.append(document.createTextNode(`${kind ? ` · ${kind}` : ''} · HP ${Math.round(g.hp)}/${g.maxHp} · MP ${Math.floor(mpOf(g))}/${maxMpOf(g)} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
+      if (kind) text.append(document.createTextNode(` · ${kind}`));
+      // Stats on their own line so they never wrap mid-number beside the action button.
+      text.append(el('small', 'dl-world-map__stats', `HP ${Math.round(g.hp)}/${g.maxHp} · MP ${Math.floor(mpOf(g))}/${maxMpOf(g)} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
       row.append(text);
       if (action) { action.classList.add('dl-world-map__small'); row.append(action); }
       return row;
