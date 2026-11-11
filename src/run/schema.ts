@@ -28,6 +28,8 @@ const SquadSetupSchema = z.object({ id: z.string(), name: z.string(), dispositio
 export const SideSetupSchema = z.object({
   generalId: GeneralIdSchema, formationId: z.string(), squads: z.array(SquadSetupSchema),
   general: GeneralSchema.optional(), color: Hex.optional(),
+  startHp: z.number().finite().positive().optional(),
+  startMp: z.number().finite().nonnegative().optional(),
 });
 
 export const EncounterSchema = z.object({

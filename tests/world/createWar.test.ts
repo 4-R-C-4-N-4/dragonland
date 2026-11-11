@@ -10,7 +10,7 @@ const setup = { seed: 17, heroId: 'paladin' as const, heroName: 'Ivy' };
 const classOf = (unitId: string) => game.unitById.get(unitId)!.classId;
 
 describe('createWar', () => {
-  it('starts the hero with the other two generals of its class, sharing the Skirmish demo army', () => {
+  it('starts the hero with the other two generals of its class, sharing 150 campaign troops', () => {
     const war = createWar(data, setup);
     const mine = war.generals.filter(g => g.factionId === 'player');
     // Paladin is Human: the other Human generals are Deadeye and Assassin.
@@ -22,13 +22,13 @@ describe('createWar', () => {
     // Paladin is Human; the configured partner is Mage.
     expect(war.factions.find(f => f.id === 'player')!.classes).toEqual(['human', 'mage']);
     const pool = mine.flatMap(g => g.troops);
-    expect(pool).toHaveLength(run.startingTroopsPerLine * 6);
+    expect(pool).toHaveLength(150);
     const perUnit = new Map<string, number>();
     for (const t of pool) perUnit.set(t.unitId, (perUnit.get(t.unitId) ?? 0) + 1);
-    expect([...perUnit.values()]).toEqual(Array(6).fill(run.startingTroopsPerLine));
+    expect([...perUnit.values()]).toEqual(Array(6).fill(25));
     expect([...perUnit.keys()].every(u => game.unitById.get(u)!.stage === 1 && ['human', 'mage'].includes(classOf(u)))).toBe(true);
     // Dealt round-robin so every general holds a mix.
-    expect(mine.map(g => g.troops.length)).toEqual([20, 20, 20]);
+    expect(mine.map(g => g.troops.length)).toEqual([50, 50, 50]);
     expect(mine.every(g => new Set(g.troops.map(t => t.unitId)).size === 6)).toBe(true);
     const division = war.divisions.find(d => d.factionId === 'player')!;
     expect(division).toMatchObject({ atNode: 'dawnkeep', previousNode: null });

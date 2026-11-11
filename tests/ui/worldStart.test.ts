@@ -34,7 +34,7 @@ describe('hunt star layout', () => {
 
 describe('war start', () => {
   it('summarises the starting army from the same data the war uses', () => {
-    expect(startingArmySummary('paladin')).toEqual({ classes: ['human', 'mage'], troops: run.startingTroopsPerLine * 6, perKind: run.startingTroopsPerLine });
+    expect(startingArmySummary('paladin')).toEqual({ classes: ['human', 'mage'], troops: 150, perKind: 25 });
   });
 
   it('needs a real hero and a name, and nothing else', () => {

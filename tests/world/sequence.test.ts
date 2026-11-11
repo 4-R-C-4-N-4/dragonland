@@ -100,7 +100,8 @@ describe('battle sequencing', () => {
     ag.troops = ag.troops.slice(1);
     const battle = commitAttacker(war, seq, ag.id);
     const side = battle.setup.sides[1];
-    expect(side.general?.hp).toBe(ag.hp);
+    expect(side.startHp).toBe(ag.hp);
+    expect(side.general?.hp).toBe(ag.maxHp);
     expect(side.squads.flatMap(s => s.troops).map(t => t.troopId).sort()).toEqual(ag.troops.map(t => t.id).sort());
     for (const troop of ag.troops) {
       const unit = game.unitById.get(troop.unitId)!;
@@ -258,7 +259,8 @@ describe('battle sequencing', () => {
     const persisted = war.generals.find(g => g.id === battle.generalIds[1])!;
     expect(() => commitDefender(war, seq, seq.defenderGeneralIds[1]!)).not.toThrow();
     const next = commitAttacker(war, seq, seq.attackerGeneralIds[0]!);
-    expect(next.setup.sides[1]!.general!.hp).toBe(persisted.hp);
+    expect(next.setup.sides[1]!.startHp).toBe(persisted.hp);
+    expect(next.setup.sides[1]!.general!.hp).toBe(persisted.maxHp);
     expect(next.setup.sides[1]!.squads.flatMap(s=>s.troops).map(t=>t.troopId).sort()).toEqual(persisted.troops.map(t=>t.id).sort());
   });
 
@@ -275,7 +277,8 @@ describe('battle sequencing', () => {
     expect(() => commitDefender(war, x.seq, x.seq.defenderGeneralIds[1]!)).not.toThrow();
     const next = commitAttacker(war, x.seq, x.seq.attackerGeneralIds[0]!);
     const persisted = war.generals.find(g => g.id === winnerId)!;
-    expect(next.setup.sides[1]!.general!.hp).toBe(persisted.hp);
+    expect(next.setup.sides[1]!.startHp).toBe(persisted.hp);
+    expect(next.setup.sides[1]!.general!.hp).toBe(persisted.maxHp);
     expect(next.setup.sides[1]!.squads.flatMap(s => s.troops).map(t => t.troopId).sort()).toEqual(persisted.troops.map(t => t.id).sort());
   });
 });

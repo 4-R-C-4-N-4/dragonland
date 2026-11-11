@@ -1,4 +1,5 @@
 import { getGameData } from '../data';
+import worldConstants from '../../data/world-constants.json';
 import { resolveTurn } from './turn';
 import { joinDivision, leaveAsGarrison } from './garrison';
 import { adoptCaptive } from './adopt';
@@ -12,11 +13,11 @@ import type { GeneralRecord, War } from './types';
 export interface WarSetup { seed: number; heroId: GeneralId; heroName: string }
 
 /**
- * The hero's opening army: the Skirmish demo's starting roster (hero class plus its configured
- * partner, startingTroopsPerLine of each stage-1 line).
+ * The hero's opening army: hero class plus its configured partner, with the campaign's
+ * own troop count per stage-1 line (not the smaller Skirmish demo roster).
  */
 /** What a hero starts with, without drawing anything: shared by createWar and the start screen. */
-export function startingArmyPlan(heroId: GeneralId): { classes: ClassId[]; units: string[]; perKind: number } {
+export function startingArmyPlan(heroId: GeneralId, perKind = worldConstants.PLAYER_STARTING_TROOPS_PER_LINE): { classes: ClassId[]; units: string[]; perKind: number } {
   const game = getGameData();
   const run = getRunConfig();
   const heroClass = game.unitById.get(game.generalById.get(heroId)!.unitId)!.classId;
@@ -24,13 +25,13 @@ export function startingArmyPlan(heroId: GeneralId): { classes: ClassId[]; units
   if (!partner) throw new Error(`class ${heroClass} has no starting partner`);
   const classes: ClassId[] = [heroClass, partner];
   const units = classes.flatMap(c => game.units.filter(u => u.stage === 1 && u.classId === c).sort((a, b) => a.line.localeCompare(b.line)).map(u => u.id));
-  return { classes, units, perKind: run.startingTroopsPerLine };
+  return { classes, units, perKind };
 }
 
 function startingArmy(war: War, heroId: GeneralId): { classes: ClassId[]; troops: ProgressTroop[] } {
   const { rng } = war._internal as WorldInternal;
   const game = getGameData();
-  const plan = startingArmyPlan(heroId);
+  const plan = startingArmyPlan(heroId, internal(war).data.constants.PLAYER_STARTING_TROOPS_PER_LINE);
   const taken = new Set(war.generals.flatMap(g => g.troops.map(t => t.name)));
   const troops: ProgressTroop[] = [];
   for (const unitId of plan.units) for (let i = 0; i < plan.perKind; i++) {

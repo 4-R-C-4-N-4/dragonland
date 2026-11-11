@@ -16,28 +16,28 @@ describe('muster strength', () => {
   it('starts at the opening army for every division', () => {
     const war = make();
     for (const d of war.divisions) expect(musterOf(war, d)).toBe(held(war, d));
-    expect(musterOf(war, own(war))).toBe(60);
+    expect(musterOf(war, own(war))).toBe(150);
   });
 
   it('is not lowered by losses, but drops when a general leaves with its troops', () => {
     const war = make(); const d = own(war);
     lose(war, d, 25);
-    expect(musterOf(war, d)).toBe(60);
+    expect(musterOf(war, d)).toBe(150);
     const leaver = war.generals.find(g => g.id === d.generals[2])!;
     const taking = leaver.troops.length;
     leaveAsGarrison(war, d.id, leaver.id);
-    expect(musterOf(war, d)).toBe(60 - taking);
+    expect(musterOf(war, d)).toBe(150 - taking);
   });
 
   it('rises with wild recruits and adopted generals', () => {
     const war = make(); const d = own(war);
     d.atNode = 'reedhaven'; for (const id of d.generals) war.generals.find(g => g.id === id)!.nodeId = 'reedhaven';
     applyWildVictory(war, d.id, d.generals[0]!, [{ unitId: 'dog', count: 5 }]);
-    expect(musterOf(war, d)).toBe(65);
+    expect(musterOf(war, d)).toBe(155);
     const rival = war.generals.find(g => g.factionId !== 'player' && !war.divisions.some(x => x.generals.includes(g.id)))!;
     war.factions.find(f => f.id === 'player')!.captives.push(rival.id);
     adoptCaptive(war, 'player', rival.id, d.id);
-    expect(musterOf(war, d)).toBe(65 + rival.troops.length);
+    expect(musterOf(war, d)).toBe(155 + rival.troops.length);
   });
 });
 
@@ -72,7 +72,7 @@ describe('resting refills losses', () => {
     d.atNode = 'westmere';
     lose(war, d, 25);
     applyRest(war, d);
-    expect(held(war, d)).toBe(60);
+    expect(held(war, d)).toBe(150);
     for (const id of d.generals) { const g = war.generals.find(x => x.id === id)!; expect(g.troops.length).toBeLessThanOrEqual(g.capacity); }
     expect(war.events.filter(e => e.type === 'resupplied').reduce((n, e) => n + (e as { troops: number }).troops, 0)).toBe(25);
   });
@@ -80,14 +80,14 @@ describe('resting refills losses', () => {
   it('recruits beyond the muster in a castle, raising it, but only refills in a town', () => {
     const war = make(); const d = own(war);
     applyRest(war, d);
-    expect(held(war, d)).toBe(120);
-    expect(musterOf(war, d)).toBe(120);
+    expect(held(war, d)).toBe(210);
+    expect(musterOf(war, d)).toBe(210);
     applyRest(war, d);
-    expect(held(war, d)).toBe(120);
+    expect(held(war, d)).toBe(210);
     const town = make(); const t = own(town);
     t.atNode = 'westmere';
     applyRest(town, t);
-    expect(held(town, t)).toBe(60);
+    expect(held(town, t)).toBe(150);
   });
 
   it('is limited by the node\u2019s weekly stock: 60 at a castle, 30 at a town', () => {

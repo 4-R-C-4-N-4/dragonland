@@ -14,7 +14,7 @@ describe('fight preparation logic', () => {
   it('starts from the Skirmish auto-arrange, capped at the general\\u2019s command', () => {
     const w = war(); const hero = w.generals.find(g => g.isHero)!;
     const pool = fightPool(w, hero.id);
-    expect(total(initialPlan(game, pool, 100))).toBe(60);
+    expect(total(initialPlan(game, pool, 100))).toBe(100);
     const capped = initialPlan(game, pool, 25);
     expect(total(capped)).toBe(25);
     expect(planProblems(game, pool, capped, 25)).toEqual([]);
@@ -46,6 +46,14 @@ describe('fight preparation logic', () => {
     expect(fairShare(150, 3, 100, 50)).toBe(60);
     expect(fairShare(150, 3, 100, 10)).toBe(50);
     expect(fairShare(150, 3, 40, 50)).toBe(40);
+  });
+
+  it('warns when auto-arrange commits the entire shared pool', () => {
+    const w = war(); const hero = w.generals.find(g => g.isHero)!;
+    const pool = fightPool(w, hero.id).slice(0, 40);
+    const plan = initialPlan(game, pool, fairShare(40, 2, 100, 50));
+    expect(total(plan)).toBe(40);
+    expect(planWarnings(game, pool, plan)).toEqual([expect.stringMatching(/All 40.*no troops.*another general/i)]);
   });
 
   it('reports a company over the command limit', () => {

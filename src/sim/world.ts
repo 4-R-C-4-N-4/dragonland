@@ -132,7 +132,7 @@ export function createBattle(data: GameData, setup: BattleSetup): World {
     ents.y[gEntity] = gp.y;
     ents.prevX[gEntity] = gp.x;
     ents.prevY[gEntity] = gp.y;
-    ents.hp[gEntity] = generalDef.hp;
+    ents.hp[gEntity] = Number.isFinite(sideSetup.startHp) ? Math.min(generalDef.hp, Math.max(1, sideSetup.startHp!)) : generalDef.hp;
     ents.maxHp[gEntity] = generalDef.hp;
     ents.side[gEntity] = side;
     ents.squad[gEntity] = -1;

@@ -2,6 +2,25 @@
 
 ## MVP3 — the full game (branch `mvp3`)
 
+### Current opening army correction
+
+New wars start with **150 shared troops**, three same-class generals holding
+50 each before preparation. Campaign count is configured independently of the
+60-troop Skirmish demo by `PLAYER_STARTING_TROOPS_PER_LINE: 25` in
+`data/world-constants.json` (six starting species). Leaving one opening general
+as a garrison leaves 100 marching and 50 stationed, not 40 and 20.
+Existing saves keep their actual troops; this does not overwrite an ongoing war.
+Historical entries below describing a 60-troop campaign opening are superseded.
+
+### General HP between skirmishes
+
+A wounded general's next skirmish used its current HP as its maximum, so the HUD
+showed a full bar (e.g. 900/900) and in-battle heals were capped there. That
+looked like a heal between skirmishes. Battle setups now carry `startHp`
+separately: the sim starts at current HP with the true maximum (900/1500), for
+both sides and for wild fights. Browser-checked across two skirmishes of one
+encounter (`hp-carry-smoke.mjs` in the Playwright scratch dir).
+
 Contract: `docs/mvp3.md`. Phase 1-2 task plan: `docs/plans/mvp3-phase1-world-core.md`.
 
 MVP2 is merged to `main` as `cac3773` (PR #2). MVP3 adds the war layer: overworld navigation, sequenced general-vs-general battles, general promotion, weekly admin and a full campaign. MVP2's 8-battle run is retained as Skirmish Campaign so nothing regresses.

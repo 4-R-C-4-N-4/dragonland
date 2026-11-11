@@ -43,8 +43,12 @@ export function planProblems(data: GameData, pool: ProgressTroop[], plan: ArmyPl
 
 /** Things worth a second look that do not block the fight. */
 export function planWarnings(data: GameData, pool: ProgressTroop[], plan: ArmyPlan): string[] {
-  return planIssues(data, pool, plan).includes(ALONE)
-    ? [pool.length ? 'Nobody is deployed: the general fights alone.' : 'The division has no troops left: the general fights alone.']
+  if (planIssues(data, pool, plan).includes(ALONE)) {
+    return [pool.length ? 'Nobody is deployed: the general fights alone.' : 'The division has no troops left: the general fights alone.'];
+  }
+  const deployed = Object.values(plan.assignment).reduce((n, a) => n + (Number.isInteger(a.count) && a.count > 0 ? a.count : 0), 0);
+  return pool.length > 0 && deployed === pool.length
+    ? [`All ${pool.length} division troops are committed: no troops are held back for another general. If this army is wiped out, the next general fights alone. Reduce Deploy counts to keep reserves.`]
     : [];
 }
 

@@ -349,8 +349,10 @@ export const WorldConstantsSchema = z.object({
   STARTING_GOLD: z.number().int().nonnegative(),
   /** Troops each rival general starts with and can lead. */
   STARTING_CAPACITY: z.number().int().positive(),
-  /** Troops the hero can lead; the Skirmish starting army (data/run.json) must fit under it. */
+  /** Troops any player general can command in one skirmish. */
   PLAYER_STARTING_CAPACITY: z.number().int().positive(),
+  /** Campaign opening: six stage-1 lines, shared across three generals. Separate from Skirmish. */
+  PLAYER_STARTING_TROOPS_PER_LINE: z.number().int().positive(),
   /** Generals the rival faction starts with. */
   RIVAL_GENERALS: z.number().int().positive(),
   /** Rival generals sent into the field on turn 1, by personality; the rest garrison the castle. */

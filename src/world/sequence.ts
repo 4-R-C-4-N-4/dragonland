@@ -171,7 +171,7 @@ function validSnapshot(war: War, sequence: EncounterSequence, skirmish: BattleSe
   const records = skirmish.generalIds.map(id => war.generals.find(g => g.id === id));
   if (records.some((g): g is undefined => !g)) throw new Error('Skirmish general is missing');
   const frozenIds = skirmish.setup.sides.map(side => side.squads.flatMap(s => s.troops.map(t => t.troopId)));
-  const frozenHp = skirmish.setup.sides.map(side => side.general?.hp);
+  const frozenHp = skirmish.setup.sides.map(side => side.startHp ?? side.general?.hp);
   for (const side of [0,1] as const) {
     const g = records[side]!;
     // Deployed plus benched: the general's whole roster as it stood when the fight was set up.

@@ -157,7 +157,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
         if (d && g && options.onGarrison) out.push(button(`Leave ${g.name} to hold ${castle.name}`, () => {
           confirmingEnd = false;
           try { options.onGarrison?.({ type: 'leave', division: d.id, general: g.id }); } catch { /* reported by the controller */ }
-        }, { key: `quick-leave-${castle.id}` }));
+        }, { key: `quick-leave-${castle.id}`, detail: `${g.troops.length} troops stay with ${g.name}; ${d.generals.filter(id => id !== g.id).reduce((n, id) => n + (war.generals.find(x => x.id === id)?.troops.length ?? 0), 0)} troops remain in the division. Rejoin them here to combine forces again.` }));
       }
       return out;
     }
@@ -200,6 +200,10 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
 
     function renderDivisionList(orders: WorldOrder[]): HTMLElement {
       const s = section('Your divisions', 'dl-world-map__divisions');
+      const members = war.generals.filter(g => g.factionId === factionId && g.hp > 0 && !war.factions.some(f => f.captives.includes(g.id)));
+      const total = members.reduce((n, g) => n + g.troops.length, 0);
+      const field = members.filter(g => ownDivisions().some(d => d.generals.includes(g.id))).reduce((n, g) => n + g.troops.length, 0);
+      s.append(el('p', 'dl-world-map__force-totals', `${total} troops total · ${field} in divisions · ${total - field} stationed`));
       for (const d of ownDivisions()) {
         const troops = d.generals.reduce((n, id) => n + (war.generals.find(g => g.id === id)?.troops.length ?? 0), 0);
         s.append(button(divisionName(war, d), () => selectDivision(d.id), {
