@@ -2,14 +2,14 @@ import { Application } from 'pixi.js';
 import type { Division, WorldOrder, War } from '../../world/types';
 import { queuedOrders } from '../../world/engine';
 import { musterOf } from '../../world/muster';
-import { maxMpOf, mpOf } from '../../world/mp';
 import { drawWorldMap, loadWorldMapArt } from '../../render/worldMap';
 import {
   actionBlocker, adjacentNodeIds, adoptionTarget, castleLossEndsWar, defaultDivision, divisionName, enemyForce, garrisonStatus, nodeSummary, orderIntent, orderLabel,
   turnReport, undefendedCastles,
 } from './presentation';
 import { visibleNodes } from '../../ai/strategy';
-import { getGameData } from '../../data';
+import { bar, chip, generalCard, troopStrip } from '../common/kit';
+import '../common/theme.css';
 import './world.css';
 
 export interface GarrisonIntent { type: 'leave' | 'join'; division: string; general: string }
@@ -60,10 +60,14 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
   let failure: unknown;
   const shell = el('section', 'dl-world-map');
   const stage = el('div', 'dl-world-map__stage');
-  const canvasWrap = el('div', 'dl-world-map__canvas');
+  const canvasWrap = el('div', 'dl-world-map__canvas dl-cut');
   const legend = buildLegend();
   const side = el('aside', 'dl-world-map__side dl-panel');
   side.setAttribute('aria-label', 'Orders');
+  // Everything scrolls except the turn bar, so End turn is always in the same place.
+  const scroll = el('div', 'dl-world-map__scroll');
+  const foot = el('div', 'dl-world-map__foot');
+  side.append(scroll, foot);
   shell.append(stage, side); stage.append(canvasWrap, legend); root.appendChild(shell);
   cleanups.push(() => { if (shell.parentElement) shell.remove(); });
   const app = new Application();
@@ -76,7 +80,9 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     if (first) throw first;
   }
   try {
-    await app.init({ resizeTo: canvasWrap, antialias: true, background: '#14100e' });
+    await app.init({ resizeTo: canvasWrap, antialias: true, background: '#0b0d12' });
+    // Canvas text falls back to a system face unless the theme fonts are loaded first.
+    try { await Promise.all([document.fonts.load('700 15px Cinzel'), document.fonts.load('700 13px "Barlow Condensed"')]); } catch { /* keep the fallback */ }
     if (destroyed) { app.destroy(true, { children: true }); return { update() {}, destroy }; }
     // Map art is decoration: a failed load must not stop the campaign.
     try { await loadWorldMapArt(); } catch { /* fall back to the plain plate */ }
@@ -127,7 +133,13 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     }
 
     const view = () => ({ factionId, selectedNode, selectedDivision, targets: targets(), orders: ownOrders(), onNode: clickNode, onDivision: selectDivision });
-    const redraw = () => drawWorldMap(app.stage, war, view(), app.renderer.width, app.renderer.height);
+    let pulses: { alpha: number }[] = [];
+    const redraw = () => { pulses = drawWorldMap(app.stage, war, view(), app.renderer.width, app.renderer.height); };
+    // Places the selected division can march to breathe, so the next move is easy to spot.
+    if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      const pulse = () => { const a = 0.6 + 0.4 * Math.sin(performance.now() / 260); for (const p of pulses) p.alpha = a; };
+      app.ticker.add(pulse); cleanups.push(() => app.ticker?.remove(pulse));
+    }
     const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => redraw()) : undefined;
     resize?.observe(canvasWrap); if (resize) cleanups.push(() => resize.disconnect());
 
@@ -182,6 +194,8 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
         box.append(actions); bar.append(box);
         return bar;
       }
+      const idle = ownDivisions().filter(d => !orders.some(o => o.division === d.id));
+      if (idle.length) bar.append(el('p', 'dl-world-map__hint', `${idle.map(d => divisionName(war, d)).join(', ')} ${idle.length === 1 ? 'has' : 'have'} no order and will hold.`));
       bar.append(button(`End turn ${war.turn}`, () => {
         if (!canOrder()) return;
         // Castles are where troops are recruited, so leaving one empty always asks first.
@@ -199,7 +213,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     }
 
     function renderDivisionList(orders: WorldOrder[]): HTMLElement {
-      const s = section('Your divisions', 'dl-world-map__divisions');
+      const s = section('Your forces', 'dl-world-map__divisions');
       const members = war.generals.filter(g => g.factionId === factionId && g.hp > 0 && !war.factions.some(f => f.captives.includes(g.id)));
       const total = members.reduce((n, g) => n + g.troops.length, 0);
       const field = members.filter(g => ownDivisions().some(d => d.generals.includes(g.id))).reduce((n, g) => n + g.troops.length, 0);
@@ -224,19 +238,15 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       return s;
     }
 
-    /** A general's stats with an optional compact action on the same line. */
+    /** A general's card with an optional compact action beside it. */
     /** `pooled`: the general draws from its division's pool, so show its command, not its holdings. */
     function generalRow(id: string, tag?: string, action?: HTMLButtonElement, pooled = false): HTMLElement | null {
       const g = war.generals.find(x => x.id === id); if (!g) return null;
       const row = el('div', 'dl-world-map__general');
-      const text = el('span');
-      if (tag) text.append(el('span', 'dl-world-map__tag', tag));
-      const kind = getGameData().generalById.get(g.generalId)?.name;
-      text.append(el('strong', undefined, g.name + (g.isHero ? ' (hero)' : '')));
-      if (kind) text.append(document.createTextNode(` · ${kind}`));
-      // Stats on their own line so they never wrap mid-number beside the action button.
-      text.append(el('small', 'dl-world-map__stats', `HP ${Math.round(g.hp)}/${g.maxHp} · MP ${Math.floor(mpOf(g))}/${maxMpOf(g)} · ${pooled ? `leads up to ${g.capacity}` : `${g.troops.length} troops`}${g.injuredTurns ? ` · injured ${g.injuredTurns}` : ''}`));
-      row.append(text);
+      row.append(generalCard(g, {
+        compact: true, tone: g.factionId === factionId ? 'own' : 'foe', chips: tag ? [chip(tag, { line: true })] : [],
+        troops: pooled ? g.capacity : g.troops.length, troopsLabel: pooled ? 'troops at most' : undefined,
+      }));
       if (action) { action.classList.add('dl-world-map__small'); row.append(action); }
       return row;
     }
@@ -244,25 +254,29 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
     function renderDivisionDetail(d: Division, orders: WorldOrder[]): HTMLElement {
       const node = war.nodes.find(n => n.id === d.atNode);
       const s = section(divisionName(war, d), 'dl-world-map__detail');
-      if (node) s.append(el('p', 'dl-world-map__hint', `At ${node.name} — ${nodeSummary(war, node, factionId)}`));
+      if (node) s.append(el('p', 'dl-world-map__hint', `At ${node.name} · ${nodeSummary(war, node, factionId)}`));
 
       const order = orders.find(o => o.division === d.id);
-      const current = el('div', 'dl-world-map__current');
-      current.append(el('span', undefined, `This turn: ${orderLabel(war, order)}`));
+      const current = el('div', `dl-world-map__current${order ? ' is-set' : ''}`);
+      const what = el('span'); what.append(el('small', undefined, 'This turn'), el('b', undefined, orderLabel(war, order)));
+      current.append(what);
       if (order && canOrder() && options.onCancelOrder) current.append(button('Cancel', () => { confirmingEnd = false; options.onCancelOrder!(d.id); render(); }, { key: 'cancel-order' }));
       s.append(current);
 
       if (canOrder()) {
-        s.append(el('p', 'dl-world-map__hint', 'Click a gold-ringed node on the map to march there, or choose below.'));
+        s.append(el('h4', undefined, 'March one step'), el('p', 'dl-world-map__hint', 'Or click a gold-ringed place on the map.'));
         const ours = d.generals.reduce((n, gid) => n + (war.generals.find(g => g.id === gid)?.troops.length ?? 0), 0);
         for (const id of adjacentNodeIds(war, d.atNode)) {
           const target = war.nodes.find(n => n.id === id); if (!target) continue;
           const foe = enemyForce(war, id, factionId);
-          const odds = foe ? ` · ${forceText(foe)} there vs your ${ours}${foe.troops > ours ? ' — outnumbered' : ''}` : '';
-          s.append(button(`March to ${target.name}`, () => issue(orderIntent(war, factionId, d.id, 'march', id)), {
+          const odds = foe ? ` · ${forceText(foe)} there vs your ${ours}${foe.troops > ours ? ': outnumbered' : ''}` : '';
+          const b = button(`March to ${target.name}`, () => issue(orderIntent(war, factionId, d.id, 'march', id)), {
             key: `march-${id}`, pressed: order?.type === 'march' && order.toNode === id, detail: nodeSummary(war, target, factionId) + odds,
-          }));
+          });
+          if (foe) b.classList.add(foe.troops > ours ? 'is-danger' : 'is-foe');
+          s.append(b);
         }
+        s.append(el('h4', undefined, 'Or stay here'));
         for (const type of ['search', 'rest', 'hold'] as const) {
           const blocker = type === 'hold' ? null : actionBlocker(war, d, type);
           s.append(button(type[0]!.toUpperCase() + type.slice(1), () => issue(orderIntent(war, factionId, d.id, type)), {
@@ -273,11 +287,11 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
 
       // Troops belong to the division; any general can lead them (chosen before each fight).
       const pool = d.generals.flatMap(id => war.generals.find(g => g.id === id)?.troops ?? []);
-      const kinds = new Map<string, number>();
-      for (const t of pool) kinds.set(t.unitId, (kinds.get(t.unitId) ?? 0) + 1);
+      const command = d.generals.reduce((n, id) => n + (war.generals.find(g => g.id === id)?.capacity ?? 0), 0);
       const muster = musterOf(war, d);
-      s.append(el('h4', undefined, `Troops (${pool.length}${muster > pool.length ? ` of ${muster}: rest in a castle or town to refill` : ''})`));
-      s.append(el('p', 'dl-world-map__pool', [...kinds].map(([u, n]) => `${n} ${getGameData().unitById.get(u)?.name ?? u}`).join(' · ') || 'No troops.'));
+      s.append(el('h4', undefined, 'Troops'), bar('troops', pool.length, command, `${pool.length} of ${command} your generals can lead`));
+      if (muster > pool.length) s.append(el('p', 'dl-world-map__hint', `${muster - pool.length} lost: rest in a castle or town to refill.`));
+      s.append(troopStrip(pool));
       s.append(el('h4', undefined, 'Generals'));
       const holdable = canOrder() && node && node.owner === factionId && (node.kind === 'castle' || node.kind === 'town');
       for (const id of d.generals) {
@@ -299,7 +313,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       }
       // Only castle garrisons fight: a town is taken by any enemy that walks in (movement.ts).
       if (holdable && d.generals.length > 1) s.append(el('p', 'dl-world-map__hint', node!.kind === 'castle'
-        ? `A healthy general left here defends ${node!.name} while the division marches on.`
+        ? `A healthy general left here defends ${node!.name} while the division marches on, and takes their share of the troops.`
         : `Generals left in a town stay there, but only castle garrisons fight: an enemy that walks into ${node!.name} still takes it.`));
       return s;
     }
@@ -333,8 +347,7 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const canAdopt = (war.phase === 'orders' || war.phase === 'admin') && !!options.onAdopt;
       for (const id of me.captives) {
         const g = war.generals.find(x => x.id === id); if (!g) continue;
-        const profile = getGameData().generalById.get(g.generalId);
-        const row = generalRow(id, profile?.name ?? g.generalId);
+        const row = generalRow(id, 'Prisoner');
         if (row) s.append(row);
         const into = target.division ? war.divisions.find(d => d.id === target.division) : undefined;
         s.append(button(`Adopt ${g.name}`, () => {
@@ -367,7 +380,11 @@ export async function mountWorldMap(root: HTMLElement, options: WorldMapOptions)
       const orders = ownOrders();
       const d = currentDivision();
       const detail = d ? renderDivisionDetail(d, orders) : selectedNode ? renderNodeDetail(selectedNode) : null;
-      side.replaceChildren(...[renderTurnBar(orders), renderReport(), renderPrisoners(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
+      // On the very first turn, say what to do first.
+      const coach = war.turn === 1 && !orders.length && d && canOrder()
+        ? el('p', 'dl-world-map__coach', `Start here: choose where ${divisionName(war, d)} goes this turn, then press End turn. The enemy moves when you do.`) : null;
+      scroll.replaceChildren(...[coach, renderReport(), renderPrisoners(), renderDivisionList(orders), detail].filter((x): x is HTMLElement => !!x));
+      foot.replaceChildren(renderTurnBar(orders));
       if (focusKey) {
         const target = [...side.querySelectorAll<HTMLElement>('[data-key]')].find(x => x.dataset.key === focusKey);
         // Never fall back onto End turn: one stray Enter there is irreversible.

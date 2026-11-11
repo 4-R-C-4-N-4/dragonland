@@ -1,43 +1,49 @@
 .dl-campaign {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #141110;
-  color: #ecdfc9;
+  color: var(--dl-text);
 }
 
+/* Screens outside the map sit on the art of where they happen, dimmed so text stays readable. */
+.dl-campaign::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(9, 11, 16, 0.86) 0%, rgba(9, 11, 16, 0.72) 40%, rgba(9, 11, 16, 0.94) 100%),
+    var(--art, none) center / cover no-repeat,
+    var(--dl-ink-0);
+}
+
+/* ---- map status bar -------------------------------------------------------- */
 .dl-campaign__status {
-  padding: 6px 12px;
-  font-size: 14px;
-  border-bottom: 1px solid #3a2f26;
-  background: #1b1612;
+  flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+  padding: 6px 96px 6px 14px; min-height: 44px;
+  background: var(--dl-ink-1); border-bottom: 1px solid var(--dl-line);
 }
+.dl-stat { display: flex; flex-direction: column; line-height: 1.1; }
+.dl-stat small { font: 700 10px var(--dl-font-label); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dl-text-dim); }
+.dl-stat b { font: 700 18px var(--dl-font-label); letter-spacing: 0.03em; }
+.dl-stat b em { font-style: normal; font-size: 13px; color: var(--dl-text-dim); font-weight: 500; }
+.dl-stat--objective { flex: 1 1 220px; min-width: 0; }
+.dl-stat--objective b { color: var(--dl-ember); font-family: var(--dl-font-display); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-stat--hero { flex-direction: row; align-items: center; gap: 8px; }
+.dl-stat--hero .dl-meter { width: 150px; }
+.dl-stat--hero .dl-portrait { --size: 32px; }
+.dl-pips { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+.dl-pips i { width: 7px; height: 12px; background: var(--dl-line-hot); transform: skewX(-14deg); }
+.dl-pips i.is-on { background: var(--dl-ember); }
+.dl-campaign__status-error { flex-basis: 100%; color: #ff8f92; font-size: 13px; }
 
-.dl-campaign__map {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  padding: 10px;
-}
-
+.dl-campaign__map { flex: 1 1 auto; min-height: 0; display: flex; padding: 10px; }
 /* The map widget is a grid; give it the whole row or its 1fr stage collapses. */
-.dl-campaign__map > * {
-  flex: 1 1 auto;
-  min-width: 0;
-}
+.dl-campaign__map > * { flex: 1 1 auto; min-width: 0; }
 
 /* On the map screen the campaign is exactly one viewport tall: the page never scrolls,
    the map keeps its size and only the order sidebar scrolls. */
-.dl-campaign--fill {
-  height: 100vh;
-  min-height: 0;
-}
-
-.dl-campaign--fill .dl-world-map {
-  height: 100%;
-  min-height: 0;
-}
-
+.dl-campaign--fill { height: 100vh; min-height: 0; }
+.dl-campaign--fill .dl-world-map { height: 100%; min-height: 0; }
 @media (max-width: 760px), (max-height: 520px) {
   .dl-campaign--fill { height: auto; min-height: 100vh; }
   .dl-campaign--fill .dl-world-map { height: auto; }
@@ -46,54 +52,79 @@
 .dl-campaign__battle {
   /* Fill the viewport exactly, like Skirmish's .dl-battle-root: as a flex child the box grew to
      its canvas plus line-height, the page outgrew the window and both scrollbars appeared. */
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
+  position: fixed; inset: 0; overflow: hidden; background: #05070a;
 }
+.dl-campaign__loading {
+  position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; gap: 10px; text-align: center;
+  background: rgba(5, 7, 10, 0.82); pointer-events: none;
+}
+.dl-campaign__loading b { font: 700 30px var(--dl-font-display); letter-spacing: 0.04em; }
+.dl-campaign__loading span { font: 700 13px var(--dl-font-label); letter-spacing: 0.2em; text-transform: uppercase; color: var(--dl-ember); animation: dl-pulse 1s ease-in-out infinite alternate; }
+@keyframes dl-pulse { from { opacity: 0.35; } to { opacity: 1; } }
 
+/* ---- centred screens ------------------------------------------------------- */
 .dl-campaign__panel {
-  margin: 24px auto;
-  max-width: 720px;
+  margin: auto;
+  max-width: 760px;
   width: calc(100% - 32px);
-  padding: 18px 20px;
+  padding: 22px 26px 24px;
+  --_fill: rgba(17, 20, 28, 0.94);
 }
+.dl-campaign__panel--wide { max-width: 1060px; }
+.dl-campaign__panel h1 { margin: 0 0 8px; font-size: clamp(24px, 3.2vw, 34px); }
+.dl-campaign__panel h2 { margin: 16px 0 8px; font-size: 17px; color: var(--dl-ember); }
+.dl-campaign__panel > p { margin: 4px 0; max-width: 70ch; }
+/* Focus moves to the heading so screen readers announce the new screen; it is not a control. */
+.dl-campaign__panel h1:focus, .dl-campaign__panel h1:focus-visible { outline: none; }
+.dl-campaign__lede { color: var(--dl-text-dim); font-size: 15px; }
+.dl-campaign__hint { margin: 4px 0; color: var(--dl-text-dim); font-size: 14px; }
+.dl-campaign__choices { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.dl-campaign__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 18px; }
+.dl-campaign__actions .dl-campaign__hint { flex: 1 1 200px; margin: 0; }
+.dl-campaign__roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin: 8px 0 4px; padding: 0; list-style: none; }
 
-.dl-campaign__panel h1 {
-  margin: 0 0 10px;
-  font-size: 22px;
+/* ---- title ------------------------------------------------------------------ */
+.dl-title-screen { margin: auto; width: min(1040px, calc(100% - 32px)); padding: 24px 0; text-align: center; }
+.dl-logo {
+  margin: 0; padding: 0 0.1em; white-space: nowrap; font: 900 clamp(38px, 8.2vw, 104px) / 1 var(--dl-font-display); letter-spacing: 0.04em; text-transform: uppercase;
+  background: linear-gradient(180deg, #fff3cf 0%, var(--dl-ember) 48%, var(--dl-flame) 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 0 28px rgba(255, 106, 43, 0.35));
 }
+.dl-logo:focus { outline: none; }
+.dl-title-screen__tag { margin: 10px auto 22px; max-width: 46ch; font-size: 18px; color: var(--dl-text); }
+.dl-title-screen__save { margin: 0 auto 4px; max-width: 460px; text-align: left; }
+.dl-title-screen .dl-campaign__actions { justify-content: center; }
+.dl-title-screen .dl-primary { font-size: 20px; padding: 13px 34px; }
+.dl-howto { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 34px auto 0; max-width: 920px; padding: 0; list-style: none; counter-reset: step; text-align: left; }
+.dl-howto li { counter-increment: step; padding: 10px 12px 12px; background: rgba(17, 20, 28, 0.86); border-top: 2px solid var(--dl-line-hot); font-size: 13.5px; color: var(--dl-text-dim); }
+.dl-howto li::before { content: counter(step); display: block; font: 700 26px var(--dl-font-label); color: var(--dl-ember); line-height: 1; margin-bottom: 4px; }
+.dl-howto li b { display: block; color: var(--dl-text); font: 700 14px var(--dl-font-label); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+@media (max-width: 760px) { .dl-howto { grid-template-columns: 1fr 1fr; } }
 
-.dl-campaign__panel h1:focus, .dl-campaign__panel h1:focus-visible {
-  /* Focus moves to the heading so screen readers announce the new screen; it is not a control. */
-  outline: none;
-}
+/* ---- versus (battle choice, aftermath) -------------------------------------- */
+.dl-versus { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 14px; align-items: start; margin-top: 14px; }
+.dl-versus__side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dl-versus__side > h2 { margin: 0 0 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font: 700 14px var(--dl-font-label); letter-spacing: 0.16em; text-transform: uppercase; }
+.dl-versus__side > h2 small { font: 500 13px var(--dl-font-body); letter-spacing: 0; text-transform: none; color: var(--dl-text-dim); }
+.dl-versus__side--own > h2 { color: var(--dl-own); }
+.dl-versus__side--foe > h2 { color: var(--dl-foe); }
+.dl-versus__mid { align-self: center; font: 900 34px var(--dl-font-display); color: var(--dl-ember); text-shadow: 0 0 18px rgba(255, 106, 43, 0.6); padding-top: 22px; }
+.dl-versus__prompt { margin: 2px 0 0; font-size: 13.5px; color: var(--dl-text-dim); }
+@media (max-width: 760px) { .dl-versus { grid-template-columns: 1fr; } .dl-versus__mid { padding: 0; justify-self: center; } }
 
-.dl-campaign__choices {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 12px 0;
-}
+/* ---- aftermath ---------------------------------------------------------------- */
+.dl-campaign__panel h1.dl-result { margin: 0 0 8px; font: 900 clamp(38px, 6.4vw, 68px) / 1 var(--dl-font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.dl-result:focus { outline: none; }
+.dl-result--won { color: var(--dl-ember); text-shadow: 0 0 30px rgba(255, 106, 43, 0.5); }
+.dl-result--lost { color: #c9ced9; }
+.dl-outcomes { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.dl-outcomes li { padding: 6px 10px; background: var(--dl-ink-2); border-left: 3px solid var(--dl-line-hot); font-size: 14.5px; }
+.dl-outcomes li.is-good { border-color: var(--dl-own); }
+.dl-outcomes li.is-bad { border-color: var(--dl-foe); }
+.dl-outcomes li.is-next { border-color: var(--dl-ember); color: var(--dl-text); font-weight: 600; }
 
-.dl-campaign__foe {
-  margin: 0 0 6px;
-  padding: 6px 10px;
-  border-left: 4px solid #b23a3a;
-  background: rgba(178, 58, 58, 0.12);
-}
-
-.dl-campaign__choices button {
-  text-align: left;
-}
-
-.dl-campaign__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.dl-campaign__hint { margin: 4px 0; color: #a8957a; font-size: 14px; }
-.dl-campaign__choices button.dl-campaign__edge--strong { border-color: #6fb35a; }
-.dl-campaign__choices button.dl-campaign__edge--weak { border-color: #c45a4a; }
-.dl-campaign__roster { margin: 8px 0 12px; padding-left: 18px; line-height: 1.6; }
+/* ---- war over ------------------------------------------------------------------ */
+.dl-tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 16px 0 4px; }
+.dl-tally div { padding: 8px 10px; background: var(--dl-ink-2); border-top: 2px solid var(--dl-line-hot); }
+.dl-tally b { display: block; font: 700 28px var(--dl-font-label); line-height: 1; }
+.dl-tally small { font: 700 11px var(--dl-font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dl-text-dim); }

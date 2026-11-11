@@ -20,7 +20,9 @@ export interface HudCallbacks {
   onQuit?(): void;
 }
 
-const FONT = 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
+/** Theme label face (src/ui/common/theme.css); the battle view loads it before building the HUD. */
+const FONT = '"Barlow Condensed", "Arial Narrow", system-ui, sans-serif';
+const DISPLAY_FONT = 'Cinzel, Georgia, serif';
 const MIN_TOUCH = 40;
 
 interface Bar {
@@ -33,7 +35,7 @@ interface Bar {
 }
 
 function makeBar(w: number, h: number, color: number): Bar {
-  const bg = new Graphics().roundRect(0, 0, w, h, h / 2).fill({ color: 0x1a1a1a, alpha: 0.85 });
+  const bg = new Graphics().roundRect(0, 0, w, h, 1).fill({ color: 0x05070a, alpha: 0.85 });
   const fg = new Graphics();
   const wrap = { bg, fg, w, h, lastFrac: -1, lastColor: -1 };
   setBar(wrap, 1, color);
@@ -47,7 +49,7 @@ function setBar(bar: Bar, frac: number, color: number): void {
   bar.lastColor = color;
   bar.fg.clear();
   const w = Math.max(bar.h, bar.w * f);
-  if (f > 0) bar.fg.roundRect(0, 0, w, bar.h, bar.h / 2).fill({ color });
+  if (f > 0) bar.fg.roundRect(0, 0, w, bar.h, 1).fill({ color });
 }
 
 function hitArea(c: Container, w: number, h: number): void {
@@ -80,12 +82,12 @@ class Button {
     this.w = w;
     this.h = h;
     this.bg = new Graphics();
-    this.label = new Text({ text, style: { fill: 0xffffff, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
+    this.label = new Text({ text, style: { fill: 0xffffff, fontSize: 15, fontWeight: 'bold', fontFamily: FONT } });
     this.label.anchor.set(0.5);
     this.label.position.set(w / 2, h / 2);
     this.root.addChild(this.bg, this.label);
     if (keyHint) {
-      this.hint = new Text({ text: keyHint, style: { fill: 0xbbbbbb, fontSize: 9, fontWeight: 'bold', fontFamily: FONT } });
+      this.hint = new Text({ text: keyHint, style: { fill: 0xbbbbbb, fontSize: 11, fontWeight: 'bold', fontFamily: FONT } });
       this.hint.position.set(4, 3);
       this.root.addChild(this.hint);
     }
@@ -134,15 +136,15 @@ class Button {
   private redraw(): void {
     const bg = this.bg;
     bg.clear();
-    let fill = 0x2a3a2f;
-    if (this.active) fill = 0x3f6b3a;
-    if (this.pressed) fill = 0x1c281e;
-    else if (this.hovered) fill = this.active ? 0x4f7f48 : 0x384a3d;
-    bg.roundRect(0, 0, this.w, this.h, 6).fill({ color: fill, alpha: this.dimmed ? 0.55 : 0.92 });
-    const borderColor = this.active ? 0x8fe07a : 0x5a6a5c;
-    bg.roundRect(0.5, 0.5, this.w - 1, this.h - 1, 6).stroke({ color: borderColor, width: this.active ? 2 : 1, alpha: this.dimmed ? 0.5 : 0.9 });
+    let fill = 0x191e29;
+    if (this.active) fill = 0x4a3410;
+    if (this.pressed) fill = 0x0d1017;
+    else if (this.hovered) fill = this.active ? 0x5e4316 : 0x252c3b;
+    bg.roundRect(0, 0, this.w, this.h, 2).fill({ color: fill, alpha: this.dimmed ? 0.55 : 0.92 });
+    const borderColor = this.active ? 0xf5a93a : 0x56627c;
+    bg.roundRect(0.5, 0.5, this.w - 1, this.h - 1, 2).stroke({ color: borderColor, width: this.active ? 2 : 1, alpha: this.dimmed ? 0.5 : 0.9 });
     if (this.glow > 0) {
-      bg.roundRect(-2, -2, this.w + 4, this.h + 4, 8).stroke({ color: 0xffee88, width: 2, alpha: this.glow * 0.8 });
+      bg.roundRect(-2, -2, this.w + 4, this.h + 4, 4).stroke({ color: 0xf5c26b, width: 2, alpha: this.glow * 0.8 });
     }
     this.label.alpha = this.dimmed ? 0.6 : 1;
   }
@@ -190,10 +192,10 @@ export class Hud {
   private topH = 68;
   private bottomH = 230;
   private geometry: HudLayout | null = null;
-  private orderHeading = new Text({ text: 'Order', style: { fill: 0xffffff, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
-  private approachHeading = new Text({ text: 'Approach', style: { fill: 0xffffff, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
-  private detailTitle = new Text({ text: '', style: { fill: 0xffee88, fontSize: 12, fontWeight: 'bold', fontFamily: FONT } });
-  private detailIntent = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 12, fontFamily: FONT } });
+  private orderHeading = new Text({ text: 'Order', style: { fill: 0xffffff, fontSize: 15, fontWeight: 'bold', fontFamily: FONT } });
+  private approachHeading = new Text({ text: 'Approach', style: { fill: 0xffffff, fontSize: 15, fontWeight: 'bold', fontFamily: FONT } });
+  private detailTitle = new Text({ text: '', style: { fill: 0xf5c26b, fontSize: 14, fontWeight: 'bold', fontFamily: FONT } });
+  private detailIntent = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 14, fontFamily: FONT } });
 
   constructor(
     private data: GameData,
@@ -207,7 +209,7 @@ export class Hud {
 
     this.timerText = new Text({ text: '0:00', style: { fill: 0xffffff, fontSize: 24, fontWeight: 'bold', fontFamily: FONT } });
     this.timerText.anchor.set(0.5, 0);
-    this.phaseText = new Text({ text: '', style: { fill: 0xffee88, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
+    this.phaseText = new Text({ text: '', style: { fill: 0xf5c26b, fontSize: 15, fontWeight: 'bold', fontFamily: FONT } });
     this.phaseText.anchor.set(0.5, 0);
     this.root.addChild(this.timerText, this.phaseText);
 
@@ -222,20 +224,20 @@ export class Hud {
     this.generalHp = [makeBar(120, 12, 0x44cc44), makeBar(120, 12, 0x44cc44)];
     this.generalMp = [makeBar(120, 7, 0x4488ff), makeBar(120, 7, 0x4488ff)];
     this.generalHpLabel = [
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 9, fontFamily: FONT } }),
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 9, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
     ];
     this.generalMpLabel = [
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
-      new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 13, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xffffff, fontSize: 13, fontFamily: FONT } }),
     ];
     this.generalLabel = [
-      new Text({ text: labels.player, style: { fill: 0xffffff, fontSize: 14, fontWeight: 'bold', fontFamily: FONT } }),
-      new Text({ text: labels.enemy, style: { fill: 0xffffff, fontSize: 14, fontWeight: 'bold', fontFamily: FONT } }),
+      new Text({ text: labels.player, style: { fill: 0xffffff, fontSize: 16, fontWeight: 'bold', fontFamily: FONT } }),
+      new Text({ text: labels.enemy, style: { fill: 0xffffff, fontSize: 16, fontWeight: 'bold', fontFamily: FONT } }),
     ];
     this.generalLevel = [
-      new Text({ text: '', style: { fill: 0xbbbbbb, fontSize: 10, fontFamily: FONT } }),
-      new Text({ text: '', style: { fill: 0xbbbbbb, fontSize: 10, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xbbbbbb, fontSize: 12, fontFamily: FONT } }),
+      new Text({ text: '', style: { fill: 0xbbbbbb, fontSize: 12, fontFamily: FONT } }),
     ];
     for (const s of [0, 1] as const) {
       const c = new Container();
@@ -251,14 +253,14 @@ export class Hud {
     for (let slot = 0; slot < this.data.constants.MAX_SQUADS; slot++) {
       const root = new Container();
       const bg = new Graphics();
-      const numHint = new Text({ text: String(slot + 1), style: { fill: 0x111111, fontSize: 13, fontWeight: 'bold', fontFamily: FONT } });
+      const numHint = new Text({ text: String(slot + 1), style: { fill: 0x111111, fontSize: 15, fontWeight: 'bold', fontFamily: FONT } });
       numHint.anchor.set(0.5);
-      const name = new Text({ text: '', style: { fill: 0xffffff, fontSize: 12, fontWeight: 'bold', fontFamily: FONT } });
-      const dispo = new Text({ text: '', style: { fill: 0xffee88, fontSize: 11, fontFamily: FONT } });
-      const command = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 11, fontFamily: FONT } });
-      const approach = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 11, fontFamily: FONT } });
+      const name = new Text({ text: '', style: { fill: 0xffffff, fontSize: 14, fontWeight: 'bold', fontFamily: FONT } });
+      const dispo = new Text({ text: '', style: { fill: 0xf5c26b, fontSize: 13, fontFamily: FONT } });
+      const command = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 13, fontFamily: FONT } });
+      const approach = new Text({ text: '', style: { fill: 0x9fd9ff, fontSize: 13, fontFamily: FONT } });
       const bar = makeBar(118, 8, 0x44cc44);
-      const countLabel = new Text({ text: '', style: { fill: 0xdddddd, fontSize: 10, fontFamily: FONT } });
+      const countLabel = new Text({ text: '', style: { fill: 0xdddddd, fontSize: 12, fontFamily: FONT } });
       root.addChild(bg, numHint, name, dispo, command, approach, bar.bg, bar.fg, countLabel);
       const card: SquadCard = { root, bg, numHint, name, dispo, command, approach, bar, countLabel, lastKey: '' };
       hitArea(root, 146, 108);
@@ -289,7 +291,7 @@ export class Hud {
     txt.anchor.set(0.5);
     const hint = new Text({
       text: 'SPACE resume · 1–4 select · Q/W/E orders · R/T/Y direct/far/near flank · disposition locked',
-      style: { fill: 0xcccccc, fontSize: 14, fontFamily: FONT },
+      style: { fill: 0xcccccc, fontSize: 16, fontFamily: FONT },
     });
     hint.anchor.set(0.5);
     this.pauseOverlay.addChild(dim, txt, hint);
@@ -323,10 +325,10 @@ export class Hud {
     this.bottomH = this.geometry.bottomBand.height;
 
     this.topBg.clear();
-    this.topBg.rect(0, 0, width, this.topH).fill({ color: 0x0c140c, alpha: 0.88 });
+    this.topBg.rect(0, 0, width, this.topH).fill({ color: 0x090b10, alpha: 0.88 });
     this.topBg.rect(0, this.topH - 1, width, 1).fill({ color: 0x000000, alpha: 0.5 });
     this.bottomBg.clear();
-    this.bottomBg.rect(0, height - this.bottomH, width, this.bottomH).fill({ color: 0x0c140c, alpha: 0.9 });
+    this.bottomBg.rect(0, height - this.bottomH, width, this.bottomH).fill({ color: 0x090b10, alpha: 0.9 });
     this.bottomBg.rect(0, height - this.bottomH, width, 1).fill({ color: 0x000000, alpha: 0.5 });
 
     const layout = this.geometry!;
@@ -402,9 +404,9 @@ export class Hud {
       const ents = world.ents;
       const hp = ents.hp[g.entity]!;
       const maxHp = ents.maxHp[g.entity]!;
-      setBar(this.generalHp[s], hp / maxHp, hp / maxHp < 0.3 ? 0xcc4444 : 0x44cc44);
+      setBar(this.generalHp[s], hp / maxHp, hp / maxHp < 0.3 ? 0xea4b50 : 0x5bc86d);
       const fullMp = g.maxMp > 0 && g.mp >= g.maxMp - 1e-9;
-      setBar(this.generalMp[s], g.maxMp > 0 ? g.mp / g.maxMp : 0, fullMp ? 0x00ff66 : 0x4488ff);
+      setBar(this.generalMp[s], g.maxMp > 0 ? g.mp / g.maxMp : 0, fullMp ? 0x7cc0ff : 0x4ea6ff);
       const hpStr = `${Math.round(hp)}/${Math.round(maxHp)}`;
       if (this.generalHpLabel[s].text !== hpStr) this.generalHpLabel[s].text = hpStr;
       const mpState = fullMp ? 'FULL' : world.phase === 'deploy' ? 'Waiting' : world.phase === 'result' ? 'Ended' : world.paused ? 'Paused' : 'Recharging';
@@ -439,8 +441,8 @@ export class Hud {
       const textColor = contrastMono(this.sideColors[0].squads[slot] ?? this.sideColors[0].team);
       const r = this.geometry!.cards[slot]!;
       const compact = this.geometry!.compact;
-      c.bg.roundRect(0, 0, r.width, r.height, 8).fill({ color: selected ? 0x27392a : 0x15201a, alpha: 0.92 });
-      c.bg.roundRect(0.5, 0.5, r.width - 1, r.height - 1, 8).stroke({ color: selected ? 0x8fe07a : 0x3c4a3f, width: selected ? 2 : 1 });
+      c.bg.roundRect(0, 0, r.width, r.height, 3).fill({ color: selected ? 0x2c2110 : 0x11141c, alpha: 0.92 });
+      c.bg.roundRect(0.5, 0.5, r.width - 1, r.height - 1, 3).stroke({ color: selected ? 0xf5a93a : 0x2b3344, width: selected ? 2 : 1 });
       c.bg.roundRect(0, 0, 6, r.height, 3).fill({ color: hue });
       c.bg.circle(16, 16, 11).fill({ color: hue });
       c.numHint.position.set(16, 16);
@@ -490,12 +492,17 @@ export class Hud {
       this.resultBanner.visible = true;
       this.resultBanner.removeChildren();
       const winner = world.result.winner === 0 ? this.labels.player : this.labels.enemy;
-      const reason = world.result.reason === 'duel' ? 'duel' : 'general defeated';
-      const bg = new Graphics().rect(0, this.height / 2 - 40, this.width, 80).fill({ color: 0x000000, alpha: 0.65 });
-      const t = new Text({ text: `${winner} wins (${reason})`, style: { fill: 0xffee88, fontSize: 28, fontWeight: 'bold', fontFamily: FONT } });
+      const won = world.result.winner === 0;
+      const reason = world.result.reason === 'duel' ? 'Settled by a duel between the generals' : won ? 'The enemy general has fallen' : 'Your general has fallen';
+      const bg = new Graphics().rect(0, this.height / 2 - 62, this.width, 124).fill({ color: 0x05070a, alpha: 0.82 });
+      bg.rect(0, this.height / 2 - 62, this.width, 2).fill({ color: won ? 0xf5a93a : 0xea4b50 }).rect(0, this.height / 2 + 60, this.width, 2).fill({ color: won ? 0xf5a93a : 0xea4b50 });
+      const t = new Text({ text: `${winner} wins`, style: { fill: won ? 0xf5c26b : 0xe3e6ee, fontSize: 46, fontWeight: '900', fontFamily: DISPLAY_FONT, letterSpacing: 2 } });
       t.anchor.set(0.5);
-      t.position.set(this.width / 2, this.height / 2);
-      this.resultBanner.addChild(bg, t);
+      t.position.set(this.width / 2, this.height / 2 - 12);
+      const sub = new Text({ text: reason.toUpperCase(), style: { fill: 0xe3e6ee, fontSize: 16, fontWeight: 'bold', fontFamily: FONT, letterSpacing: 2 } });
+      sub.anchor.set(0.5);
+      sub.position.set(this.width / 2, this.height / 2 + 32);
+      this.resultBanner.addChild(bg, t, sub);
     } else {
       this.resultBanner.visible = false;
     }
@@ -503,7 +510,7 @@ export class Hud {
     if (world.phase === 'duel') {
       this.duelBanner.visible = true;
       if (this.duelBanner.children.length === 0) {
-        const t = new Text({ text: 'DUEL', style: { fill: 0xff4444, fontSize: 36, fontWeight: 'bold', fontFamily: FONT } });
+        const t = new Text({ text: 'DUEL', style: { fill: 0xff5a4a, fontSize: 44, fontWeight: '900', fontFamily: DISPLAY_FONT, letterSpacing: 6, stroke: { color: 0x05070a, width: 6 } } });
         t.anchor.set(0.5);
         this.duelBanner.addChild(t);
       }

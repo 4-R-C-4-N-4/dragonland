@@ -2,6 +2,35 @@
 
 ## MVP3 — the full game (branch `mvp3`)
 
+### Whole-app visual / communication redesign
+
+- Direction: **the war table at night**, documented in `docs/DESIGN.md`. Bundled
+  Cinzel / Barlow faces (OFL licenses included), ink surfaces, ember primary
+  actions, green friendly and red enemy states; shared sprite portraits,
+  general cards, HP/MP meters and class/status chips.
+- Redesigned campaign title, hero picker, map/status/orders, battle choice,
+  troop preparation, loading, prisoners/muster and victory/defeat screens.
+  Skirmish and Sandbox inherit the same typography, controls and surfaces;
+  Sandbox no longer forces a 900px-wide page on a narrow device.
+- Map objective names the castle to take; forces split total/marching/stationed;
+  current order and idle consequences are explicit. Orders scroll separately
+  from a persistent End turn footer. March targets pulse unless reduced motion
+  is requested. The hero's true current/max HP remains visible.
+- A saved, already-applied skirmish result now gets an aftermath screen before
+  Continue: casualties, defeated-general fate, retreat/capture and next step.
+  Reload skips the transient screen without applying the result twice.
+- Tactical HUD uses the shared palette/label face, larger text, blue MP,
+  amber selection and stronger duel/result banners. Transparent terrain retained.
+- Verification: 769 tests / 99 files and typecheck pass; production build passes
+  with the existing large-chunk warning. Browser evidence and limits are in
+  `docs/qa/ui-redesign.md`. Campaign fixture was played through a real tactical
+  result, Continue, second-general choice and reload with an unchanged save.
+- Published to Pages from `mvp3` after Ivy played and approved it. Existing
+  150-troop new-war rule, character identities, HP/MP persistence and save schema
+  are unchanged. Portrait-phone tactical controls remain outside the existing
+  800x600 battle viewport contract; use desktop or landscape for battles.
+
+
 ### Current opening army correction
 
 New wars start with **150 shared troops**, three same-class generals holding

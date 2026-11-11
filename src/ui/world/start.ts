@@ -2,6 +2,8 @@ import type { ClassId, GameData, GeneralId } from '../../data';
 import { getRunConfig } from '../../run/config';
 import { createWar, type BuiltWorldData, type War } from '../../world';
 import { huntOrder, huntRelations, startingArmySummary, validateWarStart, vertex } from './startLogic';
+import { portrait } from '../common/kit';
+import '../common/theme.css';
 import './start.css';
 
 export interface WarStartOptions { data: GameData; worldData: BuiltWorldData; seed: number; onBegin: (war: War) => void; onBack?: () => void }
@@ -47,9 +49,10 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
   const shell = html('section', 'dl-war-start');
   shell.setAttribute('aria-labelledby', 'dl-war-start-title');
   const heading = html('h1', undefined, 'Choose your hero'); heading.id = 'dl-war-start-title';
+  const kicker = html('p', 'dl-kicker', 'New war');
   const lede = html('p', 'dl-war-start__lede', 'Every class hunts one class and is hunted by another: the star lines. Your hero marches with the ally beside it on the ring.');
   const layout = html('div', 'dl-war-start__layout');
-  shell.append(heading, lede, layout);
+  shell.append(kicker, heading, lede, layout);
 
   // ---- the star -------------------------------------------------------------
   const stage = html('div', 'dl-war-start__star');
@@ -127,7 +130,10 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
   const begin = html('button', 'dl-primary', 'Begin war'); begin.type = 'submit';
   actions.append(back, begin);
   form.append(nameLabel, errors, actions);
-  panel.append(title, meta, special, relations, army, form);
+  const faces = html('div', 'dl-war-start__faces');
+  const head = html('div', 'dl-war-start__head'); const headText = html('div'); headText.append(html('p', 'dl-kicker', 'Your hero'), title, meta);
+  head.append(faces, headText);
+  panel.append(head, special, relations, army, form);
   layout.append(stage, panel);
   root.replaceChildren(shell);
 
@@ -161,7 +167,10 @@ export function mountWarStart(root: HTMLElement, options: WarStartOptions): { de
       relation('ally', rel.ally, 'Neutral to you; half your starting army.'),
     );
     const start = startingArmySummary(selectedId);
-    const mates = data.generals.filter(x => x.id !== selectedId && classOf(x.id) === mine).map(x => x.name);
+    const company = data.generals.filter(x => x.id !== selectedId && classOf(x.id) === mine);
+    const mates = company.map(x => x.name);
+    // The hero large, its two companions beside it: the three generals you start with.
+    faces.replaceChildren(portrait(g.unitId, 92), ...company.map(x => portrait(x.unitId, 44)));
     army.textContent = `${g.name} marches with ${mates.join(' and ')}, sharing ${start.troops} troops: ${start.classes.map(className).join(' and ')}, ${start.perKind} of each kind. Any general can lead any troops; beaten rival generals can be adopted.`;
     refresh();
   }

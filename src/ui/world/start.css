@@ -1,57 +1,66 @@
-.dl-war-start { box-sizing: border-box; width: min(1180px, 100%); margin: 0 auto; padding: clamp(10px, 2vw, 22px); color: var(--dl-text); font-family: var(--dl-font-ui); }
-.dl-war-start h1 { margin: 0; font: 700 30px var(--dl-font); color: var(--dl-accent); letter-spacing: .02em; }
-.dl-war-start__lede { margin: 4px 0 10px; color: var(--dl-text-dim); }
-.dl-war-start__layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 18px; align-items: center; }
+.dl-war-start { box-sizing: border-box; width: min(1220px, 100%); margin: auto; padding: clamp(10px, 2vw, 20px); color: var(--dl-text); font-family: var(--dl-font-body); }
+.dl-war-start h1 { margin: 0; font: 700 clamp(26px, 3.4vw, 38px) var(--dl-font-display); letter-spacing: .02em; }
+.dl-war-start__lede { margin: 4px 0 10px; color: var(--dl-text-dim); max-width: 80ch; }
+.dl-war-start__layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr); gap: 20px; align-items: center; }
 
 /* The star scales with the viewport height so the whole picker fits one screen. */
-.dl-war-start__star { position: relative; width: min(100%, calc(100vh - 130px)); aspect-ratio: 1; margin: 0 auto; container-type: inline-size; }
+.dl-war-start__star { position: relative; width: min(100%, calc(100vh - 150px)); aspect-ratio: 1; margin: 0 auto; container-type: inline-size; }
 .dl-war-start__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.dl-war-start__ring { fill: #1b1511; stroke: #3a2e22; stroke-width: 2; }
-.dl-war-start__ally-edge { stroke: #6b5438; stroke-width: 2; stroke-dasharray: 6 6; }
-.dl-war-start__hunt-edge { stroke: rgba(236, 223, 201, .16); stroke-width: 2; }
-.dl-war-start__lit { stroke-width: 5; stroke-linecap: round; }
-.dl-war-start__lit--quarry { stroke: #7fd16b; }
-.dl-war-start__lit--nemesis { stroke: #e0604f; }
-.dl-war-start__lit--ally { stroke: var(--dl-accent); stroke-dasharray: 8 6; }
-.dl-war-start__class circle { stroke: #14100e; stroke-width: 3; transition: opacity .15s, stroke .15s; }
-.dl-war-start__class text { font: 700 15px var(--dl-font); fill: #14100e; pointer-events: none; }
-.dl-war-start__class[data-role="other"] circle { opacity: .35; }
-.dl-war-start__class[data-role="self"] circle { stroke: #fff; stroke-width: 4; }
-.dl-war-start__class[data-role="quarry"] circle { stroke: #7fd16b; stroke-width: 4; }
-.dl-war-start__class[data-role="nemesis"] circle { stroke: #e0604f; stroke-width: 4; }
-.dl-war-start__class[data-role="ally"] circle { stroke: var(--dl-accent); stroke-width: 4; }
-.dl-war-start__centre { font: 700 18px var(--dl-font); fill: var(--dl-accent); letter-spacing: .25em; }
-.dl-war-start__centre-sub { font: 12px var(--dl-font-ui); fill: var(--dl-text-dim); }
+.dl-war-start__ring { fill: rgba(9, 11, 16, 0.82); stroke: var(--dl-line-hot); stroke-width: 2; }
+.dl-war-start__ally-edge { stroke: var(--dl-line-hot); stroke-width: 2; stroke-dasharray: 6 6; }
+.dl-war-start__hunt-edge { stroke: rgba(239, 233, 219, .16); stroke-width: 2; }
+.dl-war-start__lit { stroke-width: 6; stroke-linecap: round; }
+.dl-war-start__lit--quarry { stroke: var(--dl-own); filter: drop-shadow(0 0 6px rgba(91, 200, 109, .7)); }
+.dl-war-start__lit--nemesis { stroke: var(--dl-foe); filter: drop-shadow(0 0 6px rgba(234, 75, 80, .7)); }
+.dl-war-start__lit--ally { stroke: var(--dl-ember); stroke-dasharray: 8 6; }
+.dl-war-start__class circle { stroke: #05070a; stroke-width: 3; transition: opacity .15s, stroke .15s; }
+.dl-war-start__class text { font: 700 15px var(--dl-font-display); fill: #05070a; pointer-events: none; }
+.dl-war-start__class[data-role="other"] circle { opacity: .3; }
+.dl-war-start__class[data-role="self"] circle { stroke: #fff; stroke-width: 5; }
+.dl-war-start__class[data-role="quarry"] circle { stroke: var(--dl-own); stroke-width: 5; }
+.dl-war-start__class[data-role="nemesis"] circle { stroke: var(--dl-foe); stroke-width: 5; }
+.dl-war-start__class[data-role="ally"] circle { stroke: var(--dl-ember); stroke-width: 5; }
+.dl-war-start__centre { font: 900 18px var(--dl-font-display); fill: var(--dl-ember); letter-spacing: .25em; }
+.dl-war-start__centre-sub { font: 12px var(--dl-font-body); fill: var(--dl-text-dim); }
 
 .dl-war-start__tokens { position: absolute; inset: 0; }
 /* Sized to the star (cqw) so a row of three always fits its 15cqw spacing. */
-.dl-war-start__token { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0; width: 13.5cqw; padding: .6cqw 0; color: var(--dl-text); background: var(--dl-bg-panel); border: 2px solid color-mix(in srgb, var(--class-color) 55%, #000); border-radius: 18px; cursor: pointer; line-height: 1.15; }
-.dl-war-start__token strong { font: 700 clamp(10px, 2.05cqw, 13px) var(--dl-font); }
-.dl-war-start__token span { font-size: clamp(8px, 1.6cqw, 10px); color: var(--dl-text-dim); white-space: nowrap; }
-.dl-war-start__token:hover { border-color: var(--class-color); }
-.dl-war-start__token[aria-checked="true"] { background: color-mix(in srgb, var(--class-color) 35%, var(--dl-bg-panel)); border-color: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--class-color) 60%, transparent); }
+.dl-war-start__token {
+  position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0; width: 13.8cqw; padding: .7cqw 0;
+  clip-path: none; border-radius: 3px; background: var(--dl-ink-1); border: 2px solid color-mix(in srgb, var(--class-color) 55%, #000);
+  color: var(--dl-text); line-height: 1.15; letter-spacing: 0.04em;
+}
+.dl-war-start__token strong { font: 700 clamp(10px, 2.2cqw, 14px) var(--dl-font-label); }
+.dl-war-start__token span { font: 500 clamp(8px, 1.7cqw, 11px) var(--dl-font-label); color: var(--dl-text-dim); white-space: nowrap; }
+.dl-war-start__token:hover:not(:disabled) { border-color: var(--class-color); background: var(--dl-ink-3); color: var(--dl-text); transform: translate(-50%, -50%) scale(1.06); }
+.dl-war-start__token[aria-checked="true"] { background: color-mix(in srgb, var(--class-color) 45%, var(--dl-ink-1)); border-color: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--class-color) 70%, transparent), 0 0 22px color-mix(in srgb, var(--class-color) 70%, transparent); color: #fff; }
+.dl-war-start__token[aria-checked="true"] span { color: #fff; }
 
-.dl-war-start__panel { padding: 16px 18px; min-width: 0; }
-.dl-war-start__panel h2 { margin: 0; font: 700 26px var(--dl-font); }
-.dl-war-start__meta { margin: 2px 0 10px; color: var(--dl-text-dim); }
-.dl-war-start__special { margin: 0 0 12px; font-size: 14px; }
-.dl-war-start__relations { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
-.dl-war-start__rel { display: grid; grid-template-columns: 76px auto minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px 8px; border-left: 4px solid; background: var(--dl-bg-panel-2); font-size: 13px; }
-.dl-war-start__rel b { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
-.dl-war-start__rel--quarry { border-color: #7fd16b; } .dl-war-start__rel--quarry b { color: #9be07a; }
-.dl-war-start__rel--nemesis { border-color: #e0604f; } .dl-war-start__rel--nemesis b { color: #f08a7a; }
-.dl-war-start__rel--ally { border-color: var(--dl-accent); } .dl-war-start__rel--ally b { color: var(--dl-accent); }
-.dl-war-start__chip { padding: 1px 8px; border-radius: 10px; background: var(--class-color); color: #14100e; font-weight: 700; font-size: 12px; }
-.dl-war-start__army { margin: 0 0 12px; padding: 8px 10px; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); font-size: 13px; }
-.dl-war-start__name { display: grid; gap: 4px; font-size: 13px; color: var(--dl-text-dim); }
-.dl-war-start__name input { box-sizing: border-box; width: 100%; min-height: 40px; padding: 6px 10px; font-size: 16px; color: var(--dl-text); background: var(--dl-bg); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
+.dl-war-start__panel { padding: 18px 20px; min-width: 0; --_fill: rgba(17, 20, 28, 0.94); }
+.dl-war-start__head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.dl-war-start__faces { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 4px; align-items: end; }
+.dl-war-start__faces .dl-portrait:first-child { grid-row: 1 / span 2; }
+.dl-war-start__panel h2 { margin: 0; font: 700 30px var(--dl-font-display); }
+.dl-war-start__meta { margin: 2px 0 0; color: var(--dl-text-dim); }
+.dl-war-start__special { margin: 0 0 12px; font-size: 14.5px; }
+.dl-war-start__special b { color: var(--dl-ember); }
+.dl-war-start__relations { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 5px; }
+.dl-war-start__rel { display: grid; grid-template-columns: 82px auto minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px 10px; border-left: 3px solid; background: var(--dl-ink-2); font-size: 13.5px; }
+.dl-war-start__rel b { font: 700 12px var(--dl-font-label); text-transform: uppercase; letter-spacing: .12em; }
+.dl-war-start__rel--quarry { border-color: var(--dl-own); } .dl-war-start__rel--quarry b { color: var(--dl-own); }
+.dl-war-start__rel--nemesis { border-color: var(--dl-foe); } .dl-war-start__rel--nemesis b { color: #ff8f92; }
+.dl-war-start__rel--ally { border-color: var(--dl-ember); } .dl-war-start__rel--ally b { color: var(--dl-ember); }
+.dl-war-start__chip { padding: 1px 8px; border-radius: 2px; background: var(--class-color); color: #05070a; font: 700 12px var(--dl-font-label); letter-spacing: .1em; text-transform: uppercase; }
+.dl-war-start__army { margin: 0 0 12px; padding: 8px 10px; background: var(--dl-ink-2); border-top: 2px solid var(--dl-line-hot); font-size: 13.5px; }
+.dl-war-start__name { display: grid; gap: 4px; font: 700 11px var(--dl-font-label); letter-spacing: .18em; text-transform: uppercase; color: var(--dl-text-dim); }
+.dl-war-start__name input { box-sizing: border-box; width: 100%; min-height: 42px; padding: 6px 10px; font: 600 18px var(--dl-font-body); letter-spacing: 0; }
 .dl-war-start__errors { min-height: 1.4em; margin: 4px 0; }
-.dl-war-start__actions { display: flex; gap: 8px; justify-content: space-between; }
-.dl-war-start__actions .dl-primary { padding: 8px 22px; font-size: 15px; }
-.dl-war-start button:focus-visible, .dl-war-start input:focus-visible { outline: 3px solid var(--dl-accent); outline-offset: 2px; }
+.dl-war-start__actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.dl-war-start__actions .dl-primary { padding: 12px 34px; font-size: 20px; }
 
 @media (max-width: 900px) {
   .dl-war-start__layout { grid-template-columns: minmax(0, 1fr); }
   .dl-war-start__star { width: min(100%, 560px); }
   .dl-war-start__token span { display: none; }
 }
+.dl-war-start__token:active:not(:disabled) { transform: translate(-50%, -50%) scale(0.97); }

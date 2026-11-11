@@ -1,28 +1,35 @@
-.dl-prepare { max-width: 980px; }
-.dl-prepare h2 { margin: 10px 0 6px; font: 700 16px var(--dl-font); color: var(--dl-accent); }
-.dl-prepare__top { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.dl-prepare__enemy { padding: 8px 12px; border-left: 4px solid var(--dl-bad); background: rgba(178, 58, 58, 0.12); }
-.dl-prepare__enemy p, .dl-prepare__mine p { margin: 3px 0; font-size: 13px; }
-.dl-prepare__mine { padding: 8px 12px; border-left: 4px solid var(--dl-good); background: rgba(79, 158, 82, 0.1); }
-.dl-prepare__special { color: var(--dl-text-dim); }
-.dl-prepare__formation { display: inline-flex; gap: 6px; align-items: center; margin: 6px 10px 0 0; font-size: 13px; }
+.dl-prepare__top { margin-top: 10px; }
+.dl-prepare__top .dl-troops { margin-top: 2px; }
+.dl-prepare__warn { margin: 0; color: var(--dl-warn); font-weight: 600; font-size: 13.5px; }
+.dl-prepare__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 16px 0 8px; }
+.dl-prepare__bar h2 { margin: 0; }
+.dl-prepare__bar .dl-versus__prompt { flex: 1 1 200px; margin: 0; }
+.dl-prepare__formation { display: inline-flex; gap: 6px; align-items: center; font: 700 12px var(--dl-font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dl-text-dim); }
 .dl-prepare__squads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.dl-prepare__squad { display: grid; gap: 4px; padding: 6px 8px; background: var(--dl-bg-panel-2); border: 1px solid var(--dl-border); border-radius: var(--dl-radius); font-size: 13px; }
+.dl-prepare__squad { display: grid; gap: 4px; padding: 8px 10px; background: var(--dl-ink-2); border-top: 2px solid var(--dl-line-hot); font-size: 13px; }
+.dl-prepare__squad b { font: 700 13px var(--dl-font-label); letter-spacing: 0.1em; text-transform: uppercase; }
 .dl-prepare__squad select { min-width: 0; }
-.dl-prepare__squad small { color: var(--dl-text-dim); font-size: 11px; }
-.dl-prepare__scroll { max-height: min(42vh, 380px); overflow: auto; margin-top: 10px; border: 1px solid var(--dl-border); border-radius: var(--dl-radius); }
-.dl-prepare__table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.dl-prepare__table th { position: sticky; top: 0; background: var(--dl-bg-panel); text-align: left; padding: 6px 8px; }
-.dl-prepare__table td { padding: 5px 8px; border-top: 1px solid var(--dl-border); }
-.dl-prepare__table input { width: 4.5em; }
+.dl-prepare__squad small { color: var(--dl-text-dim); font-size: 12px; }
+.dl-prepare__scroll { max-height: min(30vh, 300px); overflow: auto; margin-top: 10px; box-shadow: inset 0 0 0 1px var(--dl-line); }
+.dl-prepare__table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.dl-prepare__table th { position: sticky; top: 0; z-index: 1; background: var(--dl-ink-2); text-align: left; padding: 6px 10px; font: 700 11px var(--dl-font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dl-text-dim); }
+.dl-prepare__table td { padding: 4px 10px; border-top: 1px solid var(--dl-line); vertical-align: middle; }
+.dl-prepare__table td:first-child { display: flex; align-items: center; gap: 8px; }
+.dl-prepare__table .dl-portrait { clip-path: none; box-shadow: none; }
+.dl-prepare__unit { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.dl-prepare__table input { width: 4.5em; font: 700 15px var(--dl-font-label); }
 .dl-prepare__table small { color: var(--dl-text-dim); }
-.dl-prepare__chip { padding: 0 6px; border-radius: 8px; background: var(--class-color); color: #14100e; font-size: 11px; font-weight: 700; }
-.dl-prepare__edge--strong { color: #9be07a; font-weight: 700; }
-.dl-prepare__edge--weak { color: #f08a7a; font-weight: 700; }
-.dl-prepare__footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
-.dl-prepare__notes { color: var(--dl-text-dim); font-size: 13px; }
-.dl-prepare__warn { color: #f0c27a; font-weight: 600; }
-.dl-prepare__issues { color: var(--dl-bad); font-size: 13px; min-height: 1.2em; }
-.dl-prepare__actions { display: flex; gap: 8px; }
-.dl-prepare__actions .dl-primary { padding: 8px 24px; font-size: 15px; }
-@media (max-width: 760px) { .dl-prepare__top { grid-template-columns: 1fr; } .dl-prepare__squads { grid-template-columns: 1fr 1fr; } }
+.dl-prepare__edge { font: 700 12px var(--dl-font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dl-text-dim); }
+.dl-prepare__edge--strong { color: var(--dl-own); }
+.dl-prepare__edge--weak { color: #ff8f92; }
+/* Sticky, so Fight stays reachable however long the troop list is. */
+.dl-prepare__footer { position: sticky; bottom: 0; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 10px -26px 0; padding: 10px 26px; background: var(--dl-ink-1); border-top: 1px solid var(--dl-line); }
+.dl-prepare__summary { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+.dl-prepare__summary .dl-meter { height: 20px; max-width: 460px; }
+.dl-prepare__summary .dl-meter > span { font-size: 13px; }
+.dl-prepare__notes { color: var(--dl-text-dim); font-size: 13px; max-width: 70ch; }
+.dl-prepare__issues { color: #ff8f92; font-size: 13px; min-height: 1.2em; }
+.dl-prepare__actions { display: flex; gap: 10px; flex: none; align-items: center; }
+.dl-prepare__actions .dl-primary { padding: 12px 36px; font-size: 20px; }
+.dl-prepare__tip { margin: 12px 0 0; padding-top: 8px; border-top: 1px solid var(--dl-line); color: var(--dl-text-dim); font-size: 12.5px; }
+@media (max-width: 760px) { .dl-prepare__squads { grid-template-columns: 1fr 1fr; } .dl-prepare__footer { flex-direction: column; align-items: stretch; } }

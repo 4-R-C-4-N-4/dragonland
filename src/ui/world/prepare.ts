@@ -4,18 +4,22 @@
 import type { Disposition, GameData } from '../../data';
 import type { War } from '../../world';
 import { fightPool, type WarArmy } from '../../world/army';
-import { maxMpOf, mpOf } from '../../world/mp';
 import { classEdge, planToArmy, speciesGroups, type ArmyPlan } from '../run/logic';
 import { initialPlan, planProblems, planWarnings, troopsByClass } from './prepareLogic';
+import { bar, chip, el, generalCard, heading, portrait } from '../common/kit';
 import './prepare.css';
 
 export interface PrepareOptions {
   data: GameData;
   war: War;
   generalId: string;
+  /** Small line above the title saying where this fight is. */
+  kicker: string;
   title: string;
-  /** What the player may know about the other side, one line each. */
-  enemyLines: string[];
+  /** What the player may know about the other side: general cards and/or a troop strip. */
+  enemyCards: HTMLElement[];
+  /** One line under "You face", e.g. that the enemy answers after you commit. */
+  enemyNote?: string;
   /** Enemy troops visible to the player (for counter hints); empty when unknown. */
   enemyTroops: { unitId: string }[];
   /** Troops Auto-arrange deploys (default: the command limit), e.g. a fair share of the pool. */
@@ -29,13 +33,6 @@ export interface PrepareOptions {
 const DISPOSITIONS: Disposition[] = ['mixed', 'fierce', 'guard'];
 const DISPOSITION_HELP: Record<Disposition, string> = { mixed: 'fights the nearest troops', fierce: 'drives for the enemy general', guard: 'protects your general' };
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
 export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy(): void } {
   const { data, war } = opts;
   const general = war.generals.find(g => g.id === opts.generalId)!;
@@ -48,39 +45,44 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   let plan: ArmyPlan = initialPlan(data, pool, share);
   let destroyed = false;
 
-  const box = el('section', 'dl-campaign__panel dl-panel dl-prepare');
-  const h = el('h1', undefined, opts.title); h.tabIndex = -1;
-  const top = el('div', 'dl-prepare__top');
-  const enemy = el('div', 'dl-prepare__enemy');
-  enemy.append(el('h2', undefined, 'You face'));
-  for (const line of opts.enemyLines) enemy.append(el('p', undefined, line));
-  const mine = el('div', 'dl-prepare__mine');
-  mine.append(el('h2', undefined, `${general.name} (${profile.name})`),
-    el('p', undefined, `${Math.round(general.hp)}/${general.maxHp} HP · MP ${Math.floor(mpOf(general))}/${maxMpOf(general)} · commands up to ${limit} troops · ${pool.length} in the division`),
-    el('p', 'dl-prepare__special', `${profile.special.name}: ${profile.special.description}`));
+  const box = el('section', 'dl-campaign__panel dl-campaign__panel--wide dl-panel dl-prepare dl-enter');
+  const head = heading(opts.kicker, opts.title);
+  const h = head.h1;
+  const top = el('div', 'dl-versus dl-prepare__top');
+  const mine = el('div', 'dl-versus__side dl-versus__side--own');
+  const mineHead = el('h2', undefined, 'Your general'); mineHead.append(el('small', undefined, `leads up to ${limit} of the division's ${pool.length} troops`));
+  mine.append(mineHead, generalCard(general, { tone: 'own', troops: false, note: `${profile.special.name}: ${profile.special.description}` }));
   if (general.isHero) mine.append(el('p', 'dl-prepare__warn', `${general.name} is your hero: if they fall, the war is lost.`));
+  const enemy = el('div', 'dl-versus__side dl-versus__side--foe');
+  enemy.append(el('h2', undefined, 'You face'));
+  if (opts.enemyNote) enemy.append(el('p', 'dl-versus__prompt', opts.enemyNote));
+  enemy.append(...opts.enemyCards);
+  top.append(mine, el('div', 'dl-versus__mid', 'VS'), enemy);
+
   const formation = el('select'); formation.setAttribute('aria-label', 'Formation');
   for (const f of data.formations) { const o = el('option', undefined, f.name); o.value = f.id; formation.append(o); }
   const formationLabel = el('label', 'dl-prepare__formation', 'Formation '); formationLabel.append(formation);
   const auto = el('button', undefined, 'Auto-arrange'); auto.type = 'button';
-  mine.append(formationLabel, auto);
-  top.append(enemy, mine);
+  const squadsHead = el('div', 'dl-prepare__bar');
+  squadsHead.append(el('h2', undefined, 'Squads'), el('p', 'dl-versus__prompt', 'Up to four squads. Each keeps its behaviour for the whole fight.'), formationLabel, auto);
 
   const squadsRow = el('div', 'dl-prepare__squads');
   const table = el('table', 'dl-prepare__table');
   const thead = el('thead'); const hr = el('tr');
-  for (const t of ['Troops', 'vs enemy', 'Deploy', 'Squad']) hr.append(el('th', undefined, t));
+  for (const t of ['Troops', 'Against them', 'Send', 'Squad']) hr.append(el('th', undefined, t));
   thead.append(hr); const tbody = el('tbody'); table.append(thead, tbody);
   const scroll = el('div', 'dl-prepare__scroll'); scroll.append(table);
   const footer = el('div', 'dl-prepare__footer');
-  const totals = el('strong'); const issues = el('div', 'dl-prepare__issues'); issues.setAttribute('role', 'status');
+  const meter = bar('troops', 0, limit, '');
+  const issues = el('div', 'dl-prepare__issues'); issues.setAttribute('role', 'status');
   const notes = el('div', 'dl-prepare__notes');
   const back = el('button', undefined, 'Back'); back.type = 'button';
   const fight = el('button', 'dl-primary', 'Fight!'); fight.type = 'button';
-  const summary = el('div'); summary.append(totals, notes, issues);
+  const summary = el('div', 'dl-prepare__summary'); summary.append(meter, notes, issues);
   const actions = el('div', 'dl-prepare__actions'); actions.append(back, fight);
   footer.append(summary, actions);
-  box.append(h, top, el('h2', undefined, 'Squads'), squadsRow, scroll, footer);
+  const tip = el('p', 'dl-prepare__tip', 'In battle: Space pauses so you can give orders, 1-4 pick a squad, Q W E set its order, and S casts your general\'s special once MP is full.');
+  box.append(head.kicker, h, top, squadsHead, squadsRow, scroll, footer, tip);
   root.replaceChildren(box);
 
   function renderSquads(): void {
@@ -103,9 +105,10 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
       const a = plan.assignment[g.unit.id] ?? { count: 0, squad: 0 };
       const tr = el('tr');
       const name = el('td');
-      const chip = el('span', 'dl-prepare__chip', data.classById.get(g.unit.classId)!.name);
-      chip.style.setProperty('--class-color', data.classById.get(g.unit.classId)!.color);
-      name.append(el('strong', undefined, g.unit.name), ' ', chip, el('small', undefined, ` ${g.unit.line} · stage ${g.unit.stage}`));
+      const kind = chip(data.classById.get(g.unit.classId)!.name, { color: data.classById.get(g.unit.classId)!.color });
+      const label = el('span', 'dl-prepare__unit');
+      label.append(el('strong', undefined, g.unit.name), kind, el('small', undefined, `stage ${g.unit.stage}`));
+      name.append(portrait(g.unit.id, 30), label);
       const edge = enemyClasses.size ? classEdge(data, g.unit.classId, enemyClasses) : 'neutral';
       const edgeCell = el('td', `dl-prepare__edge dl-prepare__edge--${edge}`, enemyClasses.size ? (edge === 'strong' ? 'strong' : edge === 'weak' ? 'weak' : 'even') : '—');
       const count = el('input'); count.type = 'number'; count.min = '0'; count.step = '1'; count.max = String(g.troops.length); count.value = String(a.count);
@@ -124,7 +127,9 @@ export function mountPrepare(root: HTMLElement, opts: PrepareOptions): { destroy
   function refresh(): void {
     if (destroyed) return;
     const total = Object.values(plan.assignment).reduce((n, a) => n + (Number.isInteger(a.count) && a.count > 0 ? a.count : 0), 0);
-    totals.textContent = `${total} / ${limit} deployed · ${Math.max(0, pool.length - total)} stay in reserve`;
+    meter.style.setProperty('--v', String(Math.max(0, Math.min(1, limit ? total / limit : 0))));
+    meter.classList.toggle('dl-meter--foe', total > limit);
+    meter.querySelector('span')!.textContent = `${total} of ${limit} sent · ${Math.max(0, pool.length - total)} held back`;
     const problems = planProblems(data, pool, plan, limit);
     issues.textContent = problems.join(' ');
     notes.textContent = [...planWarnings(data, pool, plan), ...(opts.shareNote ? [opts.shareNote] : [])].join(' ');

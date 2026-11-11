@@ -1,9 +1,9 @@
 .dl-builder {
-  min-width: 900px;
+  min-width: 0;
   max-width: 1500px;
   margin: 0 auto;
-  padding: 12px 16px 24px;
-  font-size: 13px;
+  padding: 42px 16px 24px;
+  font-size: 15px;
 }
 
 .dl-topbar {
@@ -16,7 +16,7 @@
 }
 
 .dl-topbar h1 {
-  font-size: 20px;
+  font-size: clamp(26px, 4vw, 40px);
   margin: 0;
 }
 
@@ -31,6 +31,7 @@
   background: var(--dl-accent);
   color: #1a1206;
 }
+.dl-suggest-btn:hover:not(:disabled) { background: #ffd27a; color: #1a1206; }
 
 .dl-general-picker {
   color: var(--dl-text-dim);
@@ -71,7 +72,7 @@
 
 .dl-dim {
   color: var(--dl-text-dim);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .dl-class-swatch,
@@ -146,7 +147,7 @@
 .dl-squad-count {
   color: var(--dl-text-dim);
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .dl-disposition-switch {
@@ -157,7 +158,7 @@
 
 .dl-disp-opt {
   flex: 1;
-  font-size: 11px;
+  font-size: 13px;
   padding: 3px 4px;
   opacity: 0.6;
 }
@@ -222,13 +223,13 @@
 
 .dl-shortfall {
   color: var(--dl-bad);
-  font-size: 11px;
+  font-size: 13px;
   margin: 4px 0;
 }
 
 .dl-troops-disclosure {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .dl-squad-troops2 {
@@ -270,7 +271,7 @@
 .dl-class-counts,
 .dl-squad-chips {
   color: var(--dl-text-dim);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .dl-errors {
@@ -285,6 +286,9 @@
 }
 
 .dl-start {
+  --_fill: var(--dl-ember);
+  --_edge: #ffd27a;
+  color: #1b0f02;
   width: 100%;
   padding: 10px 24px;
   font-size: 15px;
@@ -364,8 +368,14 @@
     grid-template-columns: 1fr;
   }
   .dl-drawer-open {
-    width: 100%;
+    width: min(420px, 100%);
   }
+  .dl-topbar { align-items: flex-start; }
+  .dl-loadout-controls { width: 100%; }
+  .dl-squad-header2 { flex-wrap: wrap; }
+  .dl-squad-name { width: 100px; }
+  .dl-summary { min-width: 0; }
+  .dl-comp-row { flex-wrap: wrap; }
 }
 
 /* colour popover */

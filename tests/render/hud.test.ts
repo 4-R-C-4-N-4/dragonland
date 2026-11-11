@@ -53,7 +53,7 @@ describe('responsive HUD', () => {
     const fill = vi.spyOn(bars[0]!.fg, 'fill');
     world.generals[0].mp = 100;
     hud.update(world, 'all');
-    expect(fill).toHaveBeenCalledWith({ color: 0x00ff66 });
+    expect(fill).toHaveBeenCalledWith({ color: 0x7cc0ff });
     hud.root.destroy({ children: true });
   });
   it('ellipsizes very long squad names without compressing names or planning status', () => {

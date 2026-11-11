@@ -60,7 +60,9 @@ export const startBattleView: StartBattleView = async (root, opts) => {
     }
   });
   try {
-    await app.init({ resizeTo: root, antialias: true, background: '#1a2a1a' });
+    await app.init({ resizeTo: root, antialias: true, background: '#0b0d12' });
+    // The HUD draws text on the canvas: load the theme faces first or it falls back to a system font.
+    try { if (typeof document !== 'undefined' && document.fonts) await Promise.all([document.fonts.load('700 15px "Barlow Condensed"'), document.fonts.load('900 44px Cinzel')]); } catch { /* keep the fallback */ }
     // Block, not inline: an inline canvas adds line-height below itself and overflows its host.
     app.canvas.style.display = 'block';
     root.appendChild(app.canvas);

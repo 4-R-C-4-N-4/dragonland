@@ -1,20 +1,16 @@
-.dl-game-menu { position: fixed; top: 6px; right: 8px; z-index: 60; font-family: var(--dl-font-ui, system-ui, sans-serif); }
-.dl-game-menu__toggle {
-  padding: 3px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;
-  background: rgba(20, 16, 14, 0.75); color: #ecdfc9; border: 1px solid #6b5438;
-}
-.dl-game-menu__toggle:hover, .dl-game-menu__toggle[aria-expanded='true'] { background: #241c15; border-color: #c9972e; }
+.dl-game-menu { position: fixed; top: 7px; right: 10px; z-index: 60; }
+.dl-game-menu__toggle { padding: 5px 14px; font-size: 13px; --_fill: rgba(17, 20, 28, 0.9); }
+.dl-game-menu__toggle[aria-expanded='true'] { --_edge: var(--dl-ember); color: var(--dl-ember); }
 .dl-game-menu__list {
-  position: absolute; right: 0; top: calc(100% + 4px); min-width: 220px; display: grid; gap: 2px; padding: 6px;
-  background: #1d1712; border: 1px solid #4a3a28; border-radius: 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  position: absolute; right: 0; top: calc(100% + 6px); min-width: 250px; display: grid; gap: 2px; padding: 8px;
+  background: var(--dl-ink-1); border: 1px solid var(--dl-line-hot); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+  animation: dl-enter 140ms ease both;
 }
 .dl-game-menu__list[hidden] { display: none; }
-.dl-game-menu__list > button, .dl-game-menu__confirm button {
-  text-align: left; padding: 6px 8px; font-size: 13px; background: transparent; color: #ecdfc9; border: 0; border-radius: 3px; cursor: pointer;
-}
-.dl-game-menu__list > button:hover:not(:disabled), .dl-game-menu__list > button:focus-visible { background: #241c15; }
-.dl-game-menu__list > button:disabled { color: #a8957a; cursor: default; }
-.dl-game-menu__list hr { border: 0; border-top: 1px solid #4a3a28; margin: 4px 0; width: 100%; }
-.dl-game-menu__danger { color: #f08a7a !important; }
-.dl-game-menu__confirm { display: grid; gap: 4px; padding: 6px 8px; font-size: 13px; color: #ecdfc9; background: rgba(178, 58, 58, 0.15); border-radius: 3px; }
-.dl-game-menu__confirm button { border: 1px solid #4a3a28; text-align: center; }
+.dl-game-menu__list > button { text-align: left; padding: 8px 10px; --_edge: transparent; --_fill: transparent; }
+.dl-game-menu__list > button:hover:not(:disabled), .dl-game-menu__list > button:focus-visible { --_fill: var(--dl-ink-3); --_edge: var(--dl-line-hot); }
+.dl-game-menu__list > button:disabled { color: var(--dl-text-dim); cursor: default; opacity: 0.7; }
+.dl-game-menu__list hr { border: 0; border-top: 1px solid var(--dl-line); margin: 4px 0; width: 100%; }
+.dl-game-menu__danger { color: #ff9a9c !important; }
+.dl-game-menu__confirm { display: grid; gap: 6px; padding: 8px 10px; font-size: 13.5px; background: rgba(234, 75, 80, 0.14); border-left: 3px solid var(--dl-foe); }
+.dl-game-menu__confirm button { text-align: center; }

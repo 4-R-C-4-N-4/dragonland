@@ -2,10 +2,10 @@
   color: var(--dl-text, #eee4c8);
   background: var(--dl-bg-panel, #1d1712);
   border: 1px solid var(--dl-border, #666447);
-  border-radius: 8px;
+  border-radius: 3px;
   padding: 24px;
   max-width: min(460px, calc(100vw - 48px));
-  font: 16px/1.5 system-ui, sans-serif;
+  font: 16px/1.5 var(--dl-font-body, sans-serif);
 }
 .dl-quit-dialog::backdrop { background: rgb(0 0 0 / 65%); }
 .dl-quit-dialog h2 { margin-top: 0; }
